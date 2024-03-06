@@ -234,7 +234,7 @@ impl super::ItemParserProcessor for SetterCall {
                                     match self.value.process(
                                         TypeParserProcessorOptions::new(
                                             options.parser,
-                                            options.page_idx,
+                                            options.page_hash,
                                         )
                                         .variable_pos(self.target_pos)
                                         .build(),

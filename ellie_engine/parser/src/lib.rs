@@ -18,3 +18,4 @@ pub mod deep_search_extensions;
 pub mod parser;
 pub mod processors;
 pub mod utils;
+pub mod extra;
