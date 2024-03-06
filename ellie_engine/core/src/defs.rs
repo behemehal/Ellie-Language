@@ -1,6 +1,13 @@
-use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
+use alloc::{string::String, vec::Vec};
+
+#[cfg(feature = "compiler_utils")]
+use alloc::{borrow::ToOwned, format};
 use core::fmt::{Display, Error, Formatter};
+
+#[cfg(feature = "compiler_utils")]
 use regex::Regex;
+
+#[cfg(feature = "compiler_utils")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "compiler_utils")]
@@ -73,6 +80,14 @@ impl Default for TokenizerOptions {
 /// A struct that represents a position in a file.
 /// (line, column)
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct CursorPosition(pub usize, pub usize);
+
+
+/// A struct that represents a position in a file.
+/// (line, column)
+#[cfg(not(feature = "compiler_utils"))]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl core::fmt::Display for CursorPosition {
@@ -116,6 +131,18 @@ impl CursorPosition {
 /// * `range_start` - Start of range [`CursorPosition`]
 /// * `range_end` - End of range [`CursorPosition`]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct Cursor {
+    pub range_start: CursorPosition,
+    pub range_end: CursorPosition,
+}
+
+/// Cursor position
+/// ## Fields
+/// * `range_start` - Start of range [`CursorPosition`]
+/// * `range_end` - End of range [`CursorPosition`]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
+#[cfg(not(feature = "compiler_utils"))]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -184,6 +211,7 @@ impl Cursor {
 /// * `major` - Major version [`u8`]
 /// * `minor` - Minor version [`u8`]
 /// * `bug` - Bug version [`u8`]
+#[cfg(feature = "compiler_utils")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
     pub major: usize,
@@ -193,6 +221,7 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
+#[cfg(feature = "compiler_utils")]
 impl PartialEq for Version {
     fn eq(&self, other: &Self) -> bool {
         //Ignore bug
@@ -200,6 +229,7 @@ impl PartialEq for Version {
     }
 }
 
+#[cfg(feature = "compiler_utils")]
 impl Version {
     /// Create new [`Version`] from given [`String`]
     /// ## Arguments

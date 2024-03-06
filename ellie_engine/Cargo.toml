@@ -27,7 +27,7 @@ ellie_renderer_utils = { path = "renderer_utils", version = "0.3.0", optional = 
 [features]
 default = ["vm", "compiler", "fmt", "std"]
 compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
-vm = ["ellie_vm", "ellie_vm/std"]
+vm = ["ellie_vm"]
 std = ["ellie_vm/std", "ellie_core/std"]
 renderer_utils = ["ellie_renderer_utils"]
 fmt = ["ellie_fmt"]

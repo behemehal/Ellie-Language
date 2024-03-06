@@ -9,5 +9,6 @@
     "spmeesseman.vscode-taskexplorer",
     "serayuzgur.crates",
     "denoland.vscode-deno",
-  ]
+    "rioj7.command-variable",
+  ],
 }
