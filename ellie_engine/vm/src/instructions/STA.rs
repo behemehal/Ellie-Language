@@ -114,7 +114,7 @@ impl super::InstructionExecuter for STA {
                                                 let start = (entry_size * index) + data_start_idx;
                                                 start..start + entry_size
                                             };
-                                            heap_data.data[index_range.clone()]
+                                            heap_data.data[index_range]
                                                 .copy_from_slice(&register_bytes);
                                             return Ok(ExecuterResult::Continue);
                                         }
@@ -229,7 +229,7 @@ impl super::InstructionExecuter for STA {
                                             let start = (entry_size * index) + data_start_idx;
                                             start..start + entry_size
                                         };
-                                        heap_data.data[index_range.clone()]
+                                        heap_data.data[index_range]
                                             .copy_from_slice(&register_bytes);
                                         return Ok(ExecuterResult::Continue);
                                     }

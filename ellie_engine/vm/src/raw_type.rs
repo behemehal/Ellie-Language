@@ -322,7 +322,9 @@ impl RawType {
     pub fn to_bytes(&self) -> Vec<u8> {
         let type_id = self.type_id.to_bytes();
         let mut bytes = Vec::from(type_id);
-        bytes.extend(self.data.clone());
+        for byte in &self.data {
+            bytes.push(*byte);
+        }
         bytes
     }
 

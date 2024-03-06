@@ -594,7 +594,7 @@ impl Assembler {
                 }
                 match self.module.pages.clone().into_iter().find_map(|x| {
                     if page_hash.clone().unwrap().contains(&x.hash) {
-                        x.items.clone().into_iter().find_map(|e| match e {
+                        x.items.into_iter().find_map(|e| match e {
                             ellie_core::definite::items::Collecting::Function(function) => {
                                 if &function.name == name {
                                     Some(LocalHeader {

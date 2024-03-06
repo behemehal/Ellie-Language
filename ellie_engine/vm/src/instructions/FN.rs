@@ -63,6 +63,7 @@ impl super::InstructionExecuter for FN {
                         }
                         let index_start =
                             current_stack.registers.X.to_int() as usize + previous_frame_pos;
+                        std::println!("Function call: {}", parameter_count);
                         for i in 0..parameter_count {
                             let pos = current_stack.get_pos() + 3 + i;
                             match stack_memory.get(&(index_start + i)) {
