@@ -4,7 +4,7 @@ use ellie_core::warning;
 use ellie_core::{defs, error, utils};
 use ellie_tokenizer::{
     processors::items::Processors,
-    syntax::items::class::Class,
+    syntax::items::{class::Class, constructor::Constructor},
     tokenizer::{ClassPageType, PageType},
 };
 
@@ -106,6 +106,7 @@ impl super::ItemParserProcessor for Class {
             let page = options.parser.pages.nth(options.page_idx).unwrap();
 
             let mut constructors = self.body.iter().filter_map(|item| item.as_constructor());
+            let mut items = Vec::new();
 
             if let Some(prime) = constructors.next() {
                 let duplicate_constructors = constructors
@@ -161,6 +162,25 @@ impl super::ItemParserProcessor for Class {
                     err.semi_assist = true;
                     options.parser.informations.push(&err);
                 }
+            } else {
+                // If no constructor exists build one.
+
+                let mut inside_code = Vec::new();
+                let mut parameters = Vec::new();
+
+                let mut constructor = Processors::Constructor(
+                    Constructor {
+                        parameters: todo!(),
+                        inside_code: todo!(),
+                        name_pos: todo!(),
+                        parameters_pos: todo!(),
+                        brace_count: todo!(),
+                        iterator: todo!(),
+                        pos: todo!(),
+                        complete: todo!(),
+                    }
+                );
+
             }
 
             for (index, generic) in self.generic_definings.iter().enumerate() {
@@ -186,8 +206,6 @@ impl super::ItemParserProcessor for Class {
             }
 
             let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
-
-            let mut items = Vec::new();
 
             for generic in self.generic_definings.clone() {
                 items.push(Processors::GenericItem(

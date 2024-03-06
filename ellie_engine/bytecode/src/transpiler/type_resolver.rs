@@ -3,6 +3,7 @@ use ellie_core::{
     definite::types::{class_instance::AttributeType, operator, Types as CoreTypes},
     defs::PlatformArchitecture,
 };
+use ellie_parser::processors::items::class;
 
 use crate::{
     assembler::{Assembler, LocalHeader},
@@ -733,6 +734,9 @@ pub fn resolve_type(
                 _ => unreachable!("Unexpected target type"),
             };
 
+
+            // Reserve class variables
+
             assembler
                 .instructions
                 .push(instruction_table::Instructions::ARR(Instruction::implicit()));
@@ -791,6 +795,18 @@ pub fn resolve_type(
                     previous_params_location,
                 )));
             //-
+
+            assembler
+                .instructions
+                .push(instruction_table::Instructions::LDX(
+                    Instruction::immediate(
+                        Types::Integer,
+                        usize_to_le_bytes(
+                            previous_params_location,
+                            assembler.platform_attributes.architecture,
+                        ),
+                    ),
+                ));
 
             assembler
                 .instructions

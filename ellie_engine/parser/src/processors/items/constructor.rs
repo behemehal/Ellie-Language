@@ -76,6 +76,8 @@ impl super::ItemParserProcessor for Constructor {
         dependencies.extend(page.dependencies);
 
         let mut items = Vec::new();
+        let mut parameters = Vec::new();
+
 
         items.push(
             ellie_tokenizer::processors::items::Processors::ConstructorParameter(
@@ -92,6 +94,13 @@ impl super::ItemParserProcessor for Constructor {
                     pos: self.pos,
                 },
             ),
+        );
+
+        parameters.push(
+            ellie_core::definite::items::constructor::ConstructorParameter {
+                name: "self".to_owned(),
+                pos: self.pos,
+            },
         );
 
         for variable in class_element
@@ -201,6 +210,13 @@ impl super::ItemParserProcessor for Constructor {
                     ),
                 );
             }
+
+            parameters.push(
+                ellie_core::definite::items::constructor::ConstructorParameter {
+                    name: parameter.name.clone(),
+                    pos: parameter.pos,
+                },
+            );
         }
         items.extend(self.inside_code.clone());
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
@@ -218,17 +234,7 @@ impl super::ItemParserProcessor for Constructor {
 
         let processed = ellie_core::definite::items::Collecting::Constructor(
             ellie_core::definite::items::constructor::Constructor {
-                parameters: self
-                    .parameters
-                    .clone()
-                    .into_iter()
-                    .map(
-                        |x| ellie_core::definite::items::constructor::ConstructorParameter {
-                            name: x.name,
-                            pos: x.pos,
-                        },
-                    )
-                    .collect(),
+                parameters,
                 name_pos: self.name_pos,
                 parameters_pos: self.parameters_pos,
                 pos: self.pos,

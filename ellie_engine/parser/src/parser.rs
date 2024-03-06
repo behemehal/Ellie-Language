@@ -622,6 +622,12 @@ impl Parser {
                         defining.to_string(),
                         "dyn".to_owned(),
                     ))
+                } else if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(_) = defining {
+                    Ok(CompareResult::result(
+                        true,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
                     if errors.is_empty() {

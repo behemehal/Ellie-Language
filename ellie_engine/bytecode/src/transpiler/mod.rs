@@ -1,18 +1,18 @@
-mod class;
-mod class_instance;
-mod condition;
-mod constructor;
-mod for_loop;
-mod function;
-mod function_parameter;
-mod getter_call;
-mod loop_type;
-mod native_function;
-mod ret;
-mod self_item;
-mod setter_call;
-mod type_resolver;
-mod variable;
+pub mod class;
+pub mod class_instance;
+pub mod condition;
+pub mod constructor;
+pub mod for_loop;
+pub mod function;
+pub mod function_parameter;
+pub mod getter_call;
+pub mod loop_type;
+pub mod native_function;
+pub mod ret;
+pub mod self_item;
+pub mod setter_call;
+pub mod type_resolver;
+pub mod variable;
 
 use ellie_parser::parser::ProcessedPage;
 
