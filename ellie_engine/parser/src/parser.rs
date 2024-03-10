@@ -1623,7 +1623,6 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Module {
-        self.process_page(self.initial_page);
         let mut idx = 0;
         loop {
             let page = match self.pages.nth(idx) {
