@@ -27,6 +27,7 @@ impl crate::processors::Processor for constructor::Constructor {
                             range_start: cursor,
                             ..Default::default()
                         },
+                        body_element_defiener: false,
                     })
                 } else {
                     if self.parameters[parameter_len - 1].name == "" {

@@ -1633,9 +1633,6 @@ impl Parser {
             let page_type = page.page_type.clone();
             let page_path = page.path.clone();
             idx += 1;
-            if page.hash == self.initial_page {
-                continue;
-            }
             self.process_page(page_hash);
             match page_type {
                 PageType::FunctionBody(function_page) => {

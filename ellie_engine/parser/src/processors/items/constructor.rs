@@ -78,7 +78,6 @@ impl super::ItemParserProcessor for Constructor {
         let mut items = Vec::new();
         let mut parameters = Vec::new();
 
-
         items.push(
             ellie_tokenizer::processors::items::Processors::ConstructorParameter(
                 ConstructorParameter {
@@ -107,34 +106,48 @@ impl super::ItemParserProcessor for Constructor {
             .body
             .iter()
             .filter_map(|item| match item.as_variable() {
-                Some(e) => e.data.has_value.then_some(e),
+                Some(e) => {
+                    if e.data.has_value && !self.parameters.iter().any(|g| g.name == e.data.name) {
+                        e.data.has_value.then_some(e)
+                    } else {
+                        None
+                    }
+                }
                 None => None,
             })
         {
-            let self_setter = Processors::SetterCall(SetterCall {
-                target: TypeProcessor::Reference(ReferenceTypeCollector {
-                    data: ReferenceType {
-                        reference: Box::new(TypeProcessor::Variable(VariableTypeCollector {
-                            data: VariableType {
-                                value: "self".to_owned(),
+            if !self.parameters.iter().any(|g| g.name == variable.data.name) {
+                let self_setter = Processors::SetterCall(SetterCall {
+                    target: TypeProcessor::Reference(ReferenceTypeCollector {
+                        data: ReferenceType {
+                            reference: Box::new(TypeProcessor::Variable(VariableTypeCollector {
+                                data: VariableType {
+                                    value: "self".to_owned(),
+                                    ..Default::default()
+                                },
                                 ..Default::default()
-                            },
+                            })),
+                            chain: vec![Chain {
+                                value: variable.data.name.clone(),
+                                ..Default::default()
+                            }],
                             ..Default::default()
-                        })),
-                        chain: vec![Chain {
-                            value: variable.data.name.clone(),
-                            ..Default::default()
-                        }],
+                        },
                         ..Default::default()
-                    },
+                    }),
+                    value: variable.data.value.clone(),
+                    operator: AssignmentOperators::Assignment,
+                    hash: generate_hash_usize(),
                     ..Default::default()
-                }),
-                value: variable.data.value.clone(),
-                operator: AssignmentOperators::Assignment,
-                hash: generate_hash_usize(),
-                ..Default::default()
-            });
-            items.push(self_setter);
+                });
+                items.push(self_setter);
+                parameters.push(
+                    ellie_core::definite::items::constructor::ConstructorParameter {
+                        name: variable.data.name.clone(),
+                        pos: variable.data.pos,
+                    },
+                );
+            }
         }
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {

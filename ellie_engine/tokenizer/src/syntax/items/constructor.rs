@@ -7,6 +7,8 @@ use crate::processors::items::Processors;
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,
+    // When class is defined, by the design variables are not
+    pub body_element_defiener: bool,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +60,7 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
                 .map(|p| ConstructorParameter {
                     name: p.name,
                     pos: p.pos,
+                    body_element_defiener: false,
                 })
                 .collect(),
             inside_code: vec![],
