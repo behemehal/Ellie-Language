@@ -734,7 +734,6 @@ pub fn resolve_type(
                 _ => unreachable!("Unexpected target type"),
             };
 
-
             // Reserve class variables
 
             assembler

@@ -1,6 +1,8 @@
-use super::type_resolver::resolve_type;
 use crate::{
-    addressing_modes::AddressingModes, instruction_table, instructions, utils::limit_platform_size,
+    addressing_modes::AddressingModes,
+    instruction_table, instructions,
+    transpiler::types::{TypeTranspiler, TypeTranspilerOptions},
+    utils::limit_platform_size,
 };
 use alloc::{string::ToString, vec};
 use ellie_core::{
@@ -20,14 +22,14 @@ impl super::Transpiler for setter_call::SetterCall {
 
         let location = assembler.location();
 
-        //Resolve the value to be inserted
-        resolve_type(
-            assembler,
-            &self.value,
-            instructions::Registers::C,
-            &hash,
-            Some(dependencies.clone()),
-        );
+        let mut binding = TypeTranspilerOptions::new();
+        let mut type_transpiler_options = binding
+            .set_assembler(assembler)
+            .set_target_register(instructions::Registers::C)
+            .set_dependencies(dependencies.clone())
+            .set_target_page(hash);
+
+        self.value.transpile(type_transpiler_options);
 
         //Store it in the stack
         assembler
@@ -40,14 +42,15 @@ impl super::Transpiler for setter_call::SetterCall {
 
         match &self.operator {
             ellie_core::definite::types::operator::AssignmentOperators::Assignment => {
-                //Resolve the target
-                resolve_type(
-                    assembler,
-                    &self.target,
-                    instructions::Registers::B,
-                    &hash,
-                    Some(dependencies.clone()),
-                );
+                let mut binding = TypeTranspilerOptions::new();
+                let type_transpiler_options = binding
+                    .set_assembler(assembler)
+                    .set_target_register(instructions::Registers::B)
+                    .set_dependencies(dependencies.clone())
+                    .set_target_page(hash);
+
+                self.target.transpile(type_transpiler_options);
+
                 let target_last_instruction = assembler.instructions.last().unwrap().clone();
                 match target_last_instruction {
                     instruction_table::Instructions::LDB(ldb_in) => {
@@ -141,13 +144,16 @@ impl super::Transpiler for setter_call::SetterCall {
                             _ => unreachable!(),
                         }
                 };
-                resolve_type(
-                    assembler,
-                    &self.target,
-                    instructions::Registers::B,
-                    &hash,
-                    Some(dependencies.clone()),
-                );
+
+                let mut binding = TypeTranspilerOptions::new();
+                let mut type_transpiler_options = binding
+                    .set_assembler(assembler)
+                    .set_target_register(instructions::Registers::B)
+                    .set_dependencies(dependencies)
+                    .set_target_page(hash);
+
+                self.target.transpile(type_transpiler_options);
+
                 let left_last_instruction = assembler.instructions.last().unwrap().clone();
                 assembler
                     .instructions

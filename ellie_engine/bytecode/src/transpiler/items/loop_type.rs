@@ -7,10 +7,9 @@ use ellie_core::{
 use crate::{
     instruction_table,
     instructions::{self, Instruction},
+    transpiler::types::{TypeTranspiler, TypeTranspilerOptions},
     utils::limit_platform_size,
 };
-
-use super::type_resolver::resolve_type;
 
 impl super::Transpiler for loop_type::Loop {
     fn transpile(
@@ -29,13 +28,13 @@ impl super::Transpiler for loop_type::Loop {
         //We need to get back at this point every time we jump to the end of the loop.
         let start_pos = assembler.location() + 1;
 
-        resolve_type(
-            assembler,
-            &self.condition,
-            instructions::Registers::A,
-            &hash,
-            Some(dependencies),
-        );
+        let mut binding = TypeTranspilerOptions::new();
+        let mut type_transpiler_options = binding
+            .set_assembler(assembler)
+            .set_dependencies(dependencies)
+            .set_target_page(hash);
+
+        self.condition.transpile(type_transpiler_options);
 
         assembler
             .instructions

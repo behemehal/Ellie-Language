@@ -90,11 +90,19 @@ impl super::Transpiler for function::Function {
             assembler.location()
         };
 
+        let prev_pos = assembler.location();
+
+
+
         assembler.assemble_dependency(&self.inner_page_id);
+
+
 
         assembler
             .instructions
             .push(Instructions::RET(Instruction::implicit()));
+
+        
 
         assembler.instructions[escape_pos_instruction_location] =
             instruction_table::Instructions::STA(Instruction::immediate(

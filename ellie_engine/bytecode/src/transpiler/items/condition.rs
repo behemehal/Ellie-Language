@@ -1,3 +1,4 @@
+use crate::transpiler::types::{TypeTranspiler, TypeTranspilerOptions};
 use crate::{
     instruction_table,
     instructions::{self, Instruction},
@@ -5,8 +6,6 @@ use crate::{
 };
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
-
-use super::type_resolver::resolve_type;
 
 impl super::Transpiler for condition::Condition {
     fn transpile(
@@ -24,13 +23,13 @@ impl super::Transpiler for condition::Condition {
 
         for (_, chain) in self.chains.iter().enumerate() {
             if chain.rtype != ellie_core::definite::items::condition::ConditionType::Else {
-                resolve_type(
-                    assembler,
-                    &chain.condition,
-                    instructions::Registers::A,
-                    &hash,
-                    Some(dependencies.clone()),
-                );
+                let mut binding = TypeTranspilerOptions::new();
+                let mut type_transpiler_options = binding
+                    .set_assembler(assembler)
+                    .set_dependencies(dependencies.clone())
+                    .set_target_page(hash);
+
+                chain.condition.transpile(type_transpiler_options);
             } else {
                 assembler
                     .instructions
