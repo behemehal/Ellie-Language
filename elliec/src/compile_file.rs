@@ -766,9 +766,10 @@ pub fn compile(
                             key: "errors".to_string(),
                             value: errors,
                         });
-                        println!("{}", serde_json::to_string(&output).unwrap());
+                        eprintln!("{}", serde_json::to_string(&output).unwrap());
+                        std::process::exit(1);
                     } else {
-                        println!(
+                        eprintln!(
                             "{}",
                             print_errors(
                                 &errors,
@@ -900,6 +901,7 @@ pub fn compile(
                         for message in exit_messages.lock().unwrap().iter() {
                             (message)();
                         }
+                        std::process::exit(1);
                     }
                 }
             }
@@ -911,9 +913,10 @@ pub fn compile(
                     key: "errors".to_string(),
                     value: pager_errors,
                 });
-                println!("{}", serde_json::to_string(&output).unwrap());
+                eprintln!("{}", serde_json::to_string(&output).unwrap());
+                std::process::exit(1);
             } else {
-                println!(
+                eprintln!(
                     "{}",
                     print_errors(
                         &pager_errors,
@@ -963,6 +966,7 @@ pub fn compile(
                 for message in exit_messages.lock().unwrap().iter() {
                     (message)();
                 }
+                std::process::exit(1);
             }
         }
     }
