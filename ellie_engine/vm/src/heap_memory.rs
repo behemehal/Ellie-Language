@@ -1,21 +1,38 @@
 use crate::raw_type::{MutatableRawType, RawType};
 use alloc::{
+    boxed::Box,
     collections::BTreeMap,
     format,
     string::{String, ToString},
     vec::Vec,
 };
 
-#[derive(Clone)]
+pub type HeapOutOfMemoryCallback = Box<dyn FnMut()>;
+
 pub struct HeapMemory {
     pub data: BTreeMap<usize, Vec<u8>>,
+    pub on_heap_out_of_memory: Option<HeapOutOfMemoryCallback>,
+}
+
+impl Clone for HeapMemory {
+    fn clone(&self) -> Self {
+        HeapMemory {
+            data: self.data.clone(),
+            on_heap_out_of_memory: None,
+        }
+    }
 }
 
 impl HeapMemory {
     pub fn new() -> HeapMemory {
         HeapMemory {
             data: BTreeMap::new(),
+            on_heap_out_of_memory: None,
         }
+    }
+
+    pub fn set_on_heap_out_of_memory(&mut self, callback: HeapOutOfMemoryCallback) {
+        self.on_heap_out_of_memory = Some(callback);
     }
 
     pub fn get_mut(&mut self, key: &usize) -> Option<MutatableRawType> {
@@ -40,6 +57,7 @@ impl HeapMemory {
     }
 
     pub fn set(&mut self, key: &usize, value: RawType) {
+
         self.data.insert(*key, value.to_bytes());
     }
 

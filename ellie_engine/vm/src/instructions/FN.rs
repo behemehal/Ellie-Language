@@ -25,6 +25,7 @@ impl super::InstructionExecuter for FN {
         match &addressing_value {
             AddressingValues::Immediate(e) => {
                 let hash: usize = e.to_int() as usize;
+                std::println!("Hash: {}, {}", current_stack.frame_pos, current_stack.pos);
                 stack_memory.set(&current_stack.get_pos(), StaticRawType::from_function(hash));
                 let end_point = match &program[current_stack.pos + 1].addressing_value {
                     AddressingValues::Immediate(e) => e.to_int() as usize,

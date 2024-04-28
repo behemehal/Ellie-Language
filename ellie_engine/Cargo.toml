@@ -41,6 +41,13 @@ toml = "0.8.0"
 regex = { version = "1.1.7" }
 chrono = "0.4.22"
 
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports", "csv_output"] }
+
+[[bench]]
+name = "compile"
+harness = false
+
 [workspace]
 members = [".", "./core", "./tokenizer", "./parser", "./bytecode", "./vm", "./fmt", "./renderer_utils" ]
 default-members = ["."]

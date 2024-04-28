@@ -1,9 +1,5 @@
 use crate::transpiler::types::{TypeTranspiler, TypeTranspilerOptions};
-use crate::{
-    instruction_table,
-    instructions::{self, Instruction},
-    types::Types,
-};
+use crate::{instruction_table, instructions::Instruction, types::Types};
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
 
@@ -85,6 +81,17 @@ impl super::Transpiler for condition::Condition {
             assembler.instructions[pos] =
                 instruction_table::Instructions::JMPA(Instruction::absolute(*location));
         }
+
+        // TODO: Add this, but this lacks place on debug information.
+        /* assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::Condition,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
+            name: "<Ellie:Condition>".to_string(),
+            start_end: (debug_header_start, assembler.location()),
+            pos: self.pos,
+        }); */
         true
     }
 }

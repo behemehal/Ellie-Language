@@ -1,15 +1,28 @@
 use alloc::{
+    boxed::Box,
     format,
     string::{String, ToString},
 };
 
 use crate::{config::STACK_MEMORY_SIZE, raw_type::StaticRawType};
 
+pub type StackOverflowCallback = Box<dyn FnMut()>;
+
 //Static memory allocation
-#[derive(Clone, Copy)]
 pub struct StackMemory {
     pub data: [StaticRawType; STACK_MEMORY_SIZE],
     pub len: usize,
+    pub on_stack_overflow: Option<StackOverflowCallback>,
+}
+
+impl Clone for StackMemory {
+    fn clone(&self) -> Self {
+        StackMemory {
+            data: self.data.clone(),
+            len: self.len,
+            on_stack_overflow: None,
+        }
+    }
 }
 
 impl StackMemory {
@@ -17,7 +30,12 @@ impl StackMemory {
         StackMemory {
             data: [StaticRawType::from_void(); STACK_MEMORY_SIZE],
             len: 0,
+            on_stack_overflow: None,
         }
+    }
+
+    pub fn set_on_stack_overflow(&mut self, callback: StackOverflowCallback) {
+        self.on_stack_overflow = Some(callback);
     }
 
     pub fn get(&self, key: &usize) -> Option<StaticRawType> {
@@ -29,6 +47,12 @@ impl StackMemory {
     }
 
     pub fn set(&mut self, key: &usize, value: StaticRawType) {
+        if (self.data.len() - 1) < *key {
+            if let Some(callback) = &mut self.on_stack_overflow {
+                callback();
+                return;
+            }
+        }
         self.data[*key] = value;
     }
 

@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
-use alloc::{format, string::String};
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use alloc::{boxed::Box, format, string::String};
 use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
@@ -83,6 +85,12 @@ impl Thread {
             pos: main.start,
             frame_pos: main.start + main.length,
         });
+        std::println!(
+            "THREAD BUILDED WITH frame_pos: start: {}, length: {}, f: {}",
+            main.start,
+            main.length,
+            main.start + main.length
+        );
     }
 
     pub fn call(&mut self) {
@@ -356,6 +364,30 @@ impl Thread {
                 &current_instruction.addressing_value,
                 self.arch,
             );
+
+            static STACK_OVERFLOW: AtomicBool = AtomicBool::new(false);
+            static HEAP_OUT_OF_MEMORY: AtomicBool = AtomicBool::new(false);
+
+            self.isolate
+                .heap_memory
+                .set_on_heap_out_of_memory(Box::new(|| {
+                    HEAP_OUT_OF_MEMORY.store(true, Ordering::Relaxed);
+                }));
+
+            /* self.isolate
+            .stack_memory
+            .set_on_stack_overflow(Box::new(|| {
+                STACK_OVERFLOW.store(true, Ordering::Relaxed);
+            })); */
+
+            if STACK_OVERFLOW.load(Ordering::SeqCst) {
+                return ThreadExit::Panic(ThreadPanic {
+                    reason: ThreadPanicReason::StackOverflow,
+                    stack_trace: self.stack.clone(),
+                    code_location: format!("{}:{}", file!(), line!()),
+                });
+            }
+
             match execute_result {
                 Ok(result) => match result {
                     crate::instructions::ExecuterResult::Continue => {
@@ -383,6 +415,12 @@ impl Thread {
                         });
                         let current_x = current_stack.registers.X;
                         let frame_pos = current_stack.get_pos() + e.stack_len;
+                        std::println!(
+                            "NEW frame_pos: {}, current_stack.get_pos(): {}, e.stack_len: {}",
+                            frame_pos,
+                            current_stack.get_pos(),
+                            e.stack_len
+                        );
                         current_stack.pos += 1;
                         self.stack.push(Stack {
                             pos: e.pos,

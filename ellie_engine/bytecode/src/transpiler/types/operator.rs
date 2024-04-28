@@ -19,12 +19,12 @@ impl TypeTranspiler for OperatorType {
                         .set_target_register(Registers::B),
                 );
 
-                let first_operator_pos = options.assembler().location();
-
                 options
                     .assembler_mut()
                     .instructions
                     .push(Instructions::STB(Instruction::implicit()));
+
+                let first_operator_pos = options.assembler().location();
 
                 self.second.transpile(
                     options
@@ -33,12 +33,12 @@ impl TypeTranspiler for OperatorType {
                         .set_target_register(Registers::C),
                 );
 
-                let second_operator_pos = options.assembler().location();
-
                 options
                     .assembler_mut()
                     .instructions
                     .push(Instructions::STC(Instruction::implicit()));
+
+                let second_operator_pos = options.assembler().location();
 
                 options
                     .assembler_mut()

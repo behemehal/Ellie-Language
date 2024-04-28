@@ -5,8 +5,9 @@ use ellie_core::{
 };
 use ellie_tokenizer::{
     processors::{items::Processors as ItemProcessors, types::Processors},
-    syntax::types::class_call_type,
+    syntax::types::{class_call_type, variable_type},
 };
+use types::variable::VariableType;
 
 use crate::{
     deep_search_extensions::{
@@ -318,13 +319,9 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                     }
                                     Err(errors)
                                 } else {
-                                    let constructor = class.body.iter().find_map(|x| {
-                                        match x {
-                                    ellie_tokenizer::processors::items::Processors::Constructor(
-                                        e,
-                                    ) => Some(e),
-                                    _ => None,
-                                }
+                                    let constructor = class.body.iter().find_map(|x| match x {
+                                        ItemProcessors::Constructor(e) => Some(e),
+                                        _ => None,
                                     });
 
                                     if constructor.is_some() {
@@ -612,18 +609,28 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                         .collect::<Vec<_>>();
 
                                     for element in body_element_definer_parameters {
-                                        let found_variable_value = class.body.iter().find_map(|x| {
-                                            match x {
-                                                ellie_tokenizer::processors::items::Processors::Variable(e) => {
+                                        let found_variable_value = class
+                                            .body
+                                            .iter()
+                                            .find_map(|x| match x {
+                                                ItemProcessors::Variable(e) => {
                                                     if e.data.name == element.name {
-                                                        Some(e.data.value.clone())
+                                                        Some(Processors::Variable(
+                                                            variable_type::VariableTypeCollector {
+                                                                data: variable_type::VariableType {
+                                                                    value: "null".to_string(),
+                                                                    ..Default::default()
+                                                                },
+                                                                ..Default::default()
+                                                            },
+                                                        ))
                                                     } else {
                                                         None
                                                     }
                                                 }
                                                 _ => None,
-                                            }
-                                        }).unwrap();
+                                            })
+                                            .unwrap();
 
                                         params.push(types::class_call::ClassCallParameter {
                                             value: found_variable_value.to_definite(),
