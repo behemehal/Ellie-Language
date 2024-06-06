@@ -346,11 +346,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                             },
                                                             error::ErrorBuildField {
                                                                 key: "token".to_string(),
-                                                                value: constructor
-                                                                    .unwrap()
-                                                                    .parameters
-                                                                    .len()
-                                                                    .to_string(),
+                                                                value: constructor_size.to_string(),
                                                             },
                                                             error::ErrorBuildField {
                                                                 key: "token2".to_string(),
