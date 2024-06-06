@@ -62,7 +62,7 @@ pub enum ThreadPanicReason {
     FloatOverflow,
     DoubleOverflow,
     /// This panic triggered when the types are not mergeble with each other MOD, DIV, MUL, EXP, SUB AND ADD instructions can trigger this panic
-    UnmergebleTypes(u8, u8),
+    UnmergebleTypes(String, String),
     /// This panic triggered when the types are not comparable with each other
     UncomparableTypes(u8, u8),
     /// This panic triggered when stack exceeded the maximum size

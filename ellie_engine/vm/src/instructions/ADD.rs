@@ -209,8 +209,8 @@ impl super::InstructionExecuter for ADD {
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::UnmergebleTypes(
-                                B.type_id().id,
-                                C.type_id().id,
+                                format!("{}", B.type_id()),
+                                format!("{}", C.type_id()),
                             ),
                             code_location: format!("{}:{}", file!(), line!()),
                         });

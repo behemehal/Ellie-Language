@@ -85,8 +85,8 @@ impl super::InstructionExecuter for SUB {
                     _ => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::UnmergebleTypes(
-                                current_stack.registers.B.type_id.id,
-                                current_stack.registers.C.type_id.id,
+                                format!("{}", current_stack.registers.B.type_id),
+                                format!("{}", current_stack.registers.C.type_id),
                             ),
                             code_location: format!("{}:{}", file!(), line!()),
                         });
