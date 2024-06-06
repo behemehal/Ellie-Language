@@ -622,7 +622,9 @@ impl Parser {
                         defining.to_string(),
                         "dyn".to_owned(),
                     ))
-                } else if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(_) = defining {
+                } else if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(_) =
+                    defining
+                {
                     Ok(CompareResult::result(
                         true,
                         defining.to_string(),
@@ -1952,7 +1954,24 @@ impl Parser {
                 self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0, None);
             if main_function.found {
                 match main_function.found_item {
-                    DeepSearchItems::Function(_) => (),
+                    DeepSearchItems::Function(e) => {
+                        if e.parameters.len() > 0 {
+                            let path = self.find_page(self.initial_page).unwrap().path.clone();
+                            self.informations.push(
+                                &error::error_list::ERROR_S67.clone().build_with_path(
+                                    vec![],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    path,
+                                    e.name_pos,
+                                ),
+                            );
+                        }
+                    }
                     _ => {
                         let path = self.find_page(self.initial_page).unwrap().path.clone();
                         self.informations.push(

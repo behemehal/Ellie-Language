@@ -413,4 +413,10 @@ lazy_static! {
         message: "Cannot apply unary operator".to_owned(),
         ..Default::default()
     };
+    pub static ref ERROR_S67: error::Error = error::Error {
+        code: 0x66,
+        title: "ReferenceError".to_owned(),
+        message: "Wrong main function signature, expected 'fn main() -> void'".to_owned(),
+        ..Default::default()
+    };
 }

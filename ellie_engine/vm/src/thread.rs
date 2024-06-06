@@ -85,12 +85,6 @@ impl Thread {
             pos: main.start,
             frame_pos: main.start + main.length,
         });
-        std::println!(
-            "THREAD BUILDED WITH frame_pos: start: {}, length: {}, f: {}",
-            main.start,
-            main.length,
-            main.start + main.length
-        );
     }
 
     pub fn call(&mut self) {
@@ -415,12 +409,6 @@ impl Thread {
                         });
                         let current_x = current_stack.registers.X;
                         let frame_pos = current_stack.get_pos() + e.stack_len;
-                        std::println!(
-                            "NEW frame_pos: {}, current_stack.get_pos(): {}, e.stack_len: {}",
-                            frame_pos,
-                            current_stack.get_pos(),
-                            e.stack_len
-                        );
                         current_stack.pos += 1;
                         self.stack.push(Stack {
                             pos: e.pos,
