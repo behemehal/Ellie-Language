@@ -169,6 +169,7 @@ impl crate::processors::Processor for class::Class {
                 })
                 .collect::<Vec<_>>();
 
+            //TODO: IS THIS NECESSARY?
             for variable in find_unused_variables_in_class_body {
                 constructor
                     .parameters

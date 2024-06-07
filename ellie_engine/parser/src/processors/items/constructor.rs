@@ -107,7 +107,10 @@ impl super::ItemParserProcessor for Constructor {
             .iter()
             .filter_map(|item| match item.as_variable() {
                 Some(e) => {
-                    if e.data.has_value && !self.parameters.iter().any(|g| g.name == e.data.name) {
+                    //TODO: IS THIS NECCESSARY?
+                    if e.data.has_value
+                    /* && !self.parameters.iter().any(|g| g.name == e.data.name) */
+                    {
                         e.data.has_value.then_some(e)
                     } else {
                         None
@@ -116,38 +119,40 @@ impl super::ItemParserProcessor for Constructor {
                 None => None,
             })
         {
-            if !self.parameters.iter().any(|g| g.name == variable.data.name) {
-                let self_setter = Processors::SetterCall(SetterCall {
-                    target: TypeProcessor::Reference(ReferenceTypeCollector {
-                        data: ReferenceType {
-                            reference: Box::new(TypeProcessor::Variable(VariableTypeCollector {
-                                data: VariableType {
-                                    value: "self".to_owned(),
-                                    ..Default::default()
-                                },
+            //TODO: IS THIS NECCESSARY?
+            /* if !self.parameters.iter().any(|g| g.name == variable.data.name) { */
+            let self_setter = Processors::SetterCall(SetterCall {
+                target: TypeProcessor::Reference(ReferenceTypeCollector {
+                    data: ReferenceType {
+                        reference: Box::new(TypeProcessor::Variable(VariableTypeCollector {
+                            data: VariableType {
+                                value: "self".to_owned(),
                                 ..Default::default()
-                            })),
-                            chain: vec![Chain {
-                                value: variable.data.name.clone(),
-                                ..Default::default()
-                            }],
+                            },
                             ..Default::default()
-                        },
+                        })),
+                        chain: vec![Chain {
+                            value: variable.data.name.clone(),
+                            ..Default::default()
+                        }],
                         ..Default::default()
-                    }),
-                    value: variable.data.value.clone(),
-                    operator: AssignmentOperators::Assignment,
-                    hash: generate_hash_usize(),
-                    ..Default::default()
-                });
-                items.push(self_setter);
-                parameters.push(
-                    ellie_core::definite::items::constructor::ConstructorParameter {
-                        name: variable.data.name.clone(),
-                        pos: variable.data.pos,
                     },
-                );
-            }
+                    ..Default::default()
+                }),
+                value: variable.data.value.clone(),
+                operator: AssignmentOperators::Assignment,
+                hash: generate_hash_usize(),
+                ..Default::default()
+            });
+            items.push(self_setter);
+            //TODO: IS THIS NECCESSARY?
+            /* parameters.push(
+                ellie_core::definite::items::constructor::ConstructorParameter {
+                    name: variable.data.name.clone(),
+                    pos: variable.data.pos,
+                },
+            ); */
+            /* } */
         }
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
@@ -223,13 +228,13 @@ impl super::ItemParserProcessor for Constructor {
                     ),
                 );
             }
-
-            parameters.push(
+            //TODO: IS THIS NECCESSARY?
+            /* parameters.push(
                 ellie_core::definite::items::constructor::ConstructorParameter {
                     name: parameter.name.clone(),
                     pos: parameter.pos,
                 },
-            );
+            ); */
         }
         items.extend(self.inside_code.clone());
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();

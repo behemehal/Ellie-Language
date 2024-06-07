@@ -21,9 +21,6 @@ impl super::Transpiler for getter_call::GetterCall {
 
         let mut binding = TypeTranspilerOptions::new();
 
-
-        std::println!("GetterCallDeps: {:#?}", dependencies);
-
         self.data.transpile(
             binding
                 .set_assembler(assembler)
