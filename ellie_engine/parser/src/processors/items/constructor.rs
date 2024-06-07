@@ -203,7 +203,7 @@ impl super::ItemParserProcessor for Constructor {
                 }
             }
 
-            if !param_found {
+            if !param_found && parameter.name != "self" {
                 let mut err = error::error_list::ERROR_S34.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),

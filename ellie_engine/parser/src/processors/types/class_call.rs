@@ -604,7 +604,21 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                         .filter(|x| x.body_element_defiener)
                                         .collect::<Vec<_>>();
 
-                                    for element in body_element_definer_parameters {
+                                    params.push(types::class_call::ClassCallParameter {
+                                        value: Processors::Variable(
+                                            variable_type::VariableTypeCollector {
+                                                data: variable_type::VariableType {
+                                                    value: "null".to_string(),
+                                                    ..Default::default()
+                                                },
+                                                ..Default::default()
+                                            },
+                                        )
+                                        .to_definite(),
+                                        pos: self.data.target_pos,
+                                    });
+
+                           /*          for element in body_element_definer_parameters {
                                         let found_variable_value = class
                                             .body
                                             .iter()
@@ -633,7 +647,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                             pos: element.pos,
                                         });
                                     }
-
+ */
                                     Ok(types::Types::ClassCall(
                                     ellie_core::definite::types::class_call::ClassCall {
                                         target: Box::new(ellie_core::definite::types::Types::VariableType(
