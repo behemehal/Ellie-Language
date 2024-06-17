@@ -176,6 +176,8 @@ impl crate::processors::Processor for class::Class {
                     .push(constructor::ConstructorParameter {
                         name: variable.name,
                         pos: variable.pos,
+                        rtype: variable.rtype.definer_type,
+                        rtype_pos: variable.type_pos,
                         body_element_defiener: true,
                     });
             }

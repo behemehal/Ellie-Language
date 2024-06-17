@@ -1,4 +1,5 @@
 use alloc::{borrow::ToOwned, boxed::Box, vec, vec::Vec};
+use ellie_core::definite::Converter;
 use ellie_core::{error, utils::generate_hash_usize};
 use ellie_tokenizer::{
     processors::{items::Processors, types::Processors as TypeProcessor},
@@ -99,6 +100,14 @@ impl super::ItemParserProcessor for Constructor {
             ellie_core::definite::items::constructor::ConstructorParameter {
                 name: "self".to_owned(),
                 pos: self.pos,
+                rtype: ellie_core::definite::definers::DefinerCollecting::Generic(
+                    ellie_core::definite::definers::GenericType {
+                        rtype: class_element.name,
+                        pos: class_element.pos,
+                        hash: class_element.hash,
+                    },
+                ),
+                rtype_pos: class_page_type.pos,
             },
         );
 
@@ -146,13 +155,14 @@ impl super::ItemParserProcessor for Constructor {
             });
             items.push(self_setter);
             //TODO: IS THIS NECCESSARY?
-            /* parameters.push(
+            parameters.push(
                 ellie_core::definite::items::constructor::ConstructorParameter {
                     name: variable.data.name.clone(),
                     pos: variable.data.pos,
+                    rtype: variable.data.rtype.definer_type.clone().to_definite(),
+                    rtype_pos: variable.data.rtype.pos,
                 },
-            ); */
-            /* } */
+            );
         }
 
         for (index, parameter) in self.parameters.clone().iter().enumerate() {
@@ -188,22 +198,18 @@ impl super::ItemParserProcessor for Constructor {
                     options.parser.informations.push(&err);
                 }
             }
-            let mut param_found = false;
-            let mut found_is_constant_variable = None;
+            let mut found_param = None;
             let page = options.parser.find_page(options.page_hash).unwrap();
             for item in page.items.iter() {
                 match item {
                     Processors::Variable(e) => {
-                        if e.data.constant {
-                            found_is_constant_variable = Some(parameter.pos);
-                        }
-                        param_found = true;
+                        found_param = Some(e.clone());
                     }
                     _ => (),
                 }
             }
 
-            if !param_found && parameter.name != "self" {
+            if !found_param.is_none() && parameter.name != "self" {
                 let mut err = error::error_list::ERROR_S34.clone().build_with_path(
                     vec![error::ErrorBuildField {
                         key: "token".to_owned(),
@@ -218,23 +224,41 @@ impl super::ItemParserProcessor for Constructor {
                 options.parser.informations.push(&err);
             }
 
-            if found_is_constant_variable.is_some() {
-                options.parser.informations.push(
-                    &error::error_list::ERROR_S18.clone().build_with_path(
-                        vec![],
-                        alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                        class_body_page.path.clone(),
-                        found_is_constant_variable.unwrap(),
-                    ),
-                );
+            //is found param constant
+
+            if let Some(data) = &found_param {
+                if data.data.constant {
+                    options.parser.informations.push(
+                        &error::error_list::ERROR_S18.clone().build_with_path(
+                            vec![],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            class_body_page.path.clone(),
+                            parameter.pos,
+                        ),
+                    );
+                }
             }
+
             //TODO: IS THIS NECCESSARY?
-            /* parameters.push(
+            parameters.push(
                 ellie_core::definite::items::constructor::ConstructorParameter {
                     name: parameter.name.clone(),
                     pos: parameter.pos,
+                    rtype: parameter.rtype,
+                    rtype_pos: parameter.rtype_pos,
                 },
-            ); */
+            );
+
+            items.push(Processors::ConstructorParameter(ConstructorParameter {
+                name: parameter.name.clone(),
+                pos: parameter.pos,
+                rtype: if let Some(param) = found_param {
+                    param.data.rtype.definer_type.clone().to_definite()
+                } else {
+                    ellie_core::definite::definers::DefinerCollecting::Dynamic
+                },
+                hash: generate_hash_usize(),
+            }))
         }
         items.extend(self.inside_code.clone());
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
