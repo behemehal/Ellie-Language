@@ -40,14 +40,16 @@ pub fn transpile_parsed_code(
 macro_rules! transpileText {
     ($text:expr, $platform_attributes:expr, $module_maps:expr) => {{
         use ellie_engine::{
-            ellie_bytecode::assembler,
-            ellie_core::defs::{ModuleMap},
-            ellie_parser::utils::Module,
+            ellie_bytecode::assembler, ellie_core::defs::ModuleMap, ellie_parser::utils::Module,
         };
 
         let text = $text;
         let module = ellie_parser::parseText!(text);
-        let result = ellie_engine::byteCode::transpile_parsed_code(module, $platform_attributes, $module_maps);
+        let result = ellie_engine::byteCode::transpile_parsed_code(
+            module,
+            $platform_attributes,
+            $module_maps,
+        );
         result
     }};
 }

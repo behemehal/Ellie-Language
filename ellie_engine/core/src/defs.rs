@@ -83,7 +83,6 @@ impl Default for TokenizerOptions {
 #[cfg(feature = "compiler_utils")]
 pub struct CursorPosition(pub usize, pub usize);
 
-
 /// A struct that represents a position in a file.
 /// (line, column)
 #[cfg(not(feature = "compiler_utils"))]

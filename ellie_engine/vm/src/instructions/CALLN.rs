@@ -57,8 +57,8 @@ impl super::InstructionExecuter for CALLN {
                 let _start_position_of_params = current_stack.get_pos() - 2;
 
                 for i in 0..params_length {
-                    let pos = current_stack.get_pos() - (params_length - (-(i as isize) as usize));
-                    let paramater = match stack_memory.get(&pos) {
+                    let pos = current_stack.get_pos() - (params_length - i);
+                    let parameter = match stack_memory.get(&pos) {
                         Some(raw_type) => {
                             if raw_type.type_id.is_stack_reference()
                                 || raw_type.type_id.is_heap_reference()
@@ -93,7 +93,7 @@ impl super::InstructionExecuter for CALLN {
                             })
                         }
                     };
-                    params.push(paramater);
+                    params.push(parameter);
                 }
                 Ok(ExecuterResult::CallNativeFunction(VmNativeCall {
                     hash,

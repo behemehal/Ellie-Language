@@ -174,8 +174,5 @@ macro_rules! compile_core_lib {
                 }
             }
         }
-
-        //Compile core library
-
     };
 }

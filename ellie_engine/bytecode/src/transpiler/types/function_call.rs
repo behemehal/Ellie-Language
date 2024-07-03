@@ -3,7 +3,6 @@ use ellie_core::definite::types::{
     class_instance::AttributeType, function_call::FunctionCall, Types as CoreTypes,
 };
 
-
 use crate::{
     assembler::LocalHeader,
     instruction_table::Instructions,
@@ -25,7 +24,7 @@ impl TypeTranspiler for FunctionCall {
                 .assembler_mut()
                 .find_local(&e.value, dependencies.clone(), true)
                 .unwrap_or_else(|| {
-                    panic!("Variable not found: {}: {:#?} {:#?}, {:#?}", e.value, dependencies, options.target_page, self);
+                    panic!("Variable not found: {}", e.value);
                 })
                 .clone(),
             CoreTypes::Reference(e) => {

@@ -87,7 +87,7 @@ pub enum ThreadPanicReason {
     /// This panic triggered when the program trying to access a array index with negative value
     /// * first: index
     CannotIndexWithNegative(isize),
-    ParemeterMemoryAccessViolation(usize),
+    ParameterMemoryAccessViolation(usize),
     MemoryAccessViolation(usize, usize),
     /// This triggered when types like string, array, class tried to be kept in immediate mode
     ImmediateUseViolation(u8),

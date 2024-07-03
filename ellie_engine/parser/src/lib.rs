@@ -15,7 +15,7 @@ extern crate alloc;
 extern crate std;
 
 pub mod deep_search_extensions;
+pub mod extra;
 pub mod parser;
 pub mod processors;
 pub mod utils;
-pub mod extra;

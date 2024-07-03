@@ -40,7 +40,7 @@ lazy_static! {
     pub static ref ERROR_S7: error::Error = error::Error {
         code: 0x06,
         title: "ReferenceError".to_owned(),
-        message: "$name requires '$token' parameters, found '$token2' length of parameters"
+        message: "$name requires '$token' parameters, found '$token2' parameters"
             .to_owned(),
         ..Default::default()
     };
@@ -205,7 +205,7 @@ lazy_static! {
     pub static ref ERROR_S34: error::Error = error::Error {
         code: 0x33,
         title: "TypeError".to_owned(),
-        message: "'$token' is not found in properties".to_owned(),
+        message: "'$token' is not found in constructor properties, try to initialize with a value.".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S35: error::Error = error::Error {

@@ -67,14 +67,7 @@ impl super::InstructionExecuter for FN {
                             let pos = current_stack.get_pos() + 3 + i;
                             match stack_memory.get(&(index_start + i)) {
                                 Some(e) => {
-                                    if e.type_id.is_void() {
-                                        return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::NullReference(
-                                                index_start + i,
-                                            ),
-                                            code_location: format!("{}:{}", file!(), line!()),
-                                        });
-                                    } else if e.type_id.is_heap_reference() {
+                                    if e.type_id.is_heap_reference() {
                                         match heap_memory.get(&e.to_uint()) {
                                             Some(e) => {
                                                 heap_memory.set(&pos, e.clone());

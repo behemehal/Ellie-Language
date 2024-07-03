@@ -57,7 +57,6 @@ impl HeapMemory {
     }
 
     pub fn set(&mut self, key: &usize, value: RawType) {
-
         self.data.insert(*key, value.to_bytes());
     }
 

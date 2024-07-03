@@ -1,5 +1,3 @@
-
-
 pub const BENCH_CLASS: &str = r#"
 /// -- Required Types --
 @dont_fix_variant;

@@ -260,7 +260,7 @@ pub fn colapseable_operator(parent: Operators, child: Operators) -> bool {
                         },
                     }
                 }
-                Operators::AssignmentType(child_inner) => true,
+                Operators::AssignmentType(_) => true,
                 Operators::Null => todo!(),
             }
         }

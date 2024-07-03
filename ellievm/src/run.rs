@@ -83,8 +83,8 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                         format!("WrongEntryLength; A: {:?}, B: {:?}", a, b),
                     ThreadPanicReason::CannotIndexWithNegative(e) =>
                         format!("CannotIndexWithNegative; {:?}", e),
-                    ThreadPanicReason::ParemeterMemoryAccessViolation(e) =>
-                        format!("ParemeterMemoryAccessViolation; {:?}", e),
+                    ThreadPanicReason::ParameterMemoryAccessViolation(e) =>
+                        format!("ParameterMemoryAccessViolation; {:?}", e),
                     ThreadPanicReason::MemoryAccessViolation(location, stack_idx) => format!(
                         "MemoryAccessViolation; on stack {:?} at location: {:?}",
                         stack_idx, location
