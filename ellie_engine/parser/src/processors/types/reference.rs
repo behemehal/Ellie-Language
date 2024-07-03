@@ -1,4 +1,7 @@
-use crate::deep_search_extensions::{find_type, resolve_type, ProcessedDeepSearchItems};
+use crate::{
+    deep_search_extensions::{find_type, resolve_type, ProcessedDeepSearchItems},
+    processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+};
 use alloc::{borrow::ToOwned, boxed::Box};
 use ellie_core::definite::types::reference::IndexChainAttribute;
 
@@ -8,12 +11,10 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
-    definite::{
-        definers::DefinerCollecting, items::Collecting, types, types::class_instance::AttributeType,
-    },
+    definite::{definers::DefinerCollecting, types, types::class_instance::AttributeType},
     error,
 };
-use ellie_tokenizer::syntax::types::reference_type;
+use ellie_tokenizer::{processors::items::Processors, syntax::types::reference_type};
 
 use super::TypeParserProcessorOptions;
 impl super::TypeParserProcessor for reference_type::ReferenceTypeCollector {
@@ -280,115 +281,129 @@ impl super::TypeParserProcessor for reference_type::ReferenceTypeCollector {
                             if hash_deep_search.found {
                                 match hash_deep_search.found_item {
                                     ProcessedDeepSearchItems::Class(class_page) => {
-                                        match parser
-                                            .find_processed_page(class_page.inner_page_id)
-                                            .cloned()
-                                        {
-                                            Some(class_inner_page) => {
-                                                let attributes = class_inner_page.items.iter().filter_map(|item| {
-                                                    let class_attribute_idx = class_inner_page.items.iter().filter_map(|x| match x {
-                                                        Collecting::Variable(x) => Some(x),
-                                                        _ => None
-                                                    }).collect::<Vec<_>>();
-                                                    match item.clone() {
-                                                        Collecting::Variable(e) => {
-                                                            let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(e.value_pos)) {
-                                                                Some(e) => e,
-                                                                None => return None,
-                                                            } };
-                                                            Some(Attribute {
-                                                                rtype: AttributeType::Property,
-                                                                name: e.name.clone(),
-                                                                hash: e.hash,
-                                                                page_hash: class_inner_page.hash,
-                                                                class_attribute_idx: class_attribute_idx.iter().position(|x| x.hash == e.hash).unwrap(),
-                                                                value: resolved_type,
-                                                            })
-                                                        },
-                                                        Collecting::Function(e) => {
-                                                            Some(Attribute {
-                                                                rtype: AttributeType::Method,
-                                                                name: e.name.clone(),
-                                                                hash: e.hash,
-                                                                page_hash: class_inner_page.hash,
-                                                                class_attribute_idx: 0,
-                                                                value: DefinerCollecting::Function(
-                                                                    ellie_core::definite::definers::FunctionType {
-                                                                        params: e.parameters.iter().map(|param| {
-                                                                            param.rtype.clone()
-                                                                        }).collect::<Vec<_>>(),
-                                                                        returning: Box::new(e.return_type),
-                                                                    }
-                                                                ),
-                                                            })
-                                                        },
-                                                        Collecting::NativeFunction(e) => {
-                                                            Some(Attribute {
-                                                                rtype: AttributeType::Method,
-                                                                name: e.name.clone(),
-                                                                hash: e.hash,
-                                                                page_hash: class_inner_page.hash,
-                                                                class_attribute_idx: 0,
-                                                                value: DefinerCollecting::Function(
-                                                                    ellie_core::definite::definers::FunctionType {
-                                                                        params: e.parameters.iter().map(|param| {
-                                                                            param.rtype.clone()
-                                                                        }).collect::<Vec<_>>(),
-                                                                        returning: Box::new(e.return_type),
-                                                                    }
-                                                                ),
-                                                            })
+                                        let class_inner_page =
+                                            match parser.find_page(class_page.inner_page_id) {
+                                                Some(class_inner_page) => class_inner_page.clone(),
+                                                None => {
+                                                    unreachable!()
+                                                }
+                                            };
+
+                                        let attributes = class_inner_page.items.iter().filter_map(|item| {
+                                            let class_attribute_idx = class_inner_page.items.iter().filter_map(|x| match x {
+                                                Processors::Variable(x) => Some(x),
+                                                _ => None
+                                            }).collect::<Vec<_>>();
+
+                                            let mut binding = TypeParserProcessorOptions::new(parser, page_id);
+                                            let options = binding.dont_include_setter().dont_ignore_type().build();
+
+                                            match item.clone() {
+                                                Processors::Variable(e) => {
+                                                    let resolved_type = if e.data.has_type {
+                                                        let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                        let options = binding.build();
+                                                         match e.data.rtype.definer_type.process(options) {
+                                                            Ok(e) => e,
+                                                            Err(e) => {
+                                                                errors.extend(e);
+                                                                return None
+                                                            },
+                                                                                                                         }
+                                                    } else {
+                                                        let rtype = match e.data.value.process(options) {
+                                                            Ok(e) => e,
+                                                            Err(e) => {
+                                                                errors.extend(e);
+                                                                return None
+                                                            },
+                                                        };
+                                                        match resolve_type(
+                                                            rtype,
+                                                            class_inner_page.hash,
+                                                            parser,
+                                                            &mut errors,
+                                                            Some(e.data.value_pos)) {
+                                                            Some(e) => e,
+                                                            None => return None,
                                                         }
-                                                        Collecting::Getter(e) => {
-                                                            Some(Attribute {
-                                                                rtype: AttributeType::Getter,
-                                                                name: e.name.clone(),
-                                                                hash: e.hash,
-                                                                page_hash: class_inner_page.hash,
-                                                                class_attribute_idx: 0,
-                                                                value: e.return_type,
-                                                            })
+                                                    };
+                                                    Some(Attribute {
+                                                        rtype: AttributeType::Property,
+                                                        name: e.data.name.clone(),
+                                                        hash: e.data.hash,
+                                                        page_hash: class_inner_page.hash,
+                                                        class_attribute_idx: class_attribute_idx.iter().position(|x| x.data.hash == e.data.hash).unwrap(),
+                                                        value: resolved_type,
+                                                    })
+                                                },
+                                                Processors::Function(e) => {
+
+                                                    let mut params = Vec::new();
+                                                    let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                    let options = binding.build();
+
+                                                    for param in e.data.parameters.iter() {
+                                                        match param.rtype.definer_type.process(options) {
+                                                            Ok(e) => params.push(e),
+                                                            Err(e) => {
+                                                                errors.extend(e);
+                                                                return None
+                                                            },
                                                         }
-                                                        Collecting::Setter(e) => {
-                                                            if is_setter {
-                                                                Some(Attribute {
-                                                                    rtype: AttributeType::Setter,
-                                                                    name: e.name.clone(),
-                                                                    class_attribute_idx: 0,
-                                                                    value: e.rtype,
-                                                                    hash: e.hash,
-                                                                    page_hash: class_inner_page.hash,
-                                                                })
-                                                            } else {
-                                                                //TODO add setter check
-                                                                errors.push(
-                                                                    error::error_list::ERROR_S6.clone().build_with_path(
-                                                                        vec![error::ErrorBuildField {
-                                                                            key: "token".to_owned(),
-                                                                            value: reference_type.to_string(),
-                                                                        }],
-                                                                        alloc::format!(
-                                                                            "{}:{}:{}",
-                                                                            file!().to_owned(),
-                                                                            line!(),
-                                                                            column!()
-                                                                        ),
-                                                                        parser.find_page(page_id).unwrap().path.clone(),
-                                                                        reference_pos,
-                                                                    ),
-                                                                );
-                                                                None
-                                                            }
-                                                        }
-                                                        _ => None,
                                                     }
-                                                }).collect::<Vec<_>>();
-                                                Ok(attributes)
+
+
+                                                    let returning = match e.data.return_type.definer_type.process(options) {
+                                                        Ok(e) => Box::new(e),
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                    };
+
+                                                    Some(Attribute {
+                                                        rtype: AttributeType::Method,
+                                                        name: e.data.name.clone(),
+                                                        hash: e.data.hash,
+                                                        page_hash: class_inner_page.hash,
+                                                        class_attribute_idx: 0,
+                                                        value: DefinerCollecting::Function(
+                                                            ellie_core::definite::definers::FunctionType {
+                                                                params,
+                                                                returning,
+                                                            }
+                                                        ),
+                                                    })
+                                                },
+                                                Processors::Getter(e) => {
+                                                    let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                    let options = binding.build();
+
+                                                    let value = match e.return_type.definer_type.process(options) {
+                                                        Ok(e) => e,
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                    };
+
+                                                    Some(Attribute {
+                                                        rtype: AttributeType::Getter,
+                                                        name: e.name.clone(),
+                                                        hash: e.hash,
+                                                        page_hash: class_inner_page.hash,
+                                                        class_attribute_idx: 0,
+                                                        value
+                                                    })
+                                                }
+                                                Processors::Setter(_) => {
+                                                    todo!()
+                                                }
+                                                _ => None,
                                             }
-                                            None => {
-                                                unreachable!()
-                                            }
-                                        }
+                                        }).collect::<Vec<_>>();
+                                        Ok(attributes)
                                     }
                                     ProcessedDeepSearchItems::GenericItem(_) => Ok(vec![]),
                                     ProcessedDeepSearchItems::Enum(enum_data) => {

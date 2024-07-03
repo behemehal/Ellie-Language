@@ -319,6 +319,7 @@ impl Processors {
                     None
                 }
             }
+            Processors::Loop(loop_type) => Some(loop_type.pos),
             _ => unreachable!("{:#?}", self),
         }
     }

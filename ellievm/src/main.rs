@@ -17,14 +17,13 @@ use ellie_engine::{
     ellie_vm::{
         channel::{EllieModule, FunctionElement, ModuleElements},
         program::Program,
-        raw_type::StaticRawType,
+        raw_type::{RawType, StaticRawType},
         utils::{ProgramReader, VmNativeAnswer, VmNativeCallParameters},
     },
     engine_constants,
     vm::{parse_debug_file, RFile},
 };
 use run::VmSettings;
-
 use std::{fs::File, io::Read, path::Path, time::SystemTime};
 
 fn main() {
@@ -171,8 +170,94 @@ fn main() {
                         SystemTime::now()
                             .duration_since(SystemTime::UNIX_EPOCH)
                             .unwrap()
-                            .as_nanos() as isize,
+                            .as_millis() as isize,
                     )))
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "_openFile",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch, expected 'dynamic' argument".to_string(),
+                        ),
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                let file_handle = match File::open(dynamic_value.to_string()) {
+                                    Ok(e) => {
+                                        println!("Opened file: {:?}", e);
+                                        let handle = Box::new(e);
+                                        let handle = Box::into_raw(handle);
+
+                                        handle as *mut usize
+                                    }
+                                    Err(e) => {
+                                        return VmNativeAnswer::RuntimeError(format!(
+                                            "Failed to open file '{}', ({})",
+                                            dynamic_value.to_string(),
+                                            e.to_string()
+                                        ));
+                                    }
+                                };
+
+                                //convert handle back to file
+                                let file_handle = file_handle as *mut File;
+
+                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
+                                    StaticRawType::from_uint(file_handle as usize),
+                                ))
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "_readToEnd",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(static_value) => {
+                            if static_value.type_id.is_int() {
+                                let file_handle = static_value.to_int() as *mut usize;
+                                let file = unsafe { &mut *(file_handle as *mut File) };
+
+                                let mut file_contents = String::new();
+                                match file.read_to_string(&mut file_contents) {
+                                    Ok(_) => VmNativeAnswer::Ok(VmNativeCallParameters::Dynamic(
+                                        RawType::generate_string(file_contents),
+                                    )),
+                                    Err(e) => VmNativeAnswer::RuntimeError(format!(
+                                        "Failed to read file ({})",
+                                        e.to_string()
+                                    )),
+                                }
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'int' argument".to_string(),
+                                )
+                            }
+                        }
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            VmNativeAnswer::RuntimeError(
+                                "Signature mismatch expected static argument".to_string(),
+                            )
+                        }
+                    }
                 }),
             )));
 

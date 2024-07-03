@@ -2,13 +2,10 @@ use crate::{processors::items::Processors, syntax::items::definers};
 use ellie_core::{definite::Converter, defs};
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,
-    pub rtype: definers::DefinerCollector,
-    pub rtype_pos: defs::Cursor,
     // When class is defined, by the design variables are not
     pub body_element_defiener: bool,
 }
@@ -40,8 +37,6 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
                     |p| ellie_core::definite::items::constructor::ConstructorParameter {
                         name: p.name,
                         pos: p.pos,
-                        rtype: p.rtype.to_definite(),
-                        rtype_pos: p.rtype_pos,
                     },
                 )
                 .collect(),
@@ -64,8 +59,6 @@ impl Converter<Constructor, ellie_core::definite::items::constructor::Constructo
                 .map(|p| ConstructorParameter {
                     name: p.name,
                     pos: p.pos,
-                    rtype: definers::DefinerTypes::default().from_definite(p.rtype),
-                    rtype_pos: p.rtype_pos,
                     body_element_defiener: false,
                 })
                 .collect(),

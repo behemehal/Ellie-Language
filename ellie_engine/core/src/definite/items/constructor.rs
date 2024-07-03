@@ -1,4 +1,4 @@
-use crate::{definite::definers, defs};
+use crate::defs;
 use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct ConstructorParameter {
     pub name: String,
     pub pos: defs::Cursor,
-    pub rtype: definers::DefinerCollecting,
-    pub rtype_pos: defs::Cursor,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

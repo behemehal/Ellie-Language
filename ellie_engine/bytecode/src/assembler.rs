@@ -453,6 +453,16 @@ impl Assembler {
         page_hash: Option<Vec<usize>>,
         borrow: bool,
     ) -> Option<LocalHeader> {
+        //If the local is already found, we will just return it, or else we register it as local
+        //After that function parsed by bytecode generator this borrowed local will be updated
+        if self.locals.iter().any(|local| local.hash == Some(hash)) {
+            return self
+                .locals
+                .iter()
+                .find(|local| local.hash == Some(hash))
+                .cloned();
+        }
+
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -590,21 +600,11 @@ impl Assembler {
         match locals.iter_mut().find(|local| &local.name == name) {
             Some(local) => Some(local.clone()),
             None => {
-                std::println!(
-                    "\n-----\npage_hash.is_none() || !borrow: {} {:#?}",
-                    page_hash.is_none() || !borrow,
-                    page_hash
-                );
                 if page_hash.is_none() || !borrow {
                     return None;
                 }
                 match self.module.pages.clone().into_iter().find_map(|x| {
                     if page_hash.clone().unwrap().contains(&x.hash) {
-                        std::println!("Page: {:#?} {:#?}", x.path, x.hash);
-                        if x.path.contains("mem") {
-                            std::println!("mem item saerched");
-                        }
-
                         x.items.into_iter().find_map(|e| match e {
                             Collecting::Function(function) => {
                                 if &function.name == name {
@@ -747,7 +747,7 @@ impl Assembler {
                     native_function.transpile(self, processed_page.hash, &processed_page)
                 }
                 Collecting::None => todo!(),
-                Collecting::Brk(_) => todo!(),
+                Collecting::Brk(brk) => brk.transpile(self, processed_page.hash, &processed_page),
                 Collecting::Go(_) => todo!(),
                 Collecting::FunctionParameter(function_parameter) => {
                     function_parameter.transpile(self, processed_page.hash, &processed_page)

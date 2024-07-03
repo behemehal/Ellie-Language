@@ -1,5 +1,3 @@
-use std::println;
-
 use alloc::vec;
 use ellie_core::definite::items::ret;
 

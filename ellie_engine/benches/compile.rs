@@ -65,8 +65,10 @@ fn parse(c: &mut Criterion) {
 fn byte_code_assembler(c: &mut Criterion) {
     let class_parse = parseText!(codes::BENCH_CLASS).expect("should've been successful");
     let loop_parse = parseText!(codes::BENCH_LOOP).expect("should've been successful");
-    let fibonacci_loop_parse = parseText!(codes::BENCH_FIBONACCI_LOOP).expect("should've been successful");
-    let fibonacci_recursion_parse = parseText!(codes::BENCH_FIBONACCI_RECURSION).expect("should've been successful");
+    let fibonacci_loop_parse =
+        parseText!(codes::BENCH_FIBONACCI_LOOP).expect("should've been successful");
+    let fibonacci_recursion_parse =
+        parseText!(codes::BENCH_FIBONACCI_RECURSION).expect("should've been successful");
 
     c.bench_function("class_byte_code_assembler", |b| {
         b.iter(|| {

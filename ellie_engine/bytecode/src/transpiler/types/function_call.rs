@@ -139,7 +139,7 @@ impl TypeTranspiler for FunctionCall {
             .instructions
             .push(Instructions::CALL(Instruction::absolute(target.cursor)));
 
-        let borrow_location = options.assembler().location() + 1;
+        let borrow_location = options.assembler().location();
 
         options
             .assembler_mut()

@@ -1,6 +1,9 @@
 use crate::{
     parser::{DeepSearchItems, Parser},
-    processors::definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+    processors::{
+        definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
+        types::{TypeParserProcessor, TypeParserProcessorOptions},
+    },
     utils::FoundPage,
 };
 use alloc::{
@@ -20,6 +23,7 @@ use ellie_core::{
     },
     defs, error,
 };
+use ellie_tokenizer::processors::items::Processors;
 use ellie_tokenizer::tokenizer::Dependency;
 use enum_as_inner::EnumAsInner;
 
@@ -363,82 +367,116 @@ fn iterate_deep_type(
                         if hash_deep_search.found {
                             match hash_deep_search.found_item {
                                 ProcessedDeepSearchItems::Class(class_page) => {
-                                    match parser
-                                        .find_processed_page(class_page.inner_page_id)
-                                        .cloned()
-                                    {
-                                        Some(class_inner_page) => {
-                                            let attributes = class_inner_page.items.iter().filter_map(|item| {
-                                                        match item.clone() {
-                                                            Collecting::Variable(e) => {
-                                                                let resolved_type = if e.has_type { e.rtype } else { match resolve_type(e.value, class_inner_page.hash, parser, &mut errors, Some(reference_pos)) {
-                                                                    Some(x) => x,
-                                                                    None => {
-                                                                        return None;
-                                                                    },
-                                                                } };
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Property,
-                                                                    name: e.name.clone(),
-                                                                    value: resolved_type,
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            },
-                                                            Collecting::Function(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: definers::DefinerCollecting::Function(
-                                                                        ellie_core::definite::definers::FunctionType {
-                                                                            params: e.parameters.iter().map(|param| {
-                                                                                param.rtype.clone()
-                                                                            }).collect::<Vec<_>>(),
-                                                                            returning: Box::new(e.return_type),
-                                                                        }
-                                                                    ),
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            },
-                                                            Collecting::NativeFunction(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: definers::DefinerCollecting::Function(
-                                                                        ellie_core::definite::definers::FunctionType {
-                                                                            params: e.parameters.iter().map(|param| {
-                                                                                param.rtype.clone()
-                                                                            }).collect::<Vec<_>>(),
-                                                                            returning: Box::new(e.return_type),
-                                                                        }
-                                                                    ),
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            }
-                                                            Collecting::Getter(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: e.return_type,
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            }
-                                                            Collecting::Setter(e) => {
-                                                                Some(Attribute {
-                                                                    _rtype: AttributeType::Method,
-                                                                    name: e.name.clone(),
-                                                                    value: e.rtype,
-                                                                    page: class_inner_page.hash,
-                                                                })
-                                                            }
-                                                            _ => None,
-                                                        }
-                                                    }).collect::<Vec<_>>();
-                                            Ok(attributes)
-                                        }
+                                    let class_inner_page = match parser.find_page(class_page.inner_page_id) {
+                                        Some(class_inner_page) => class_inner_page.clone(),
                                         None => {
                                             unreachable!()
                                         }
-                                    }
+                                    };
+
+                                    let attributes = class_inner_page.items.iter().filter_map(|item| {
+                                        match item.clone() {
+                                            Processors::Variable(e) => {
+                                                let mut binding = TypeParserProcessorOptions::new(parser, page_id);
+                                                let options = binding.dont_include_setter().dont_ignore_type().build();
+
+                                                let resolved_type = if e.data.has_type {
+                                                    let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                    let options = binding.build();
+                                                     match e.data.rtype.definer_type.process(options) {
+                                                        Ok(e) => e,
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                        }
+                                                } else {
+                                                    let rtype = match e.data.value.process(options) {
+                                                        Ok(e) => e,
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                    };
+                                                    match resolve_type(
+                                                        rtype,
+                                                        class_inner_page.hash,
+                                                        parser,
+                                                        &mut errors,
+                                                        Some(e.data.value_pos)) {
+                                                        Some(e) => e,
+                                                        None => return None,
+                                                    }
+                                                };
+                                                Some(Attribute {
+                                                    _rtype: AttributeType::Property,
+                                                    name: e.data.name.clone(),
+                                                    value: resolved_type,
+                                                    page: class_inner_page.hash,
+                                                })
+                                            },
+                                            Processors::Function(e) => {
+                                                let mut params = Vec::new();
+                                                    let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                    let options = binding.build();
+
+                                                    for param in e.data.parameters.iter() {
+                                                        match param.rtype.definer_type.process(options) {
+                                                            Ok(e) => params.push(e),
+                                                            Err(e) => {
+                                                                errors.extend(e);
+                                                                return None
+                                                            },
+                                                        }
+                                                    }
+
+
+                                                    let returning = match e.data.return_type.definer_type.process(options) {
+                                                        Ok(e) => Box::new(e),
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                    };
+
+                                                Some(Attribute {
+                                                    _rtype: AttributeType::Method,
+                                                    name: e.data.name.clone(),
+                                                    value: definers::DefinerCollecting::Function(
+                                                        ellie_core::definite::definers::FunctionType {
+                                                            params,
+                                                            returning,
+                                                        }
+                                                    ),
+                                                    page: class_inner_page.hash,
+                                                })
+                                            },
+                                            Processors::Getter(e) => {
+                                                let mut binding = DefinerParserProcessorOptions::new(parser, page_id);
+                                                    let options = binding.build();
+
+                                                    let value = match e.return_type.definer_type.process(options) {
+                                                        Ok(e) => e,
+                                                        Err(e) => {
+                                                            errors.extend(e);
+                                                            return None
+                                                        },
+                                                    };
+
+                                                Some(Attribute {
+                                                    _rtype: AttributeType::Method,
+                                                    name: e.name.clone(),
+                                                    value,
+                                                    page: class_inner_page.hash,
+                                                })
+                                            }
+                                            Processors::Setter(e) => {
+                                               todo!()
+                                            }
+                                            _ => None,
+                                        }
+                                    }).collect::<Vec<_>>();
+                                 Ok(attributes)
                                 }
                                 ProcessedDeepSearchItems::Enum(enum_data) => {
                                     Ok(
@@ -766,7 +804,7 @@ fn iterate_deep_type(
                         );
                         last_chain_attributes = (
                             a.value.clone(),
-                            match resolve_chain(a.value.clone(), chain.pos, a.page, parser) {
+                            match resolve_chain(a.value.clone(), chain.pos, page_id, parser) {
                                 Ok(e) => e,
                                 Err(e) => {
                                     errors.extend(e);

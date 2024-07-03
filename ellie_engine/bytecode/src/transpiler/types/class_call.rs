@@ -34,6 +34,19 @@ impl TypeTranspiler for ClassCall {
             .instructions
             .push(Instructions::ARR(Instruction::implicit()));
         let class_location = options.assembler().location();
+
+        //Reserve self
+        options
+            .assembler_mut()
+            .instructions
+            .push(Instructions::STA(Instruction::implicit()));
+        let self_location_to_replace = options.assembler().location();
+        options
+            .assembler_mut()
+            .instructions
+            .push(Instructions::PUSH(Instruction::absolute(class_location)));
+        //
+
         if !self.params.is_empty() {
             for (_idx, param) in self.params.iter().enumerate() {
                 param.value.transpile(
@@ -78,6 +91,11 @@ impl TypeTranspiler for ClassCall {
         //-
 
         // Insert self
+
+        //Replace self refference to itself
+        options.assembler_mut().instructions[self_location_to_replace] =
+            Instructions::STA(Instruction::absolute(self_location));
+
         options
             .assembler_mut()
             .instructions
@@ -122,6 +140,12 @@ impl TypeTranspiler for ClassCall {
             .assembler_mut()
             .instructions
             .push(Instructions::CALL(Instruction::absolute(target.cursor)));
+
+        let borrow_location = options.assembler().location();
+
+        options
+            .assembler_mut()
+            .add_borrow_to_local(target.hash.unwrap(), borrow_location);
 
         match options.target_register() {
             Registers::A => options

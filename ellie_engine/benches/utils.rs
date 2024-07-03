@@ -47,11 +47,9 @@ pub fn tokenize_code(code: &str) -> (usize, PageExport<Page>) {
         code: code.to_string(),
         main_hash: 0,
     };
-    let pages = tokenizer::tokenize_file(&mut program_repository).expect("should've been successful");
-    (
-        program_repository.main_hash,
-        pages,
-    )
+    let pages =
+        tokenizer::tokenize_file(&mut program_repository).expect("should've been successful");
+    (program_repository.main_hash, pages)
 }
 
 pub fn parse_code(

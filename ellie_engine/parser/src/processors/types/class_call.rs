@@ -398,7 +398,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                             .filter_map(|(index, x)| {
                                                 let attribute_search =  deep_search(
                                                     options.parser,
-                                                    belonging_class.inner_page_id,
+                                                    options.page_id,
                                                     x.name.clone(),
                                                     Some(belonging_class.hash),
                                                     vec![],
@@ -604,36 +604,18 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                         .filter(|x| x.body_element_defiener)
                                         .collect::<Vec<_>>();
 
-                                    params.push(types::class_call::ClassCallParameter {
-                                        value: Processors::Variable(
-                                            variable_type::VariableTypeCollector {
-                                                data: variable_type::VariableType {
-                                                    value: "null".to_string(),
-                                                    ..Default::default()
-                                                },
-                                                ..Default::default()
-                                            },
-                                        )
-                                        .to_definite(),
-                                        pos: self.data.target_pos,
-                                    });
-
-                           /*          for element in body_element_definer_parameters {
+                                    for element in body_element_definer_parameters {
                                         let found_variable_value = class
                                             .body
                                             .iter()
                                             .find_map(|x| match x {
                                                 ItemProcessors::Variable(e) => {
                                                     if e.data.name == element.name {
-                                                        Some(Processors::Variable(
-                                                            variable_type::VariableTypeCollector {
-                                                                data: variable_type::VariableType {
-                                                                    value: "null".to_string(),
-                                                                    ..Default::default()
-                                                                },
-                                                                ..Default::default()
-                                                            },
-                                                        ))
+                                                        if e.data.value.is_complete() {
+                                                            Some(e.data.value.to_definite())
+                                                        } else {
+                                                            Some(types::Types::Null)
+                                                        }
                                                     } else {
                                                         None
                                                     }
@@ -643,11 +625,11 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                             .unwrap();
 
                                         params.push(types::class_call::ClassCallParameter {
-                                            value: found_variable_value.to_definite(),
+                                            value: found_variable_value,
                                             pos: element.pos,
                                         });
                                     }
- */
+
                                     Ok(types::Types::ClassCall(
                                     ellie_core::definite::types::class_call::ClassCall {
                                         target: Box::new(ellie_core::definite::types::Types::VariableType(
