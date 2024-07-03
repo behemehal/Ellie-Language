@@ -22,7 +22,7 @@ impl CodeRenderer for ArrayType {
                 if index != self.collective.len() - 1 {
                     array.push_str(&format!("{}, ", value));
                 } else {
-                    array.push_str(&format!("{}", value));
+                    array.push_str(&value.to_string());
                 }
             }
             array.push_str(&format!("]{state_ending_token}"));

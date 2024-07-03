@@ -1,6 +1,7 @@
-use crate::definite::definers;
-use crate::definite::{definers::DefinerCollecting, types};
-use crate::defs;
+use crate::{
+    definite::{definers, definers::DefinerCollecting, types},
+    defs,
+};
 use alloc::{boxed::Box, vec::Vec};
 use serde::{Deserialize, Serialize};
 

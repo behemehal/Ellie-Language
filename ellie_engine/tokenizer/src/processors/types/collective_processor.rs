@@ -1,4 +1,4 @@
-use crate::{syntax::types::collective_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::collective_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for collective_type::CollectiveTypeCollector {

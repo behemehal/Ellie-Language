@@ -1,5 +1,5 @@
 use crate::{
-    processors::{types::Processors, Processor, EscapeCharEmitter},
+    processors::{types::Processors, EscapeCharEmitter, Processor},
     syntax::types::operator_type::{self, ComparisonOperators},
 };
 use ellie_core::{

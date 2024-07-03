@@ -50,7 +50,11 @@ impl super::InstructionExecuter for FN {
                 } else {
                     //skip the function len, the parameter count and paramaters
                     if parameter_count > 0 {
-                        let previous_frame_pos = current_stack.frame_pos - current_stack.stack_len;
+                        let previous_frame_pos = match current_stack.caller {
+                            Some(c) => c.frame_pos,
+                            None => 0,
+                        };
+
                         if !current_stack.registers.X.type_id.is_int() {
                             return Err(ExecuterPanic {
                                 reason: ThreadPanicReason::IllegalAddressingValue,
@@ -61,16 +65,9 @@ impl super::InstructionExecuter for FN {
                             current_stack.registers.X.to_int() as usize + previous_frame_pos;
                         for i in 0..parameter_count {
                             let pos = current_stack.get_pos() + 3 + i;
-                            match stack_memory.get(&(index_start as usize + i)) {
+                            match stack_memory.get(&(index_start + i)) {
                                 Some(e) => {
-                                    if e.type_id.is_void() {
-                                        return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::NullReference(
-                                                index_start as usize + i,
-                                            ),
-                                            code_location: format!("{}:{}", file!(), line!()),
-                                        });
-                                    } else if e.type_id.is_heap_reference() {
+                                    if e.type_id.is_heap_reference() {
                                         match heap_memory.get(&e.to_uint()) {
                                             Some(e) => {
                                                 heap_memory.set(&pos, e.clone());
@@ -82,7 +79,7 @@ impl super::InstructionExecuter for FN {
                                             None => {
                                                 return Err(ExecuterPanic {
                                                     reason: ThreadPanicReason::NullReference(
-                                                        index_start as usize + i,
+                                                        index_start + i,
                                                     ),
                                                     code_location: format!(
                                                         "{}:{}",
@@ -98,9 +95,7 @@ impl super::InstructionExecuter for FN {
                                 }
                                 None => {
                                     return Err(ExecuterPanic {
-                                        reason: ThreadPanicReason::NullReference(
-                                            index_start as usize + i,
-                                        ),
+                                        reason: ThreadPanicReason::NullReference(index_start + i),
                                         code_location: format!("{}:{}", file!(), line!()),
                                     })
                                 }

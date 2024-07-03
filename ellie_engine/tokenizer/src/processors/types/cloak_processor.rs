@@ -1,4 +1,4 @@
-use crate::{syntax::types::cloak_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::cloak_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for cloak_type::CloakTypeCollector {

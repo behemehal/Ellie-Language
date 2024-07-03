@@ -1,5 +1,11 @@
-use crate::{config::STACK_SIZE, thread::Registers, raw_type::StaticRawType};
+use crate::{config::STACK_SIZE, raw_type::StaticRawType, thread::Registers};
 use alloc::vec::Vec;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Caller {
+    pub id: usize,
+    pub frame_pos: usize,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Stack {
@@ -14,7 +20,13 @@ pub struct Stack {
     // Registers of the stack
     pub registers: Registers,
     // Caller of the stack, this is hash of the caller
-    pub caller: Option<usize>,
+    pub caller: Option<Caller>,
+}
+
+impl Default for Stack {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Stack {
@@ -39,7 +51,7 @@ impl Stack {
         self.frame_pos + self.pos
     }
 
-    pub fn calculate_frame_pos(&mut self, pos: usize) -> usize {
+    pub fn calculate_frame_pos(&self, pos: usize) -> usize {
         self.frame_pos + pos
     }
 }
@@ -48,6 +60,12 @@ impl Stack {
 pub struct StackArray {
     pub data: [Stack; STACK_SIZE],
     pub len: usize,
+}
+
+impl Default for StackArray {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StackArray {
@@ -81,6 +99,14 @@ impl StackArray {
 
     pub fn last_mut(&mut self) -> Option<&mut Stack> {
         Some(&mut self.data[self.len - 1])
+    }
+
+    pub fn last(&self) -> Option<&Stack> {
+        if self.len > 0 {
+            Some(&self.data[self.len - 1])
+        } else {
+            None
+        }
     }
 
     pub fn pop(&mut self) {

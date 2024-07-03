@@ -1,6 +1,5 @@
 use alloc::string::String;
-use ellie_core::definite;
-use ellie_core::defs;
+use ellie_core::{definite, defs};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Default, Debug, Clone, Serialize, Deserialize)]

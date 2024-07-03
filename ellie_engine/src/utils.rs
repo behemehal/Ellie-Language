@@ -1,4 +1,7 @@
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
+#[cfg(feature = "compiler")]
+use alloc::vec::Vec;
+#[cfg(feature = "compiler")]
 use ellie_core::defs::Version;
 #[cfg(feature = "compiler")]
 use ellie_core::warning::Warning;

@@ -1,4 +1,4 @@
-use crate::{syntax::items::constructor, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::constructor};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for constructor::Constructor {
@@ -27,6 +27,8 @@ impl crate::processors::Processor for constructor::Constructor {
                             range_start: cursor,
                             ..Default::default()
                         },
+                        body_element_defiener: false,
+                        ..Default::default()
                     })
                 } else {
                     if self.parameters[parameter_len - 1].name == "" {

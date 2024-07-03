@@ -23,7 +23,7 @@ impl CodeRenderer for ParentGenericType {
             if idx != self.generics.len() - 1 {
                 generics += &format!("{type_of_value}{comment}",);
             } else {
-                generics += &format!("{type_of_value}");
+                generics += &type_of_value.to_string();
             }
         }
         format!("{state_scope_length}{generics}>{state_ending_token}")

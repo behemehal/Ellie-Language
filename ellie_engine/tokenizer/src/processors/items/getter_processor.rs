@@ -1,4 +1,4 @@
-use crate::{syntax::items::getter, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::getter};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for getter::Getter {

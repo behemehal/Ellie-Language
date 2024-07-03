@@ -2,31 +2,38 @@ use ellie_engine::{
     ellie_core::defs::{DebugHeader, DebugInfo, PlatformArchitecture},
     ellie_renderer_utils::utils::{CliColor, ColorDisplay, Colors},
     ellie_vm::{
-        channel::ModuleManager,
+        channel::{EllieModule, ModuleManager},
         program::{Program, VmProgram},
         thread::{Isolate, Thread},
-        utils::ThreadExit,
+        utils::{ThreadExit, ThreadPanicReason},
     },
 };
 
-use crate::VmSettings;
+pub struct VmSettings {
+    pub json_log: bool,
+    pub warnings: bool,
+    pub heap_dump: bool,
+    pub architecture: PlatformArchitecture,
+    pub modules: Vec<EllieModule>,
+}
 
 pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugInfo>) {
-    let vm_program = VmProgram::new_from_vector(program.instructions);
+    let mut vm_program = VmProgram::new();
+    vm_program.fill_from_vector(program.instructions);
+    vm_program.fill_traces(program.native_call_traces);
     let mut module_manager = ModuleManager::new();
+
+    //Register incoming modules
+    for module in vm_settings.modules {
+        module_manager.register_module(module);
+    }
 
     let cli_color = &CliColor;
 
     let isolate = Isolate::new();
-    let mut thread = Thread::new(program.main.hash, PlatformArchitecture::B64, isolate);
-    thread.build_thread(program.main.clone());
+    let mut thread = Thread::new(program.main.hash, vm_settings.architecture, isolate);
+    thread.build_thread(program.main);
     let output = thread.run(&mut module_manager, &vm_program);
-    println!(
-        "{}[VM]{}: Thread exited with {:?}",
-        cli_color.color(Colors::Yellow),
-        cli_color.color(Colors::Reset),
-        output
-    );
     match output {
         ThreadExit::ExitGracefully => {
             if vm_settings.heap_dump {
@@ -46,11 +53,58 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
         }
         ThreadExit::Panic(panic) => {
             println!(
-                "\n{}ThreadPanic{} : {}{:?}{}",
+                "\n{}ThreadPanic{} : {}{}{}",
                 cli_color.color(Colors::Red),
                 cli_color.color(Colors::Reset),
                 cli_color.color(Colors::Cyan),
-                panic.reason,
+                match panic.reason {
+                    ThreadPanicReason::IntegerOverflow => "IntegerOverflow".to_string(),
+                    ThreadPanicReason::ByteOverflow => "ByteOverflow".to_string(),
+                    ThreadPanicReason::PlatformOverflow => "PlatformOverflow".to_string(),
+                    ThreadPanicReason::FloatOverflow => "FloatOverflow".to_string(),
+                    ThreadPanicReason::DoubleOverflow => "DoubleOverflow".to_string(),
+                    ThreadPanicReason::UnmergebleTypes(a, b) =>
+                        format!("UnmergebleTypes; Cant merge {:?} and {:?}", a, b),
+                    ThreadPanicReason::UncomparableTypes(a, b) =>
+                        format!("UncomparableTypes; Cant compare {:?} and {:?}", a, b),
+                    ThreadPanicReason::StackOverflow => "StackOverflow".to_string(),
+                    ThreadPanicReason::BrokenStackTree(e) => format!("BrokenStackTree; {:?}", e),
+                    ThreadPanicReason::UnexpectedType(e) => format!("UnexpectedType; {:?}", e),
+                    ThreadPanicReason::NullReference(e) => format!("NullReference; {:?}", e),
+                    ThreadPanicReason::OutOfInstructions => "OutOfInstructions".to_string(),
+                    ThreadPanicReason::RuntimeError(e) => format!("RuntimeError; {:?}", e),
+                    ThreadPanicReason::InvalidRegisterAccess(e) =>
+                        format!("InvalidRegisterAccess; {:?}", e),
+                    ThreadPanicReason::IndexAccessViolation(e) =>
+                        format!("IndexAccessViolation; {:?}", e),
+                    ThreadPanicReason::IndexOutOfBounds(index, size) =>
+                        format!("IndexOutOfBounds; Index: {:?}, Size: {:?}", index, size),
+                    ThreadPanicReason::WrongEntryLength(a, b) =>
+                        format!("WrongEntryLength; A: {:?}, B: {:?}", a, b),
+                    ThreadPanicReason::CannotIndexWithNegative(e) =>
+                        format!("CannotIndexWithNegative; {:?}", e),
+                    ThreadPanicReason::ParameterMemoryAccessViolation(e) =>
+                        format!("ParameterMemoryAccessViolation; {:?}", e),
+                    ThreadPanicReason::MemoryAccessViolation(location, stack_idx) => format!(
+                        "MemoryAccessViolation; on stack {:?} at location: {:?}",
+                        stack_idx, location
+                    ),
+                    ThreadPanicReason::ImmediateUseViolation(e) =>
+                        format!("ImmediateUseViolation; {:?}, possible code corruption", e),
+                    ThreadPanicReason::InvalidType(e) => format!("Invalid type found: {}", e),
+                    ThreadPanicReason::IllegalAddressingValue =>
+                        "IllegalAddressingValue".to_string(),
+                    ThreadPanicReason::CannotConvertToType(a, b) =>
+                        format!("CannotConvertToType; {:?} to {:?}", a, b),
+                    ThreadPanicReason::CallToUnknown(e) =>
+                        format!("Call to unknown function; {:?}", e),
+                    ThreadPanicReason::MissingModule(module) =>
+                        format!("MissingModule; {:?}", module),
+                    ThreadPanicReason::MissingTrace(e) => format!("MissingTrace; {:?}", e),
+                    ThreadPanicReason::ArraySizeCorruption => "ArraySizeCorruption".to_string(),
+                    ThreadPanicReason::ReferenceError(e) =>
+                        format!("Broken reference: {}, possible memory corruption", e),
+                },
                 cli_color.color(Colors::Reset),
             );
             for frame in panic.stack_trace {
@@ -68,30 +122,30 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                                     debug_file: &DebugInfo,
                                 ) -> String {
                                     let module_name = debug_header
-                                        .module
+                                        .module_name
                                         .split("<ellie_module_")
                                         .nth(1)
                                         .unwrap()
-                                        .split(">")
-                                        .nth(0)
+                                        .split('>')
+                                        .next()
                                         .unwrap();
                                     let module_path = debug_file
                                         .module_map
                                         .iter()
                                         .find(|map| module_name == map.module_name);
-                                    let real_path = match module_path {
+
+                                    match module_path {
                                         Some(module_path) => match &module_path.module_path {
                                             Some(module_path) => {
-                                                let new_path = debug_header.module.clone();
+                                                let new_path = debug_header.module_name.clone();
                                                 let starter_name =
                                                     format!("<ellie_module_{}>", module_name);
-                                                new_path.replace(&starter_name, &module_path)
+                                                new_path.replace(&starter_name, module_path)
                                             }
-                                            None => debug_header.module.clone(),
+                                            None => debug_header.module_name.clone(),
                                         },
-                                        None => debug_header.module.clone(),
-                                    };
-                                    real_path
+                                        None => debug_header.module_name.clone(),
+                                    }
                                 }
 
                                 let real_path = get_real_path(e, debug_file);
@@ -106,9 +160,8 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                             }
                             None => {
                                 println!(
-                                    "{}    at {}:{}",
+                                    "{}    at frame.name:{}",
                                     cli_color.color(Colors::Green),
-                                    "frame.name",
                                     frame.pos
                                 );
                             }
@@ -116,9 +169,8 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                     }
                     None => {
                         println!(
-                            "{}    at {}:{} ({} + {})",
+                            "{}    at frame.name:{} ({} + {})",
                             cli_color.color(Colors::Green),
-                            "frame.name",
                             frame.pos + frame.frame_pos,
                             frame.pos,
                             frame.frame_pos,
@@ -154,6 +206,7 @@ pub fn run(program: Program, vm_settings: VmSettings, debug_file: Option<DebugIn
                     thread.isolate.stack_dump(),
                 );
             }
+            std::process::exit(1);
         }
     }
 }

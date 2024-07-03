@@ -3,9 +3,7 @@ pub mod utils;
 use std::fs::File;
 use std::time::Instant;
 
-use ellie_engine::ellie_bytecode::assembler::{
-    AssembleResult, Assembler, PlatformAttributes,
-};
+use ellie_engine::ellie_bytecode::assembler::{AssembleResult, Assembler, PlatformAttributes};
 use ellie_engine::ellie_core::defs::{DebugHeader, DebugInfo, PlatformArchitecture};
 use ellie_engine::ellie_vm::program::VmProgram;
 use ellie_engine::ellie_vm::utils::ThreadExit;
@@ -25,9 +23,11 @@ fn run(program: Program, assembler_result: AssembleResult) {
     let main = program.main.clone();
     let mut module_manager = ModuleManager::new();
 
-    let mut vm_program = VmProgram::new_from_vector(program.instructions);
+    let mut vm_program = VmProgram::new();
 
-    module_manager.register_module(EllieModule::new("ellieStd".to_owned(), 0));
+    vm_program.fill_from_vector(program.instructions);
+
+    module_manager.register_module(EllieModule::new("ellieCore".to_owned()));
 
     let println = match assembler_result
         .native_exports
@@ -39,11 +39,11 @@ fn run(program: Program, assembler_result: AssembleResult) {
     };
 
     module_manager
-        .get_module(0)
+        .get_module("ellieCore")
         .unwrap()
         .register_element(ModuleElements::Function(FunctionElement {
-            name: "println".to_owned(),
-            hash: println,
+            name: "println",
+            hash: None,
             callback: Box::new(|thread_info, params| match &params[0] {
                 VmNativeCallParameters::Static(_) => VmNativeAnswer::RuntimeError(
                     "println: Expected string, given static argument".to_owned(),
@@ -180,7 +180,7 @@ HEAP DUMP:
                             debug_file: &DebugInfo,
                         ) -> String {
                             let module_name = debug_header
-                                .module
+                                .module_name
                                 .split("<ellie_module_")
                                 .nth(1)
                                 .unwrap()
@@ -194,14 +194,14 @@ HEAP DUMP:
                             let real_path = match module_path {
                                 Some(module_path) => match &module_path.module_path {
                                     Some(module_path) => {
-                                        let new_path = debug_header.module.clone();
+                                        let new_path = debug_header.module_name.clone();
                                         let starter_name =
                                             format!("<ellie_module_{}>", module_name);
                                         new_path.replace(&starter_name, &module_path)
                                     }
-                                    None => debug_header.module.clone(),
+                                    None => debug_header.module_name.clone(),
                                 },
-                                None => debug_header.module.clone(),
+                                None => debug_header.module_name.clone(),
                             };
                             real_path
                         }
@@ -209,7 +209,7 @@ HEAP DUMP:
                         let real_path = get_real_path(
                             e,
                             &DebugInfo {
-                                module_map: assembler_result.module_info.modue_maps.clone(),
+                                module_map: assembler_result.module_info.module_maps.clone(),
                                 debug_headers: assembler_result.debug_headers.clone(),
                             },
                         );
@@ -332,7 +332,7 @@ fn compile() -> AssembleResult {
             v age = new Age(1);
             v human = new Human(\"Ahmet\", age);
             println(\"age: \" + human.age.num);
-            ((human.age.age();
+            //((human.age.age();
             //panic(\"Let's see\");
         }
     "

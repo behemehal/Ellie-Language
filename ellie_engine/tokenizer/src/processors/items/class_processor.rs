@@ -1,4 +1,5 @@
-use crate::{syntax::items::class, processors::EscapeCharEmitter};
+use super::{constructor, variable::Variable};
+use crate::{processors::EscapeCharEmitter, syntax::items::class};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for class::Class {
@@ -80,12 +81,16 @@ impl crate::processors::Processor for class::Class {
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings.last_mut().unwrap().pos.range_end =
+                    cursor.clone().pop_char(1);
                 self.generic_definings
                     .push(class::GenericDefining::default());
             } else if letter_char == '>'
                 && generic_len > 0
                 && self.generic_definings[generic_len - 1].name != ""
             {
+                self.generic_definings.last_mut().unwrap().pos.range_end =
+                    cursor.clone().pop_char(1);
                 self.generics_collected = true;
             } else if letter_char != ' ' {
                 errors.push(error::error_list::ERROR_S1.clone().build(
@@ -117,6 +122,62 @@ impl crate::processors::Processor for class::Class {
             self.iterator.finalize();
             errors.extend(self.iterator.errors.clone());
             self.body = self.iterator.collected.clone();
+
+            // If there is no constructor, add a default constructor
+            if !self
+                .body
+                .iter()
+                .any(|item| matches!(item, super::Processors::Constructor(_)))
+            {
+                self.body.insert(
+                    0,
+                    super::Processors::Constructor(super::constructor::Constructor::default()),
+                );
+            }
+
+            let find_unused_variables_in_class_body: Vec<Variable> = self
+                .body
+                .iter()
+                .filter_map(|item| {
+                    if let super::Processors::Variable(variable) = item {
+                        Some(variable.data.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            let constructor = self
+                .body
+                .iter_mut()
+                .find_map(|item| {
+                    if let super::Processors::Constructor(constructor) = item {
+                        Some(constructor)
+                    } else {
+                        None
+                    }
+                })
+                .unwrap();
+
+            let find_unused_variables_in_class_body = find_unused_variables_in_class_body
+                .into_iter()
+                .filter(|variable| {
+                    !constructor
+                        .parameters
+                        .iter()
+                        .any(|parameter| parameter.name == variable.name)
+                })
+                .collect::<Vec<_>>();
+
+            for variable in find_unused_variables_in_class_body {
+                constructor
+                    .parameters
+                    .push(constructor::ConstructorParameter {
+                        name: variable.name,
+                        pos: variable.pos,
+                        body_element_defiener: true,
+                    });
+            }
         } else {
             if letter_char == '{' {
                 self.brace_count += 1;

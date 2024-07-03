@@ -150,6 +150,15 @@ impl Processors {
             definite::types::Types::AsKeyword(e) => {
                 Processors::AsKeyword(as_keyword::AsKeywordCollector::default().from_definite(e))
             }
+            definite::types::Types::Null => {
+                Processors::Variable(variable_type::VariableTypeCollector {
+                    data: variable_type::VariableType {
+                        value: "null".to_string(),
+                        ..Default::default()
+                    },
+                    complete: true,
+                })
+            }
             _ => panic!("NOT SUPPORTED, {:?}", from),
         }
     }
@@ -163,7 +172,7 @@ impl Processors {
             Processors::String(_) => true,
             Processors::FunctionCall(_) => false,
             Processors::Variable(e) => {
-                if e.data.value == "false" || e.data.value == "true" {
+                if e.data.value == "false" || e.data.value == "true" || e.data.value == "null" {
                     true
                 } else {
                     false
@@ -179,7 +188,8 @@ impl Processors {
             Processors::Cloak(e) => e.data.collective.iter().all(|e| e.value.is_static()),
             Processors::Collective(e) => e.data.entries.iter().all(|e| e.value.is_static()),
             Processors::AsKeyword(e) => {
-                if matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "bool")
+                if (matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "bool")
+                    || matches!(e.data.rtype.definer_type, crate::syntax::items::definers::DefinerTypes::Generic(ref e) if e.rtype == "Null"))
                     && matches!(*e.data.target, Processors::Integer(ref e) if e.data.value == 1 || e.data.value == 0)
                 {
                     true
@@ -234,6 +244,31 @@ impl Processors {
             Processors::Collective(_) => false,
             Processors::AsKeyword(_) => false,
             Processors::NullResolver(_) => false,
+        }
+    }
+
+    pub fn is_item_supports_multiline(&self) -> bool {
+        match self {
+            Processors::String(_) => true,
+            Processors::Array(_) => true,
+            Processors::Cloak(_) => true,
+            Processors::Collective(_) => true,
+            Processors::Reference(_) => true,
+            Processors::BraceReference(_) => true,
+            Processors::AsKeyword(_) => true,
+            Processors::FunctionCall(e) => e.param_started,
+            Processors::ClassCall(_) => true,
+            Processors::Operator(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_assignable(&self) -> bool {
+        match self {
+            Processors::Variable(_) => true,
+            Processors::Reference(_) => true,
+            Processors::BraceReference(_) => true,
+            _ => false,
         }
     }
 

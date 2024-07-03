@@ -1,0 +1,96 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'elliec'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=elliec",
+                    "--package=elliec"
+                ],
+                "filter": {
+                    "name": "elliec",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "compile",
+                "--exclude-std",
+                "--compile-lib",
+                "--output-type",
+                "${input:outputType}",
+                "--module-name",
+                "EllieApp",
+                "-n",
+                "--show-debug-lines",
+                "--allow-panics",
+                "${input:file}",
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'elliec'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=elliec",
+                    "--package=elliec"
+                ],
+                "filter": {
+                    "name": "elliec",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "outputType",
+            "type": "pickString",
+            "description": "The output type",
+            "options": [
+                "bin",
+                "json",
+                "byteCode",
+                "byteCodeAsm",
+                "depA",
+                "nop"
+            ],
+            "default": "byteCode"
+        },
+        {
+            "id": "moduleName",
+            "type": "promptString",
+            "description": "The module name",
+            "default": "aEllieApp"
+        },
+        {
+            "id": "file",
+            "type": "command",
+            "command": "extension.commandvariable.file.pickFile",
+            "args": {
+                "include": "**/*",
+                "exclude": "**/target/*",
+                "display": "fileName",
+                "description": "Pick a file to debug",
+                "fromFolder": {
+                    "predefined ": [
+                        "${workspaceFolder}/../",
+                        "${workspaceFolder}/../Ellie-Core-Library"
+                    ]
+                }
+            }
+        }
+    ]
+}

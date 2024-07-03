@@ -23,7 +23,9 @@ impl super::InstructionExecuter for PUSH {
         match addressing_value {
             AddressingValues::Absolute(absolute_address) => {
                 match stack_memory.get(&(current_stack.get_pos() - 1)) {
-                    Some(stack_data) => match heap_memory.get_mut(&(absolute_address + current_stack.frame_pos)) {
+                    Some(stack_data) => match heap_memory
+                        .get_mut(&(absolute_address + current_stack.frame_pos))
+                    {
                         Some(mut heap_value) => {
                             let mut type_id = heap_value.get_type_id();
                             if type_id.id != 9 {
@@ -89,7 +91,12 @@ impl super::InstructionExecuter for PUSH {
                             })
                         }
                     },
-                    None => todo!(),
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::NullReference(current_stack.get_pos() - 1),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        })
+                    }
                 }
             }
 

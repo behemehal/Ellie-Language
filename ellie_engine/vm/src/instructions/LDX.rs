@@ -32,34 +32,32 @@ impl super::InstructionExecuter for LDX {
                 }
             }
             AddressingValues::Absolute(e) => {
-                current_stack.registers.X =
-                    match stack_memory.get(&(current_stack.calculate_frame_pos(*e))) {
-                        Some(raw_type) => {
-                            if raw_type.type_id.is_void() {
-                                return Err(ExecuterPanic {
-                                    reason: ThreadPanicReason::NullReference(
-                                        current_stack.calculate_frame_pos(*e),
-                                    ),
-                                    code_location: format!("{}:{}", file!(), line!()),
-                                });
-                            } else if raw_type.type_id.is_stack_storable() {
-                                raw_type
-                            } else {
-                                StaticRawType::from_heap_reference(
-                                    current_stack.calculate_frame_pos(*e),
-                                )
-                            }
-                        }
-                        None => {
+                current_stack.registers.X = match stack_memory
+                    .get(&(current_stack.calculate_frame_pos(*e)))
+                {
+                    Some(raw_type) => {
+                        if raw_type.type_id.is_void() {
                             return Err(ExecuterPanic {
-                                reason: ThreadPanicReason::MemoryAccessViolation(
-                                    e.clone(),
-                                    current_stack.pos,
+                                reason: ThreadPanicReason::NullReference(
+                                    current_stack.calculate_frame_pos(*e),
                                 ),
                                 code_location: format!("{}:{}", file!(), line!()),
                             });
+                        } else if raw_type.type_id.is_stack_storable() {
+                            raw_type
+                        } else {
+                            StaticRawType::from_heap_reference(
+                                current_stack.calculate_frame_pos(*e),
+                            )
                         }
-                    };
+                    }
+                    None => {
+                        return Err(ExecuterPanic {
+                            reason: ThreadPanicReason::MemoryAccessViolation(*e, current_stack.pos),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        });
+                    }
+                };
             }
             AddressingValues::AbsoluteIndex(pointer, index) => {
                 let index = match stack_memory.get(&current_stack.calculate_frame_pos(*index)) {
@@ -88,7 +86,7 @@ impl super::InstructionExecuter for LDX {
                         });
                     }
                 };
-                match stack_memory.get(&(&current_stack.calculate_frame_pos(*pointer))) {
+                match stack_memory.get(&current_stack.calculate_frame_pos(*pointer)) {
                     Some(stack_data) => {
                         if stack_data.type_id.is_heap_reference() {
                             match heap_memory.get(&(stack_data.to_uint())) {
@@ -103,9 +101,12 @@ impl super::InstructionExecuter for LDX {
                                             &heap_data.data[arch.usize_len() as usize..];
                                         let array_entries =
                                             array_data.chunks(array_entry_size).collect::<Vec<_>>();
-                                        if index > array_entries.len() {
+                                        if index >= array_entries.len() {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index,
+                                                    array_entries.len(),
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -131,6 +132,36 @@ impl super::InstructionExecuter for LDX {
                                         code_location: format!("{}:{}", file!(), line!()),
                                     });
                                 }
+                            }
+                        } else if stack_data.type_id.is_static_array() {
+                            let array_location = stack_data.to_uint();
+                            let array_size = match stack_memory.get(&(array_location + 1)) {
+                                Some(e) => e.to_uint(),
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(array_location),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            };
+
+                            if index >= array_size {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                let entry = array_location + index;
+                                current_stack.registers.X = match stack_memory.get(&(entry + 2)) {
+                                    Some(e) => e,
+                                    None => {
+                                        return Err(ExecuterPanic {
+                                            reason: ThreadPanicReason::NullReference(entry),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        });
+                                    }
+                                };
+                                return Ok(ExecuterResult::Continue);
                             }
                         } else {
                             return Err(ExecuterPanic {
@@ -159,9 +190,11 @@ impl super::InstructionExecuter for LDX {
                                 if raw_type.type_id.is_array() {
                                     // Increase size of array
                                     let array_size = raw_type.type_id.size;
-                                    if *index < array_size && *index > array_size {
+                                    if *index >= array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {
@@ -199,9 +232,11 @@ impl super::InstructionExecuter for LDX {
                                         } else {
                                             (raw_type.data.len() - platform_size) / array_entry_len
                                         };
-                                        if index > &array_size {
+                                        if *index >= array_size {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    *index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -240,6 +275,35 @@ impl super::InstructionExecuter for LDX {
                         }
                     } else if static_raw_type.type_id.is_core_type() {
                         current_stack.registers.B = static_raw_type;
+                    } else if static_raw_type.type_id.is_static_array() {
+                        let array_location = static_raw_type.to_uint();
+                        let array_size = match stack_memory.get(&(array_location + 1)) {
+                            Some(e) => e.to_uint(),
+                            None => {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::NullReference(array_location),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            }
+                        };
+
+                        if *index >= array_size {
+                            return Err(ExecuterPanic {
+                                reason: ThreadPanicReason::IndexOutOfBounds(*index, array_size),
+                                code_location: format!("{}:{}", file!(), line!()),
+                            });
+                        } else {
+                            let entry = array_location + index;
+                            current_stack.registers.X = match stack_memory.get(&(entry + 2)) {
+                                Some(e) => e,
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(entry),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            };
+                        }
                     } else {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::UnexpectedType(static_raw_type.type_id.id),

@@ -1,6 +1,6 @@
 use crate::utils::{CompileOutput, CompilerSettings};
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
-use ellie_core::{error::Error, utils::PageExport, defs::Version};
+use ellie_core::{defs::Version, error::Error, utils::PageExport};
 use ellie_parser::parser;
 use ellie_tokenizer::tokenizer::Page;
 
@@ -27,9 +27,7 @@ pub fn parse_pages(
         compiler_settings.description,
         compiler_settings.is_lib,
         compiler_settings.experimental_features,
-        Version::build_from_string(
-            crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
-        ),
+        Version::build_from_string(&crate::engine_constants::ELLIE_ENGINE_VERSION.to_owned()),
     );
 
     for (module, _) in modules.iter() {
@@ -51,10 +49,12 @@ pub fn parse_pages(
 #[macro_export]
 macro_rules! parseText {
     ($text:expr) => {{
-        use ellie_engine::utils::{MainProgram, CompileOutput, ProgramRepository};
-        use ellie_engine::ellie_parser::parser;
-        use ellie_engine::ellie_tokenizer::tokenizer::{Pager, ResolvedImport};
-        use ellie_engine::ellie_core::defs;
+        use ellie_engine::{
+            ellie_core::defs,
+            ellie_parser::parser,
+            ellie_tokenizer::tokenizer::{Pager, ResolvedImport},
+            utils::{CompileOutput, MainProgram, ProgramRepository},
+        };
 
         #[derive(Clone)]
         struct Repository {
@@ -106,13 +106,13 @@ macro_rules! parseText {
                 let mut parser = parser::Parser::new(
                     pager.pages,
                     0,
-                    defs::Version::build_from_string("1.0.0".to_string()),
+                    defs::Version::build_from_string(&"1.0.0".to_string()),
                     "main".to_string(),
                     "".to_string(),
                     false,
                     false,
                     defs::Version::build_from_string(
-                        ellie_engine::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                        &ellie_engine::engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                     ),
                 );
                 let module = parser.parse();
@@ -128,4 +128,51 @@ macro_rules! parseText {
             Err(errors) => Err(errors),
         }
     }};
+}
+
+#[macro_export]
+macro_rules! compile_core_lib {
+    () => {
+        // get library location from environment variable
+        let lib_location = std::env::var("ELLIE_CORE_LIB").unwrap();
+
+        //Check if library exists
+        if !std::path::Path::new(&lib_location).exists() {
+            panic!("Core library not found at: {}", lib_location);
+        }
+
+        #[derive(Clone)]
+        struct Repository {
+            target_path: String,
+        }
+        let mut program_repository = Repository {
+            target_path: String::from("./main.ei"),
+        };
+
+        impl ProgramRepository for Repository {
+            fn read_main(&mut self) -> MainProgram {
+                let text = $text;
+
+                MainProgram {
+                    file_content: text.to_string(),
+                    file_name: "main.ei".to_string(),
+                    file_hash: 0,
+                    start_directory: format!("<ellie_module_main>"),
+                }
+            }
+
+            fn read_module(
+                &mut self,
+                link_module: bool,
+                current_path: String,
+                requested_path: String,
+            ) -> ResolvedImport {
+                ResolvedImport {
+                    found: false,
+                    resolve_error: "Module resolver is not implemented on macros".to_owned(),
+                    ..Default::default()
+                }
+            }
+        }
+    };
 }

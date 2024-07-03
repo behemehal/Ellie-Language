@@ -1,7 +1,6 @@
 //Auto builded from `instructions.json` by `reAssembler.js` rev: 3
 use crate::instructions::Instruction;
-use alloc::string::String;
-use alloc::{vec, vec::Vec};
+use alloc::{string::String, vec, vec::Vec};
 use ellie_core::defs::PlatformArchitecture;
 
 #[derive(Clone, Debug, PartialEq)]

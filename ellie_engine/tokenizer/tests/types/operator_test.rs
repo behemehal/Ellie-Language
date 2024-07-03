@@ -76,7 +76,14 @@ mod operator_tests {
             match rtype.clone() {
                 Processors::Integer(e) => format!("{}", e.data.value),
                 Processors::Byte(e) => format!("0x{:x}", e.value),
-                Processors::Float(e) => format!("f:{}", e.data.value),
+                Processors::Decimal(e) => match e.data.value {
+                    ellie_core::definite::types::decimal::DecimalTypeEnum::Float(a) => {
+                        format!("f:{}", a)
+                    }
+                    ellie_core::definite::types::decimal::DecimalTypeEnum::Double(a) => {
+                        format!("d:{}", a)
+                    }
+                },
                 Processors::Char(e) => format!("'{}'", e.value),
                 Processors::String(e) => format!("\"{}\"", e.data.value),
                 Processors::Operator(_) => stringify_opearator(rtype),

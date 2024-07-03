@@ -1,4 +1,4 @@
-use crate::{syntax::types::brace_reference_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::brace_reference_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for brace_reference_type::BraceReferenceTypeCollector {

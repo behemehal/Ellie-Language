@@ -1,10 +1,7 @@
-use crate::definite::types;
-use crate::defs;
+use crate::{definite::types, defs};
 use serde::{Deserialize, Serialize};
 
-use alloc::boxed::Box;
-use alloc::string::String;
-use alloc::vec::Vec;
+use alloc::{boxed::Box, string::String, vec::Vec};
 
 use super::class_instance::AttributeType;
 
@@ -13,6 +10,7 @@ pub struct IndexChainAttribute {
     pub rtype: AttributeType,
     pub hash: usize,
     pub page_hash: usize,
+    pub class_attribute_idx: usize,
     pub idx: usize,
 }
 

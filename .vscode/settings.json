@@ -10,6 +10,7 @@
     "editor.smoothScrolling": true,
     "workbench.editor.labelFormat": "short",
     "workbench.startupEditor": "readme",
+    "rust-analyzer.imports.preferNoStd": "true",
     "files.exclude": {
         "**/ellie_engine": true,
         "**/elliec": true,

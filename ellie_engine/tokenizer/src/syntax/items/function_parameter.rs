@@ -1,14 +1,17 @@
-use ellie_core::definite::definers::DefinerCollecting;
-use ellie_core::definite::Converter;
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use ellie_core::{
+    definite::{
+        definers::DefinerCollecting,
+        items::function_parameter::FunctionParameter as DefiniteFunctionParameter, Converter,
+    },
+    defs,
+};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionParameter {
     pub name: String,
     pub reference: bool,
-    pub rtype: ellie_core::definite::definers::DefinerCollecting,
+    pub rtype: DefinerCollecting,
     pub name_pos: defs::Cursor,
     pub rtype_pos: defs::Cursor,
     pub hash: usize,
@@ -28,12 +31,9 @@ impl Default for FunctionParameter {
     }
 }
 
-impl
-    Converter<FunctionParameter, ellie_core::definite::items::function_parameter::FunctionParameter>
-    for FunctionParameter
-{
-    fn to_definite(self) -> ellie_core::definite::items::function_parameter::FunctionParameter {
-        ellie_core::definite::items::function_parameter::FunctionParameter {
+impl Converter<FunctionParameter, DefiniteFunctionParameter> for FunctionParameter {
+    fn to_definite(self) -> DefiniteFunctionParameter {
+        DefiniteFunctionParameter {
             name: self.name,
             rtype: self.rtype,
             name_pos: self.name_pos,
@@ -42,10 +42,7 @@ impl
         }
     }
 
-    fn from_definite(
-        self,
-        from: ellie_core::definite::items::function_parameter::FunctionParameter,
-    ) -> FunctionParameter {
+    fn from_definite(self, from: DefiniteFunctionParameter) -> FunctionParameter {
         FunctionParameter {
             rtype: from.rtype,
             name: from.name,

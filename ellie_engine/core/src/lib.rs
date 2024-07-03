@@ -2,6 +2,7 @@
 #![allow(unused_assignments)]
 #![allow(unknown_lints)]
 #![warn(clippy::all)]
+#![recursion_limit = "256"]
 //! Ellie Core
 //! This is the core utilities for the Ellie Language.
 //!
@@ -18,6 +19,7 @@ extern crate lazy_static;
 #[cfg(feature = "compiler_utils")]
 pub mod definite;
 pub mod defs;
+#[cfg(feature = "compiler_utils")]
 pub mod error;
 #[cfg(feature = "compiler_utils")]
 pub mod information;
@@ -27,4 +29,5 @@ pub mod module_path;
 pub mod native;
 #[cfg(feature = "compiler_utils")]
 pub mod utils;
+#[cfg(feature = "compiler_utils")]
 pub mod warning;

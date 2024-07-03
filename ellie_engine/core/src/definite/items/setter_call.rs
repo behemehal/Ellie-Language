@@ -11,4 +11,5 @@ pub struct SetterCall {
     pub target_pos: defs::Cursor,
     pub value_pos: defs::Cursor,
     pub operator: AssignmentOperators,
+    pub hash: usize,
 }

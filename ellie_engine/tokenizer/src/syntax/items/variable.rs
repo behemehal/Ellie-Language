@@ -1,9 +1,9 @@
-use crate::processors::types::{Processors, TypeProcessor};
-use crate::syntax::items::definers::{DefinerCollector, DefinerTypes};
-use ellie_core::definite::Converter;
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use crate::{
+    processors::types::{Processors, TypeProcessor},
+    syntax::items::definers::{DefinerCollector, DefinerTypes},
+};
+use ellie_core::{definite::Converter, defs};
+use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Variable {
@@ -18,7 +18,7 @@ pub struct Variable {
     pub value_pos: defs::Cursor,
     pub type_pos: defs::Cursor,
     pub hash: usize,
-    pub rtype: crate::syntax::items::definers::DefinerCollector,
+    pub rtype: DefinerCollector,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

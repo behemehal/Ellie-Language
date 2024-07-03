@@ -1,10 +1,20 @@
-use alloc::{borrow::ToOwned, string::String, vec::Vec};
+use alloc::{string::String, vec::Vec};
+
+#[cfg(feature = "compiler_utils")]
+use alloc::{borrow::ToOwned, format};
 use core::fmt::{Display, Error, Formatter};
+
+#[cfg(feature = "compiler_utils")]
+use regex::Regex;
+
+#[cfg(feature = "compiler_utils")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum TokenizerType {
+    #[default]
     Raw,
     ClassParser,
     FunctionParser,
@@ -12,11 +22,6 @@ pub enum TokenizerType {
 }
 
 #[cfg(feature = "compiler_utils")]
-impl Default for TokenizerType {
-    fn default() -> Self {
-        TokenizerType::Raw
-    }
-}
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -71,18 +76,19 @@ impl Default for TokenizerOptions {
 
 /// A struct that represents a position in a file.
 /// (line, column)
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct CursorPosition(pub usize, pub usize);
+
+/// A struct that represents a position in a file.
+/// (line, column)
+#[cfg(not(feature = "compiler_utils"))]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl core::fmt::Display for CursorPosition {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}:{}", self.0, self.1)
-    }
-}
-
-impl Default for CursorPosition {
-    fn default() -> Self {
-        CursorPosition(0, 0)
     }
 }
 
@@ -92,7 +98,7 @@ impl CursorPosition {
     }
 
     pub fn skip_char(&mut self, n: usize) -> CursorPosition {
-        let mut clone = self.clone();
+        let mut clone = *self;
         clone.1 += n;
         clone
     }
@@ -120,7 +126,19 @@ impl CursorPosition {
 /// ## Fields
 /// * `range_start` - Start of range [`CursorPosition`]
 /// * `range_end` - End of range [`CursorPosition`]
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct Cursor {
+    pub range_start: CursorPosition,
+    pub range_end: CursorPosition,
+}
+
+/// Cursor position
+/// ## Fields
+/// * `range_start` - Start of range [`CursorPosition`]
+/// * `range_end` - End of range [`CursorPosition`]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
+#[cfg(not(feature = "compiler_utils"))]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -138,10 +156,8 @@ impl Cursor {
     pub fn is_bigger(&self, than: Cursor) -> bool {
         if than.range_end.0 == self.range_end.0 {
             self.range_end.1 > than.range_end.1
-        } else if than.range_end.0 > self.range_end.0 {
-            return false;
         } else {
-            return true;
+            than.range_end.0 <= self.range_end.0
         }
     }
 
@@ -172,7 +188,7 @@ impl Cursor {
     /// [`Cursor`] with new range end
     pub fn range_end_skip_char(&self, n: usize) -> Self {
         self.range_end.clone().skip_char(n);
-        self.clone()
+        *self
     }
 
     /// Gets [`Cursor`] range start and skip one char
@@ -182,16 +198,7 @@ impl Cursor {
     /// [`Cursor`] with new range start and end
     pub fn range_start_skip_char(&self, n: usize) -> Self {
         self.range_start.clone().skip_char(n);
-        self.clone()
-    }
-}
-
-impl Default for Cursor {
-    fn default() -> Self {
-        Cursor {
-            range_start: CursorPosition::default(),
-            range_end: CursorPosition::default(),
-        }
+        *self
     }
 }
 
@@ -200,13 +207,17 @@ impl Default for Cursor {
 /// * `major` - Major version [`u8`]
 /// * `minor` - Minor version [`u8`]
 /// * `bug` - Bug version [`u8`]
+#[cfg(feature = "compiler_utils")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
-    pub major: u8,
-    pub minor: u8,
-    pub bug: u8,
+    pub major: usize,
+    pub minor: usize,
+    pub patch: usize,
+    pub pre_release: Option<String>,
+    pub build_metadata: Option<String>,
 }
 
+#[cfg(feature = "compiler_utils")]
 impl PartialEq for Version {
     fn eq(&self, other: &Self) -> bool {
         //Ignore bug
@@ -214,21 +225,36 @@ impl PartialEq for Version {
     }
 }
 
+#[cfg(feature = "compiler_utils")]
 impl Version {
     /// Create new [`Version`] from given [`String`]
     /// ## Arguments
     /// * `version` - [`String`] to parse
-    pub fn build_from_string(input: String) -> Version {
+    pub fn build_from_string(input: &String) -> Version {
+        let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
+        let caps = semver_regex.captures(input).unwrap();
+
         Version {
-            minor: input.split(".").collect::<Vec<_>>()[0]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'minor', is not a number")),
-            major: input.split(".").collect::<Vec<_>>()[1]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'major', is not a number")),
-            bug: input.split(".").collect::<Vec<_>>()[2]
-                .parse::<u8>()
-                .unwrap_or_else(|_| panic!("Given 'bug', is not a number")),
+            major: caps
+                .name("major")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            minor: caps
+                .name("minor")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            patch: caps
+                .name("patch")
+                .unwrap()
+                .as_str()
+                .parse::<usize>()
+                .unwrap(),
+            pre_release: caps.name("prerelease").map(|x| x.as_str().to_owned()),
+            build_metadata: caps.name("buildmetadata").map(|x| x.as_str().to_owned()),
         }
     }
 
@@ -237,27 +263,65 @@ impl Version {
     /// * `input` - [`String`] to parse
     /// ## Return
     /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
-    pub fn build_from_string_checked(input: String) -> Result<Version, u8> {
-        if input.split(".").collect::<Vec<_>>().len() == 3 {
-            let major = input.split(".").collect::<Vec<_>>()[0]
-                .parse::<u8>()
-                .unwrap_or(0);
-            let minor = input.split(".").collect::<Vec<_>>()[1]
-                .parse::<u8>()
-                .unwrap_or(0);
+    pub fn build_from_string_checked(input: &String) -> Result<Version, u8> {
+        let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
+        match semver_regex.captures(input) {
+            Some(caps) => {
+                let major = caps
+                    .name("major")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
+                let minor = caps
+                    .name("minor")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
+                let patch = caps
+                    .name("patch")
+                    .unwrap()
+                    .as_str()
+                    .parse::<usize>()
+                    .unwrap_or(0);
 
-            let bug = input.split(".").collect::<Vec<_>>()[2]
-                .parse::<u8>()
-                .unwrap_or(0);
+                let pre_release = caps.name("prerelease").map(|x| x.as_str().to_owned());
+                let build_metadata = caps.name("buildmetadata").map(|x| x.as_str().to_owned());
 
-            if major == 0 && minor == 0 && bug == 0 {
-                Err(1)
-            } else {
-                Ok(Version { minor, major, bug })
+                if major == 0 && minor == 0 && patch == 0 {
+                    Err(1)
+                } else {
+                    Ok(Version {
+                        minor,
+                        major,
+                        patch,
+                        pre_release,
+                        build_metadata,
+                    })
+                }
             }
-        } else {
-            Err(0)
+            None => Err(1),
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        format!(
+            "{}.{}.{}{}{}",
+            self.major,
+            self.minor,
+            self.patch,
+            if let Some(ref pre_release) = self.pre_release {
+                format!("-{}", pre_release)
+            } else {
+                "".to_owned()
+            },
+            if let Some(ref build_metadata) = self.build_metadata {
+                format!("+{}", build_metadata)
+            } else {
+                "".to_owned()
+            }
+        )
     }
 }
 
@@ -327,7 +391,7 @@ impl PlatformArchitecture {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DebugHeaderType {
     Variable,
     SetterCall,
@@ -346,7 +410,9 @@ pub struct DebugHeader {
     /// Element's hash
     pub hash: usize,
     /// Module Name
-    pub module: String,
+    pub module_name: String,
+    /// Module Hash
+    pub module_hash: usize,
     /// Element Name
     pub name: String,
     /// Instruction start -> end,
@@ -358,7 +424,15 @@ pub struct DebugHeader {
 #[derive(Debug, Clone)]
 pub struct ModuleMap {
     pub module_name: String,
+    pub module_hash: usize,
     pub module_path: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct NativeCallTrace {
+    pub module_name: String,
+    pub function_hash: usize,
+    pub function_name: String,
 }
 
 #[derive(Debug, Clone)]

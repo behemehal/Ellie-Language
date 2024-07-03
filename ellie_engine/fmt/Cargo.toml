@@ -1,17 +1,19 @@
 [package]
 name = "ellie_fmt"
 description = "Formatter for ellie"
-version = "0.3.0"
+version = "0.5.2"
 authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
 edition = "2021"
 license = "GPL-2.0"
+repository = "https://github.com/behemehal/Ellie-Language"
+homepage = "https://www.ellie-lang.org"
 
 [dependencies]
 lazy_static = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-ellie_tokenizer = { path = "../tokenizer", version = "*" }
-ellie_core = { path = "../core", version = "*" }
+ellie_tokenizer = { path = "../tokenizer", version = "0.7.3" }
+ellie_core = { path = "../core", version = "0.7.2" }
 
 [features]
 default = ["std"]

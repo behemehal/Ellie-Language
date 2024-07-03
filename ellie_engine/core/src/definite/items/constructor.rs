@@ -1,6 +1,5 @@
 use crate::defs;
-use alloc::string::String;
-use alloc::vec::Vec;
+use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -16,4 +15,5 @@ pub struct Constructor {
     pub name_pos: defs::Cursor,
     pub parameters_pos: defs::Cursor,
     pub pos: defs::Cursor,
+    pub class_hash: usize,
 }

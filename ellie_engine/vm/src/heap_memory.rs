@@ -1,35 +1,52 @@
+use crate::raw_type::{MutatableRawType, RawType};
 use alloc::{
+    boxed::Box,
     collections::BTreeMap,
     format,
     string::{String, ToString},
     vec::Vec,
 };
-use crate::raw_type::{MutatableRawType, RawType};
 
-#[derive(Clone)]
+pub type HeapOutOfMemoryCallback = Box<dyn FnMut()>;
+
 pub struct HeapMemory {
     pub data: BTreeMap<usize, Vec<u8>>,
+    pub on_heap_out_of_memory: Option<HeapOutOfMemoryCallback>,
+}
+
+impl Clone for HeapMemory {
+    fn clone(&self) -> Self {
+        HeapMemory {
+            data: self.data.clone(),
+            on_heap_out_of_memory: None,
+        }
+    }
+}
+
+impl Default for HeapMemory {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HeapMemory {
     pub fn new() -> HeapMemory {
         HeapMemory {
             data: BTreeMap::new(),
+            on_heap_out_of_memory: None,
         }
+    }
+
+    pub fn set_on_heap_out_of_memory(&mut self, callback: HeapOutOfMemoryCallback) {
+        self.on_heap_out_of_memory = Some(callback);
     }
 
     pub fn get_mut(&mut self, key: &usize) -> Option<MutatableRawType> {
-        match self.data.get_mut(key) {
-            Some(data) => Some(MutatableRawType { data }),
-            None => None,
-        }
+        self.data.get_mut(key).map(|data| MutatableRawType { data })
     }
 
     pub fn get(&self, key: &usize) -> Option<RawType> {
-        match self.data.get(key) {
-            Some(data) => Some(RawType::from_bytes(data)),
-            None => None,
-        }
+        self.data.get(key).map(|data| RawType::from_bytes(data))
     }
 
     pub fn get_def(&self, key: &usize) -> Option<RawType> {
@@ -85,9 +102,7 @@ impl HeapMemory {
                         }
                         new_string
                     }
-                    7 => {
-                        todo!("Todo")
-                    }
+                    7 => value.to_char().to_string(),
                     8 => String::from("void"),
                     9 => String::from("arr"),
                     10 => String::from("null"),

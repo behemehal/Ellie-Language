@@ -1,4 +1,4 @@
-use crate::{syntax::items::loop_type::Loop, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::loop_type::Loop};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for Loop {

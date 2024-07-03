@@ -1,7 +1,8 @@
-use crate::alloc::vec::Vec;
-use crate::definite::types;
-use crate::defs;
-use crate::{alloc::boxed::Box, definite::definers::DefinerCollecting};
+use crate::{
+    alloc::{boxed::Box, vec::Vec},
+    definite::{definers::DefinerCollecting, types},
+    defs,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

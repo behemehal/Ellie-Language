@@ -2,12 +2,18 @@
 
 # [Ellie Language](https://www.ellie-lang.org)
 
-[![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/CpxCzQ9y8S) [![EllieRSS](https://img.shields.io/static/v1?label=EllieRSS&message=RSS%20Feed&color=orange&logo=rss)](https://www.ellie-lang.org/rss)
+[![Crates.io Version](https://img.shields.io/crates/v/ellie_engine?logo=rust)](https://crates.io/crates/ellie_engine)[![Rust](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml/badge.svg)](https://github.com/behemehal/Ellie-Language/actions/workflows/rust.yml) [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/CpxCzQ9y8S) [![EllieRSS](https://img.shields.io/static/v1?label=EllieRSS&message=RSS%20Feed&color=orange&logo=rss)](https://www.ellie-lang.org/rss)
 
 Neden ellie? Ellie, gömülü ve korumalı ortamlarda çalışan bir tip güvenlikli bir programlama dilidir.
 
 
 ### To reach English version of this document [click here](./README.md)
+
+---
+
+## ElliePlayground
+
+Ellie'yi online olarak denemek için [burayı](https://playground.ellie-lang.org) ziyaret edin.
 
 ---
 

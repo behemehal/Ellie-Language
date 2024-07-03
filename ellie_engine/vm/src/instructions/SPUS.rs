@@ -23,7 +23,7 @@ impl super::InstructionExecuter for SPUS {
     ) -> Result<ExecuterResult, ExecuterPanic> {
         match addressing_value {
             AddressingValues::Absolute(absolute_address) => {
-                match heap_memory.get_mut(absolute_address) {
+                match heap_memory.get_mut(&current_stack.calculate_frame_pos(*absolute_address)) {
                     Some(mut heap_value) => {
                         let mut type_id = heap_value.get_type_id();
                         if type_id.id != 6 {
@@ -37,7 +37,7 @@ impl super::InstructionExecuter for SPUS {
                         let char_data = match stack_memory.get(&(current_stack.get_pos() - 1)) {
                             Some(e) => {
                                 if e.type_id.is_char() {
-                                    e.data.clone()
+                                    e.data
                                 } else {
                                     return Err(ExecuterPanic {
                                         reason: ThreadPanicReason::InvalidType(7),
@@ -58,7 +58,9 @@ impl super::InstructionExecuter for SPUS {
                     }
                     None => {
                         return Err(ExecuterPanic {
-                            reason: ThreadPanicReason::NullReference(*absolute_address),
+                            reason: ThreadPanicReason::NullReference(
+                                current_stack.calculate_frame_pos(*absolute_address),
+                            ),
                             code_location: format!("{}:{}", file!(), line!()),
                         })
                     }

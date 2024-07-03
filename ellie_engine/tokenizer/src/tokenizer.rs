@@ -4,7 +4,8 @@ use ellie_core::{
         definers::DefinerCollecting,
         types::class_instance::{Attribute, AttributeType, ClassInstance},
     },
-    defs::{self, Cursor}, error,
+    defs::{self, Cursor},
+    error,
     utils::{ExportPage, PageExport},
 };
 use serde::{Deserialize, Serialize};
@@ -215,7 +216,7 @@ pub struct Tokenizer {
 
 impl Tokenizer {
     /// ### Create a new tokenizer
-    /// [`Tokenizer`] is a base implementation of [`Iterator`], which iterates through the code
+    /// [`Tokenizer`] is a base implementation of [`crate::iterator::Iterator`], which iterates through the code
     /// ## Arguments
     /// * `code` - The code to tokenize
     /// * `path` - The path of the file
@@ -229,7 +230,7 @@ impl Tokenizer {
         }
     }
 
-    /// `tokenize_page` is a function initalizes [`Iterator`] and iters through the code
+    /// `tokenize_page` is a function initalizes [`crate::iterator::Iterator`] and iters through the code
     pub fn tokenize_page(&mut self) -> Result<&mut Vec<items::Processors>, Vec<error::Error>> {
         let mut last_char = '\0';
         for letter_char in self.code.chars() {
@@ -441,7 +442,10 @@ where
 
                         current_page.dependencies.push(Dependency {
                             hash: resolved.hash,
-                            processed: false,
+                            processed: match &resolved.matched {
+                                ImportType::Code(_) => true,
+                                ImportType::Module(_) => false,
+                            },
                             module: match &resolved.matched {
                                 ImportType::Code(_) => None,
                                 ImportType::Module(x) => Some(x.initial_page.clone()),

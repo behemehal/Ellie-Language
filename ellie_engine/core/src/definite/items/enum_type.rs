@@ -1,6 +1,5 @@
 use crate::definite::definers;
-use alloc::string::String;
-use alloc::vec::Vec;
+use alloc::{string::String, vec::Vec};
 use serde::{Deserialize, Serialize};
 
 use super::file_key::FileKey;

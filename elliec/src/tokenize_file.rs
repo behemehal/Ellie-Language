@@ -38,8 +38,8 @@ pub fn get_output_path(
             .to_string();
         let mut file_name = target_path.file_name().unwrap().to_str().unwrap();
 
-        if file_name.contains(".") {
-            file_name = file_name.split(".").nth(0).unwrap();
+        if file_name.contains('.') {
+            file_name = file_name.split('.').next().unwrap();
         }
 
         Path::new(
@@ -184,11 +184,11 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
 
     match tokenize_file(&mut program_repository) {
         Ok(pages) => {
-            let tokenize_end = (tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64) as f64;
+            let tokenize_end = tokenize_start.elapsed().as_nanos() as f64 / 1000000_f64;
             let json = serde_json::to_string(&pages).unwrap();
             let output_path = &get_output_path(target_path, output_path, OutputTypes::Json);
 
-            if let Err(write_error) = fs::write(&output_path, json) {
+            if let Err(write_error) = fs::write(output_path, json) {
                 if tokenizer_settings.json_log {
                     let mut output = outputs::WRITE_FILE_ERROR.clone();
                     output.extra.push(outputs::CliOuputExtraData {
@@ -205,29 +205,27 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                         cli_color.color(Colors::Reset),
                     );
                 }
+            } else if tokenizer_settings.json_log {
+                let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: 0,
+                    value: output_path
+                        .absolutize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_owned(),
+                });
+                println!("{}", serde_json::to_string(&output).unwrap())
             } else {
-                if tokenizer_settings.json_log {
-                    let mut output = outputs::WRITE_JSON_SUCCEDED.clone();
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: 0,
-                        value: output_path
-                            .absolutize()
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_owned(),
-                    });
-                    println!("{}", serde_json::to_string(&output).unwrap())
-                } else {
-                    println!(
-                        "{}[!]{}: JSON output written to {}{}{}",
-                        cli_color.color(Colors::Green),
-                        cli_color.color(Colors::Reset),
-                        cli_color.color(Colors::Yellow),
-                        output_path.absolutize().unwrap().to_str().unwrap(),
-                        cli_color.color(Colors::Reset),
-                    );
-                }
+                println!(
+                    "{}[!]{}: JSON output written to {}{}{}",
+                    cli_color.color(Colors::Green),
+                    cli_color.color(Colors::Reset),
+                    cli_color.color(Colors::Yellow),
+                    output_path.absolutize().unwrap().to_str().unwrap(),
+                    cli_color.color(Colors::Reset),
+                );
             }
 
             if !tokenizer_settings.json_log {
@@ -266,7 +264,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                     print_errors(
                         &pager_errors,
                         |path| match utils::read_file(
-                            &path.replace(
+                            path.replace(
                                 &starter_name,
                                 Path::new(target_path)
                                     .absolutize()
@@ -304,7 +302,7 @@ pub fn tokenize(target_path: &Path, output_path: &Path, tokenizer_settings: Toke
                             )
                             .to_string()
                         },
-                        cli_color.clone()
+                        *cli_color
                     )
                 );
             }

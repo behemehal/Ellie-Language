@@ -1,3 +1,4 @@
+use bincode::Options;
 use ellie_engine::{
     ellie_core::defs::{PlatformArchitecture, Version},
     ellie_parser,
@@ -67,7 +68,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -115,7 +116,7 @@ fn main() {
             }
 
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     matches.value_of("target").unwrap().to_string()
                 } else {
@@ -135,8 +136,8 @@ fn main() {
                     .to_str()
                     .unwrap();
 
-                if file_name.contains(".") {
-                    file_name.split(".").next().unwrap().to_string()
+                if file_name.contains('.') {
+                    file_name.split('.').next().unwrap().to_string()
                 } else {
                     file_name.to_string()
                 }
@@ -186,7 +187,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -232,7 +233,7 @@ fn main() {
                 }));
             }
             let version = Version::build_from_string_checked(
-                matches.value_of("binaryVersion").unwrap().to_string(),
+                &matches.value_of("binaryVersion").unwrap().to_string(),
             )
             .unwrap_or_else(|_| {
                 println!(
@@ -243,25 +244,30 @@ fn main() {
                 std::process::exit(1);
             });
 
-            let output_type = match matches.value_of("outputType").unwrap() {
-                "bin" => OutputTypesSelector::Bin,
-                "json" => OutputTypesSelector::Json,
-                "byteCode" => OutputTypesSelector::ByteCode,
-                "byteCodeAsm" => OutputTypesSelector::ByteCodeAsm,
-                "depA" => OutputTypesSelector::DependencyAnalysis,
-                "nop" => OutputTypesSelector::Nop,
-                _ => {
-                    println!(
-                        "{}Error:{} Given output type does not exist",
-                        cli_color.color(Colors::Red),
-                        cli_color.color(Colors::Reset)
-                    );
-                    std::process::exit(1);
-                }
-            };
+            let output_types = matches
+                .values_of("outputType")
+                .unwrap()
+                .into_iter()
+                .map(|e| match e {
+                    "bin" => OutputTypesSelector::Bin,
+                    "json" => OutputTypesSelector::Json,
+                    "byteCode" => OutputTypesSelector::ByteCode,
+                    "byteCodeAsm" => OutputTypesSelector::ByteCodeAsm,
+                    "depA" => OutputTypesSelector::DependencyAnalysis,
+                    "nop" => OutputTypesSelector::Nop,
+                    _ => {
+                        println!(
+                            "{}Error:{} Given output type does not exist",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset)
+                        );
+                        std::process::exit(1);
+                    }
+                })
+                .collect::<Vec<_>>();
 
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     if path.is_file() {
                         matches.value_of("target").unwrap().to_string()
@@ -284,7 +290,7 @@ fn main() {
             };
 
             let output_path = if let Some(output) = matches.value_of("outputPath") {
-                let path = Path::new(output.clone());
+                let path = Path::new(output);
 
                 //Check the output path is exists or check path is file and parent directory exists
                 if path.exists()
@@ -309,12 +315,29 @@ fn main() {
                     .to_string()
             };
 
+            let byte_code_architecture = match matches.value_of("targetArchitecture").unwrap() {
+                "64" => PlatformArchitecture::B64,
+                "32" => PlatformArchitecture::B32,
+                "16" => PlatformArchitecture::B16,
+                e => {
+                    println!(
+                        "{}Error:{} Unknown architecture '{}{}{}'",
+                        cli_color.color(Colors::Red),
+                        cli_color.color(Colors::Reset),
+                        cli_color.color(Colors::Yellow),
+                        e,
+                        cli_color.color(Colors::Reset),
+                    );
+                    std::process::exit(1);
+                }
+            };
+
             let modules = if let Some(modules) = matches.values_of("insertModule") {
                 let mut parsed_modules = vec![];
 
                 //Iter through all modules
                 for module in modules {
-                    let path = module.trim().split("=").collect::<Vec<_>>();
+                    let path = module.trim().split('=').collect::<Vec<_>>();
 
                     let module_path = Path::new(path[0].trim());
                     let code_path = if path.len() > 1 {
@@ -328,7 +351,15 @@ fn main() {
                         //If module path is file
                         match read_file_bin(module_path) {
                             Ok(file_content) => {
-                                match bincode::deserialize::<ellie_parser::parser::Module>(
+                                let config = bincode::options()
+                                    .with_big_endian()
+                                    .with_fixint_encoding()
+                                    .with_limit(match byte_code_architecture {
+                                        PlatformArchitecture::B16 => 65535,
+                                        PlatformArchitecture::B32 => 4294967295,
+                                        PlatformArchitecture::B64 => 18446744073709551615,
+                                    });
+                                match config.deserialize::<ellie_parser::parser::Module>(
                                     file_content.as_slice(),
                                 ) {
                                     Ok(module) => {
@@ -336,7 +367,7 @@ fn main() {
                                             || Path::new(&code_path.clone().unwrap()).is_dir()
                                         {
                                             let current_ellie_version = Version::build_from_string(
-                                                engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                                                &engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
                                             );
                                             if current_ellie_version != module.ellie_version {
                                                 if matches.is_present("jsonLog") {
@@ -350,18 +381,14 @@ fn main() {
                                                     )
                                                 } else {
                                                     println!(
-                                                    "\n{}Info{}: This module is legacy, used ellie_version: {}{}.{}.{}{} current ellie_version: {}{}.{}.{}{}",
+                                                    "\n{}Info{}: This module is legacy, used ellie_version: {}{}{} current ellie_version: {}{}{}",
                                                         cli_color.color(Colors::Cyan),
                                                         cli_color.color(Colors::Reset),
                                                         cli_color.color(Colors::Yellow),
-                                                        module.ellie_version.major,
-                                                        module.ellie_version.minor,
-                                                        module.ellie_version.bug,
+                                                        module.ellie_version.to_string(),
                                                         cli_color.color(Colors::Reset),
                                                         cli_color.color(Colors::Yellow),
-                                                        current_ellie_version.major,
-                                                        current_ellie_version.minor,
-                                                        current_ellie_version.bug,
+                                                        current_ellie_version.to_string(),
                                                         cli_color.color(Colors::Reset),
                                                     );
                                                 }
@@ -455,17 +482,17 @@ fn main() {
                         .to_str()
                         .unwrap();
 
-                    if file_name.contains(".") {
-                        file_name.split(".").next().unwrap().to_string()
+                    if file_name.contains('.') {
+                        file_name.split('.').next().unwrap().to_string()
                     } else {
                         file_name.to_string()
                     }
                 }
             };
 
-            if project_name.contains(" ")
-                || project_name.contains("/")
-                || project_name.contains(".")
+            if project_name.contains(' ')
+                || project_name.contains('/')
+                || project_name.contains('.')
             {
                 println!(
                     "{}Error:{} Wrong project name '{}{}{}'{}{}{}",
@@ -494,28 +521,7 @@ fn main() {
                     is_lib: matches.is_present("isLib"),
                     version,
                     experimental_features: matches.is_present("experimentalFeatures"),
-                    byte_code_architecture: match matches.value_of("targetArchitecture") {
-                        Some(e) => {
-                            if e == "64" {
-                                PlatformArchitecture::B64
-                            } else if e == "32" {
-                                PlatformArchitecture::B32
-                            } else if e == "16" {
-                                PlatformArchitecture::B16
-                            } else {
-                                println!(
-                                    "{}Error:{} Unknown architecture '{}{}{}'",
-                                    cli_color.color(Colors::Red),
-                                    cli_color.color(Colors::Reset),
-                                    cli_color.color(Colors::Yellow),
-                                    e,
-                                    cli_color.color(Colors::Reset),
-                                );
-                                std::process::exit(1);
-                            }
-                        }
-                        None => unreachable!(),
-                    },
+                    byte_code_architecture,
                     file_name: Path::new(&target_path)
                         .file_name()
                         .unwrap()
@@ -523,10 +529,11 @@ fn main() {
                         .unwrap()
                         .to_string(),
                 },
-                output_type,
+                output_types,
                 performance_info: matches.is_present("performanceInfo"),
                 show_debug_lines: matches.is_present("showDebugLines"),
                 warnings: !matches.is_present("disableWarnings"),
+                disable_terminal_colors: matches.is_present("disableColors"),
             };
 
             compile_file::compile(
@@ -607,49 +614,47 @@ fn main() {
                         engine_constants::ELLIE_CORE_VERSION,
                     );
                 }
+            } else if matches.is_present("jsonLog") {
+                let mut output = outputs::VERSION.clone();
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "version".to_string(),
+                    value: version.to_string(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_hash".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_branch".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "build_date".to_string(),
+                    value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                });
+                println!("{}", serde_json::to_string(&output).unwrap());
             } else {
-                if matches.is_present("jsonLog") {
-                    let mut output = outputs::VERSION.clone();
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "version".to_string(),
-                        value: version.to_string(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_branch".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
-                    });
-                    println!("{}", serde_json::to_string(&output).unwrap());
-                } else {
-                    println!(
-                        "EllieC v{} ({} : {}){}",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE,
-                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
-                            format!(
-                                " [{}{}{}] ",
-                                cli_color.color(Colors::Yellow),
-                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
-                                cli_color.color(Colors::Reset)
-                            )
-                        } else {
-                            String::new()
-                        },
-                    );
-                }
+                println!(
+                    "EllieC v{} ({} : {}){}",
+                    version,
+                    engine_constants::ELLIE_BUILD_GIT_HASH,
+                    engine_constants::ELLIE_BUILD_DATE,
+                    if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                        format!(
+                            " [{}{}{}] ",
+                            cli_color.color(Colors::Yellow),
+                            engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                            cli_color.color(Colors::Reset)
+                        )
+                    } else {
+                        String::new()
+                    },
+                );
             }
         }
         Some(("viewModule", matches)) => {
             let target_path = {
-                let path = Path::new(matches.value_of("target").unwrap().clone());
+                let path = Path::new(matches.value_of("target").unwrap());
                 if path.exists() {
                     matches.value_of("target").unwrap().to_string()
                 } else {

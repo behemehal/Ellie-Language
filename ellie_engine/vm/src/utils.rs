@@ -39,7 +39,19 @@ pub enum VmNativeAnswer {
 pub struct ThreadInfo {
     pub id: usize,
     pub stack_id: usize,
+    pub frame_pos: usize,
+    pub pos: usize,
     pub stack_caller: Option<usize>,
+}
+
+impl ThreadInfo {
+    pub fn get_real_pos(&self) -> usize {
+        self.frame_pos + self.pos
+    }
+
+    pub fn get_real_pos_with_location(&self, pos: usize) -> usize {
+        self.frame_pos + pos
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -50,7 +62,7 @@ pub enum ThreadPanicReason {
     FloatOverflow,
     DoubleOverflow,
     /// This panic triggered when the types are not mergeble with each other MOD, DIV, MUL, EXP, SUB AND ADD instructions can trigger this panic
-    UnmergebleTypes(u8, u8),
+    UnmergebleTypes(String, String),
     /// This panic triggered when the types are not comparable with each other
     UncomparableTypes(u8, u8),
     /// This panic triggered when stack exceeded the maximum size
@@ -66,8 +78,8 @@ pub enum ThreadPanicReason {
     InvalidRegisterAccess(u8),
     /// This panic triggered when the program trying to access a array index with wrong value
     IndexAccessViolation(u8),
-    /// This panic triggered when the program trying to access a array index with out of bounds value
-    IndexOutOfBounds(usize),
+    /// This panic triggered when the program trying to access a array index with out of bounds value (index, size)
+    IndexOutOfBounds(usize, usize),
     /// This panic triggered when the program trying to write a value to array with unexpected size
     /// * first: expected size
     /// * second: given size
@@ -75,7 +87,7 @@ pub enum ThreadPanicReason {
     /// This panic triggered when the program trying to access a array index with negative value
     /// * first: index
     CannotIndexWithNegative(isize),
-    ParemeterMemoryAccessViolation(usize),
+    ParameterMemoryAccessViolation(usize),
     MemoryAccessViolation(usize, usize),
     /// This triggered when types like string, array, class tried to be kept in immediate mode
     ImmediateUseViolation(u8),
@@ -85,13 +97,14 @@ pub enum ThreadPanicReason {
     // This panic triggered from A2(n) instructions, when instruction does not support conversion between types
     CannotConvertToType(u8, u8),
     /// This panic is triggered when a native call not matched with any module_manager item
-    CallToUnknown(usize),
+    CallToUnknown((String, usize)),
     /// This panic is triggered when a native call not matched with any module_manager item
     MissingModule(usize),
+    /// This panic is triggered when a native call does not registered as trace
+    MissingTrace(usize),
     /// Usally arrays are created with first index of it as it's entries size
     /// If array data doesnt have the entry_size or entry_size is zero or less this panic will be triggered
     ArraySizeCorruption,
-
     /// Reference error, this could be triggered when the program trying to access a reference that does not exists
     /// * location: Heap or Stack location of the data that is trying to be accessed
     ReferenceError(usize),
@@ -115,6 +128,12 @@ pub struct ThreadPanic {
 pub enum ThreadExit {
     Panic(ThreadPanic),
     ExitGracefully,
+}
+
+#[derive(Debug, Clone)]
+pub enum StepResult {
+    Step,
+    ThreadExit(ThreadExit),
 }
 
 #[derive(Debug, Clone)]
@@ -212,7 +231,7 @@ pub struct ProgramReader<'a> {
 }
 
 impl ProgramReader<'_> {
-    pub fn new<'a>(vreader: &'a mut dyn Reader) -> ProgramReader<'a> {
+    pub fn new(vreader: &mut dyn Reader) -> ProgramReader<'_> {
         ProgramReader { reader: vreader }
     }
 
@@ -232,6 +251,19 @@ impl ProgramReader<'_> {
             }
         }
         Some(usize::from_le_bytes(array))
+    }
+
+    pub fn read_string(&mut self, string_length: usize) -> Option<String> {
+        let mut string = String::new();
+        for _ in 0..string_length {
+            match self.reader.read() {
+                Some(byte) => {
+                    string.push(byte as char);
+                }
+                None => return None,
+            }
+        }
+        Some(string)
     }
 
     pub fn read_isize(&mut self, arch_size: u8) -> Option<isize> {

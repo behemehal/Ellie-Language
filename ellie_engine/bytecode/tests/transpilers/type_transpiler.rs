@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod type_transpiler {
-    use ellie_bytecode::{
+    /* use ellie_bytecode::{
         assembler::{self, PlatformAttributes},
         instructions::Registers,
         transpiler::type_resolver,
     };
     use ellie_core::{
         definite::types::{self, Types},
-        defs::Version,
+        defs::{Version, PlatformArchitecture},
         utils::PageExport,
     };
     use ellie_parser::parser::Module;
@@ -31,7 +31,7 @@ mod type_transpiler {
         let mut assembler = assembler::Assembler::new(
             module,
             PlatformAttributes {
-                architecture: assembler::PlatformArchitecture::B64,
+                architecture: PlatformArchitecture::B64,
                 memory_size: 8,
             },
         );
@@ -41,5 +41,5 @@ mod type_transpiler {
 
         panic!("{:?}", res);
         assert!(true);
-    }
+    } */
 }

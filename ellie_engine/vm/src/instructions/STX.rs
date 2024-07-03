@@ -26,7 +26,7 @@ impl super::InstructionExecuter for STX {
                 stack_memory.set(&current_stack.get_pos(), current_stack.registers.X);
             }
             AddressingValues::Immediate(raw_type) => {
-                stack_memory.set(&current_stack.get_pos(), raw_type.clone());
+                stack_memory.set(&current_stack.get_pos(), *raw_type);
             }
             AddressingValues::Absolute(e) => {
                 stack_memory.set(&(e + current_stack.frame_pos), current_stack.registers.X);
@@ -68,7 +68,7 @@ impl super::InstructionExecuter for STX {
                                         let usize_len = arch.usize_len() as usize;
                                         let type_id_len = arch.type_id_size() as usize;
                                         let entry_size = {
-                                            if heap_data.data.len() == 0 {
+                                            if heap_data.data.is_empty() {
                                                 0
                                             } else {
                                                 usize::from_le_bytes(
@@ -101,9 +101,11 @@ impl super::InstructionExecuter for STX {
                                             }
                                         };
 
-                                        if index > array_size {
+                                        if index >= array_size {
                                             return Err(ExecuterPanic {
-                                                reason: ThreadPanicReason::IndexOutOfBounds(index),
+                                                reason: ThreadPanicReason::IndexOutOfBounds(
+                                                    index, array_size,
+                                                ),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             });
                                         } else {
@@ -112,7 +114,7 @@ impl super::InstructionExecuter for STX {
                                                 let start = (entry_size * index) + data_start_idx;
                                                 start..start + entry_size
                                             };
-                                            heap_data.data[index_range.clone()]
+                                            heap_data.data[index_range]
                                                 .copy_from_slice(&register_bytes);
                                             return Ok(ExecuterResult::Continue);
                                         }
@@ -131,6 +133,28 @@ impl super::InstructionExecuter for STX {
                                         code_location: format!("{}:{}", file!(), line!()),
                                     });
                                 }
+                            }
+                        } else if stack_data.type_id.is_static_array() {
+                            let array_location = stack_data.to_uint();
+                            let array_size = match stack_memory.get(&(array_location + 1)) {
+                                Some(e) => e.to_uint(),
+                                None => {
+                                    return Err(ExecuterPanic {
+                                        reason: ThreadPanicReason::NullReference(array_location),
+                                        code_location: format!("{}:{}", file!(), line!()),
+                                    });
+                                }
+                            };
+
+                            if index >= array_size {
+                                return Err(ExecuterPanic {
+                                    reason: ThreadPanicReason::IndexOutOfBounds(index, array_size),
+                                    code_location: format!("{}:{}", file!(), line!()),
+                                });
+                            } else {
+                                let entry = array_location + index;
+                                stack_memory.set(&(entry + 2), current_stack.registers.X);
+                                return Ok(ExecuterResult::Continue);
                             }
                         } else {
                             return Err(ExecuterPanic {
@@ -157,7 +181,7 @@ impl super::InstructionExecuter for STX {
                                     let usize_len = arch.usize_len() as usize;
                                     let type_id_len = arch.type_id_size() as usize;
                                     let entry_size = {
-                                        if heap_data.data.len() == 0 {
+                                        if heap_data.data.is_empty() {
                                             0
                                         } else {
                                             usize::from_le_bytes(
@@ -190,9 +214,11 @@ impl super::InstructionExecuter for STX {
                                         }
                                     };
 
-                                    if *index > array_size {
+                                    if *index >= array_size {
                                         return Err(ExecuterPanic {
-                                            reason: ThreadPanicReason::IndexOutOfBounds(*index),
+                                            reason: ThreadPanicReason::IndexOutOfBounds(
+                                                *index, array_size,
+                                            ),
                                             code_location: format!("{}:{}", file!(), line!()),
                                         });
                                     } else {
@@ -201,7 +227,7 @@ impl super::InstructionExecuter for STX {
                                             let start = (entry_size * index) + data_start_idx;
                                             start..start + entry_size
                                         };
-                                        heap_data.data[index_range.clone()]
+                                        heap_data.data[index_range]
                                             .copy_from_slice(&register_bytes);
                                         return Ok(ExecuterResult::Continue);
                                     }

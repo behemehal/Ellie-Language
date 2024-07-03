@@ -2,7 +2,7 @@
 mod definer_tests {
     use ellie_core::{defs, error};
     use ellie_tokenizer::{
-        processors::{items::Processors, Processor},
+        processors::{Processor},
         syntax::items::definers,
     };
     use std::{

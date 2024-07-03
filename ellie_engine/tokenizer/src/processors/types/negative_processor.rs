@@ -1,4 +1,4 @@
-use crate::{syntax::types::negative_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::negative_type};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for negative_type::Negative {

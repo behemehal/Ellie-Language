@@ -74,6 +74,21 @@ impl ColorDisplay for CliColor {
 }
 
 #[cfg(feature = "cli-utils")]
+#[derive(Debug, Clone, Copy)]
+pub struct CliNoColor;
+
+#[cfg(feature = "cli-utils")]
+impl ColorDisplay for CliNoColor {
+    fn color(&self, _: Colors) -> String {
+        String::new()
+    }
+
+    fn text_style(&self, _: TextStyles) -> String {
+        String::new()
+    }
+}
+
+#[cfg(feature = "cli-utils")]
 pub fn file_exists(path: String) -> bool {
     Path::new(&path).exists()
 }
@@ -238,7 +253,7 @@ pub fn draw_error<T: ColorDisplay>(
 pub fn generate_blank(size: usize) -> String {
     let mut blank: String = String::new();
     for _ in 0..size + 1 {
-        blank += &" ".to_string();
+        blank += " ";
     }
     blank
 }
@@ -279,11 +294,19 @@ pub fn _get_lines<T: ColorDisplay>(code: String, lines: defs::Cursor, color_outp
 
 /// Get line from code
 pub fn get_line(code: String, line: usize) -> String {
-    let v: Vec<&str> = code.split('\n').collect();
+    let v: Vec<&str> = code
+        .split(if code.contains("\r\n") { "\r\n" } else { "\n" })
+        .collect();
     if line > v.len() {
-        v[v.len() - 1].to_string()
+        v[v.len() - 1]
+            .to_string()
+            .replace('\t', "    ")
+            .replace(['\n', '\r'], "")
     } else {
-        v[line].to_string()
+        v[line]
+            .to_string()
+            .replace('\t', "    ")
+            .replace(['\n', '\r'], "")
     }
 }
 
@@ -380,7 +403,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace("\t", "    "), //:/
+                    get_line(code.clone(), i),
                     color_output.color(Colors::Green),
                     ref_message,
                     color_output.color(Colors::Reset),
@@ -397,7 +420,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }),
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
+                        item_pos.range_start.1 + 1,
                         ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     color_output.color(Colors::Reset),
@@ -409,7 +432,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                     generate_blank((line_space - (i + 1).to_string().len()) + 1),
                     i + 1,
                     color_output.color(Colors::Reset),
-                    get_line(code.clone(), i).replace("\t", "    "), //WTF? THIS IS THE ONLY SOLUTION
+                    get_line(code.clone(), i)
                 );
 
                 output += &format!(
@@ -423,7 +446,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }),
                     arrow(
-                        (item_pos.range_start.1 + 1) as usize,
+                        item_pos.range_start.1 + 1,
                         ((item_pos.range_end.1) - item_pos.range_start.1) + 1
                     ),
                     color_output.color(Colors::Reset),
@@ -443,7 +466,11 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
                         Colors::Yellow
                     }
                 ),
-                generate_blank((line_space - (i + 1).to_string().len()) + 1),
+                if (i + 1).to_string().len() < line_space {
+                    generate_blank((line_space - (i + 1).to_string().len()) + 1)
+                } else {
+                    String::from("")
+                },
                 i + 1,
                 color_output.color(Colors::Reset),
                 if (i >= item_pos.range_start.0 && i <= item_pos.range_end.0) && multi_line {
@@ -484,7 +511,7 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
 
     if reference {
         output += &format!(
-            "{}{}{}  ├──\n",
+            "{}{}{}  ├──",
             color_output.color(Colors::Yellow),
             generate_blank(line_space),
             color_output.color(Colors::Reset),
@@ -653,17 +680,13 @@ where
             true,
             color_output,
         );
-        output += "\n";
         output += &format!(
             "{}{}[?]{} ╞ Check online error repo for more info {}{}{}\n",
             generate_blank(line_space - 2),
             color_output.color(Colors::Magenta),
             color_output.color(Colors::Reset),
             color_output.color(Colors::Green),
-            format!(
-                "https://www.ellie-lang.org/errorIndex.html#{:#04x}",
-                error.code
-            ),
+            format!("https://www.ellie-lang.org/errorIndex#{:#04x}", error.code),
             color_output.color(Colors::Reset),
         );
 
@@ -774,8 +797,6 @@ where
             false,
             color_output,
         );
-        output += "\n";
-
         output += &format!(
             "{}{}[?]{} ╞ Check online standard rules repo for more info {}{}{}\n",
             generate_blank(line_space - 2),

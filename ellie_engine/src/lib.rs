@@ -19,11 +19,11 @@ extern crate std;
 
 extern crate alloc;
 
-#[cfg(any(feature = "std", feature = "cli-utils"))]
-pub extern crate ellie_core;
 /// EllieBytecode is the bytecode assembler for EllieVm.
 #[cfg(feature = "compiler")]
 pub extern crate ellie_bytecode;
+#[cfg(any(feature = "std", feature = "cli-utils", feature = "vm"))]
+pub extern crate ellie_core;
 /// EllieFmt is the formatter for Ellie.
 #[cfg(feature = "fmt")]
 pub extern crate ellie_fmt;
@@ -49,6 +49,11 @@ pub mod compiler;
 /// This module contains utilities that easing up usage of tokenizer
 #[cfg(feature = "compiler")]
 pub mod tokenizer;
+
+/// This module contains utilities that easing up usage of bytecode
+#[cfg(feature = "compiler")]
+pub mod byte_code;
+
 /// This module contains utilities that easing up usage of vm
 #[cfg(feature = "vm")]
 pub mod vm;

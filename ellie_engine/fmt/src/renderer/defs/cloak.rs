@@ -19,7 +19,7 @@ impl CodeRenderer for CloakType {
         for (idx, item) in self.entries.iter().enumerate() {
             let item = item.render(&State::empty_state(), options);
             if idx == self.entries.len() - 1 {
-                cloak.push_str(&format!("{}", item));
+                cloak.push_str(&item.to_string());
             } else {
                 cloak.push_str(&format!("{}{}", item, comment));
             }

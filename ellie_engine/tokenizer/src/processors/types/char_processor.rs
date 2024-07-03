@@ -1,10 +1,13 @@
-use crate::{syntax::types::char_type, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::types::char_type};
 use ellie_core::{defs, error, utils};
 
 impl crate::processors::Processor for char_type::CharType {
     fn emits_line_endings(&self) -> EscapeCharEmitter {
         if self.comma_started && !self.complete {
-            EscapeCharEmitter { emit: &['\n', '\r', '\t'], increase_cursor: false }
+            EscapeCharEmitter {
+                emit: &['\n', '\r', '\t'],
+                increase_cursor: false,
+            }
         } else {
             EscapeCharEmitter::dont_emit()
         }

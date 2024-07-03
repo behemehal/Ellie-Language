@@ -32,6 +32,7 @@ impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall>
                 AssignmentOperators::ExponentiationAssignment => ellie_core::definite::types::operator::AssignmentOperators::ExponentiationAssignment,
                 AssignmentOperators::Null => ellie_core::definite::types::operator::AssignmentOperators::Null,
             },
+            hash: self.hash,
             target_pos: self.target_pos,
             value_pos: self.value_pos,
         }
@@ -56,6 +57,7 @@ impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall>
             },
             target_pos: from.target_pos,
             value_pos: from.value_pos,
+            hash: from.hash,
             ..Default::default()
         }
     }

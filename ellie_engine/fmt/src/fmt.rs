@@ -1,8 +1,6 @@
-use crate::renderer::CodeRenderer;
-use crate::renderer::State;
+use crate::renderer::{CodeRenderer, State};
 pub use ellie_tokenizer;
-use ellie_tokenizer::processors::items::Processors;
-use ellie_tokenizer::tokenizer::Page;
+use ellie_tokenizer::{processors::items::Processors, tokenizer::Page};
 
 #[derive(Clone, Debug, Copy)]
 pub struct FormatterOptions {
@@ -28,7 +26,7 @@ impl Default for FormatterOptions {
             leave_space_after_comma: true,
             use_shorts: true,
             space_before_type_colon: true,
-            render_brace_next_line: true,
+            render_brace_next_line: false,
             space_between_operators: true,
             is_cr_lf: false,
             tab_size: 4,
@@ -106,14 +104,16 @@ impl Formatter {
         for item in &page.items {
             match item {
                 Processors::Function(_) | Processors::Class(_) => {
-                    output.lines.push(String::new());
+                    if !output.lines.is_empty() {
+                        output.lines.push(String::new());
+                    }
                     last_element_is_fn_or_class = true;
-                },
+                }
                 Processors::Comment(e) => {
                     if e.line_comment && e.pos.range_start.0 == output.lines.len() - 1 {
                         let formated_item = item.render(&State::empty_state(), &self.options);
                         let last_line = output.lines.last_mut().unwrap();
-                        last_line.push_str(" ");
+                        last_line.push(' ');
                         last_line.push_str(&formated_item);
                         continue;
                     }
@@ -123,7 +123,7 @@ impl Formatter {
                         output.lines.push(String::new());
                         last_element_is_fn_or_class = false;
                     }
-                },
+                }
             };
             let formated_item = item.render(&State::empty_state(), &self.options);
             output.insert_element_to_line(item.get_pos().range_start.0, formated_item);

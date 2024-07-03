@@ -1,5 +1,4 @@
-use crate::alloc::borrow::ToOwned;
-use crate::warning;
+use crate::{alloc::borrow::ToOwned, warning};
 
 lazy_static! {
     pub static ref WARNING_S1: warning::Warning = warning::Warning {

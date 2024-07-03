@@ -1,5 +1,4 @@
-use crate::alloc::borrow::ToOwned;
-use crate::error;
+use crate::{alloc::borrow::ToOwned, error};
 
 lazy_static! {
     pub static ref ERROR_S1: error::Error = error::Error {
@@ -41,7 +40,7 @@ lazy_static! {
     pub static ref ERROR_S7: error::Error = error::Error {
         code: 0x06,
         title: "ReferenceError".to_owned(),
-        message: "$name requires '$token' parameters, found '$token2' length of parameters"
+        message: "$name requires '$token' parameters, found '$token2' parameters"
             .to_owned(),
         ..Default::default()
     };
@@ -206,7 +205,7 @@ lazy_static! {
     pub static ref ERROR_S34: error::Error = error::Error {
         code: 0x33,
         title: "TypeError".to_owned(),
-        message: "'$token' is not found in properties".to_owned(),
+        message: "'$token' is not found in constructor properties, try to initialize with a value.".to_owned(),
         ..Default::default()
     };
     pub static ref ERROR_S35: error::Error = error::Error {
@@ -270,49 +269,42 @@ lazy_static! {
         reference_message: "Class definied here".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S45: error::Error = error::Error {
         code: 0x44,
         title: "ReferenceError".to_owned(),
         message: "'$token' is not a type".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S46: error::Error = error::Error {
         code: 0x45,
         title: "ReferenceError".to_owned(),
         message: "Referenced type does not implement 'as' convertor".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S47: error::Error = error::Error {
         code: 0x46,
         title: "RuntimeRestriction".to_owned(),
         message: "$token".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S48: error::Error = error::Error {
         code: 0x47,
         title: "ReferenceError".to_owned(),
         message: "'$token' does not implement index queries".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S49: error::Error = error::Error {
         code: 0x48,
         title: "ReferenceError".to_owned(),
         message: "Cannot query index to '$target' with '$token'".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S50: error::Error = error::Error {
         code: 0x49,
         title: "TypeError".to_owned(),
         message: "Unimplemented type conversion '$target' to '$type'".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S51: error::Error = error::Error {
         code: 0x50,
         title: "TypeError".to_owned(),
@@ -320,21 +312,18 @@ lazy_static! {
         full_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S52: error::Error = error::Error {
         code: 0x51,
         title: "TypeError".to_owned(),
         message: "'$opType' not implemented in '$target' for '$value'".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S53: error::Error = error::Error {
         code: 0x52,
         title: "SyntaxError".to_owned(),
         message: "$opType is not chainable".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S54: error::Error = error::Error {
         code: 0x53,
         title: "SyntaxError".to_owned(),
@@ -342,14 +331,12 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S55: error::Error = error::Error {
         code: 0x54,
         title: "TypeError".to_owned(),
-        message: "Consider giving this a type".to_owned(),
+        message: "Consider giving a type to this".to_owned(),
         ..Default::default()
     };
-
     pub static ref ERROR_S56: error::Error = error::Error {
         code: 0x55,
         title: "TypeError".to_owned(),
@@ -357,7 +344,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S57: error::Error = error::Error {
         code: 0x56,
         title: "TypeError".to_owned(),
@@ -365,7 +351,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S58: error::Error = error::Error {
         code: 0x57,
         title: "ExperimentalFeature".to_owned(),
@@ -373,7 +358,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S59: error::Error = error::Error {
         code: 0x58,
         title: "UnfinishedFeature".to_owned(),
@@ -381,7 +365,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S60: error::Error = error::Error {
         code: 0x59,
         title: "ReferenceError".to_owned(),
@@ -389,7 +372,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S61: error::Error = error::Error {
         code: 0x60,
         title: "ReferenceError".to_owned(),
@@ -397,7 +379,6 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S62: error::Error = error::Error {
         code: 0x61,
         title: "ReferenceError".to_owned(),
@@ -405,12 +386,37 @@ lazy_static! {
         semi_assist: true,
         ..Default::default()
     };
-
     pub static ref ERROR_S63: error::Error = error::Error {
         code: 0x62,
         title: "ReferenceError".to_owned(),
         message: "'$token' is not suitable for to be constructor parameter".to_owned(),
         semi_assist: true,
+        ..Default::default()
+    };
+    pub static ref ERROR_S64: error::Error = error::Error {
+        code: 0x63,
+        title: "ReferenceError".to_owned(),
+        message: "Generic '$token' should've been used in constructor.".to_owned(),
+        semi_assist: true,
+        ..Default::default()
+    };
+    pub static ref ERROR_S65: error::Error = error::Error {
+        code: 0x64,
+        title: "ReferenceError".to_owned(),
+        message: "Unsafe variable definition".to_owned(),
+        full_assist: true,
+        ..Default::default()
+    };
+    pub static ref ERROR_S66: error::Error = error::Error {
+        code: 0x65,
+        title: "ReferenceError".to_owned(),
+        message: "Cannot apply unary operator".to_owned(),
+        ..Default::default()
+    };
+    pub static ref ERROR_S67: error::Error = error::Error {
+        code: 0x66,
+        title: "ReferenceError".to_owned(),
+        message: "Wrong main function signature, expected 'fn main() -> void'".to_owned(),
         ..Default::default()
     };
 }

@@ -39,7 +39,6 @@
 - Tokenizer v0.3.3
   - Fix comment bug [2723381f7f0f32e549c56a4e29a14ac3667c44a0](https://github.com/behemehal/Ellie-Language/commit/2723381f7f0f32e549c56a4e29a14ac3667c44a0)
 
-
 # v0.7.0
 
 - Parser v0.5.0
@@ -80,9 +79,42 @@
   Fix code order problems [e4af101b8f51d297b23550826559a9c9ceebd516](https://github.com/behemehal/Ellie-Language/commit/e4af101b8f51d297b23550826559a9c9ceebd516)
 
 # v0.8.2
+
 - EllieEngine
   Add tools && local registers [fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb](https://github.com/behemehal/Ellie-Language/commit/fb7a2797afa9d6b88b781d3120f0b7b0df9fdadb)
 - Tokenizer v0.4.6
   Fix operator errors [38415a241962103f05ee47090b0a3946ee65bcac](https://github.com/behemehal/Ellie-Language/commit/38415a241962103f05ee47090b0a3946ee65bcac)
 
-# v0.9.0
+# v1.4.13-alpha
+
+- ## ellie_tokenizer v0.5.2
+
+- Add generic usage safety [201c53d0602f4ddcb4348dca1553689f135645a1](https://github.com/behemehal/Ellie-Language/commit/201c53d0602f4ddcb4348dca1553689f135645a1)
+
+- ## ellie_parser v0.7.2
+
+- Fix generics construction on class [5830b180388f5b4ed776c2281bbba0ef3ba17351](https://github.com/behemehal/Ellie-Language/commit/5830b180388f5b4ed776c2281bbba0ef3ba17351)
+- Fix function parameter errors due to self calculation [c38269891fa2a6b9295167e820a26d68041c8893](https://github.com/behemehal/Ellie-Language/commit/c38269891fa2a6b9295167e820a26d68041c8893)
+- Fix unnecessary calls [4d5a2389b6779a19f2c606fe8b0baa2b6e235c9d](https://github.com/behemehal/Ellie-Language/commit/4d5a2389b6779a19f2c606fe8b0baa2b6e235c9d)
+- Fix loop's dependency errors [9d1f7a34c114055fdedc89d10c166604ace6c6a0](https://github.com/behemehal/Ellie-Language/commit/9d1f7a34c114055fdedc89d10c166604ace6c6a0)
+- Add generic usage safety [201c53d0602f4ddcb4348dca1553689f135645a1](https://github.com/behemehal/Ellie-Language/commit/201c53d0602f4ddcb4348dca1553689f135645a1)
+
+- ## ellie_fmt v0.5.2
+
+- Implement cloak formatter & fix ret errors [6266f5d7464c1c9d82c78890a6c7901e837268ec](https://github.com/behemehal/Ellie-Language/commit/6266f5d7464c1c9d82c78890a6c7901e837268ec)
+
+- ## ellie_vm v0.5.2
+
+- Fix unnecessary calls & Add clean vm error show [4d5a2389b6779a19f2c606fe8b0baa2b6e235c9d](https://github.com/behemehal/Ellie-Language/commit/4d5a2389b6779a19f2c606fe8b0baa2b6e235c9d)
+- Fix static array frame errors [746ee75c7fd74982e4054b158a478704c1a97b96](https://github.com/behemehal/Ellie-Language/commit/746ee75c7fd74982e4054b158a478704c1a97b96)
+- Add more info to internal functions [2006dde05bc935b77ba83994317ac865ce8426c7](https://github.com/behemehal/Ellie-Language/commit/2006dde05bc935b77ba83994317ac865ce8426c7)
+
+- ## ellie_bytecode v0.4.2
+
+- Fix loop's dependency errors [9d1f7a34c114055fdedc89d10c166604ace6c6a0](https://github.com/behemehal/Ellie-Language/commit/9d1f7a34c114055fdedc89d10c166604ace6c6a0)
+
+- ## elliec v0.3.1
+
+- Add multiple output to elliec [68e3fb967af1f82b017af492da70f352b558a262](https://github.com/behemehal/Ellie-Language/commit/68e3fb967af1f82b017af492da70f352b558a262)
+
+- Add more info to internal functions [2006dde05bc935b77ba83994317ac865ce8426c7](https://github.com/behemehal/Ellie-Language/commit/2006dde05bc935b77ba83994317ac865ce8426c7)

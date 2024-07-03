@@ -1,4 +1,12 @@
+mod commands;
+pub mod debugger;
+mod debugger_messages;
 mod run;
+mod stream;
+mod utils;
+
+#[macro_use]
+extern crate lazy_static;
 
 use ellie_engine::{
     ellie_core::defs::PlatformArchitecture,
@@ -6,30 +14,27 @@ use ellie_engine::{
         options, outputs,
         utils::{CliColor, ColorDisplay, Colors, TextStyles},
     },
-    ellie_vm::{program::Program, utils::ProgramReader},
+    ellie_vm::{
+        channel::{EllieModule, FunctionElement, ModuleElements},
+        program::Program,
+        raw_type::{RawType, StaticRawType},
+        utils::{ProgramReader, VmNativeAnswer, VmNativeCallParameters},
+    },
     engine_constants,
     vm::{parse_debug_file, RFile},
 };
-
-use std::{fs::File, io::Read, path::Path};
-
-pub struct VmSettings {
-    pub json_log: bool,
-    pub warnings: bool,
-    pub heap_dump: bool,
-    pub architecture: PlatformArchitecture,
-}
+use run::VmSettings;
+use std::{fs::File, io::Read, path::Path, time::SystemTime};
 
 fn main() {
     let app = options::generate_ellievm_options();
     let matches = app.get_matches();
-    let version = format!("0.1.0",);
+    let version = "0.1.0".to_string();
     let cli_color = &CliColor;
 
     match matches.subcommand() {
         Some(("run", matches)) => {
             let mut _debugger_wait = false;
-            let is_vm_debug = matches.is_present("vmDebug");
             if !matches.is_present("allowPanics") {
                 std::panic::set_hook(Box::new(|e| {
                     if e.to_string().contains("@Halt") {
@@ -48,7 +53,7 @@ fn main() {
                             "{}{}{}",
                             cli_color.color(Colors::Blue),
                             e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
-                                .split("@")
+                                .split('@')
                                 .collect::<Vec<&str>>()[0]
                                 .trim(),
                             cli_color.color(Colors::Red)
@@ -95,7 +100,7 @@ fn main() {
                 }));
             }
 
-            let vm_settings = VmSettings {
+            let mut vm_settings = VmSettings {
                 json_log: matches.is_present("jsonLog"),
                 warnings: true,
                 heap_dump: matches.is_present("heapDump"),
@@ -121,7 +126,142 @@ fn main() {
                     }
                     None => unreachable!(),
                 },
+                modules: Vec::new(),
             };
+
+            let mut ellie_core_module = EllieModule::new("ellieCore".to_string());
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "println",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch, expected 'dynamic' argument".to_string(),
+                        ),
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                eprintln!("{}", dynamic_value.to_string());
+                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
+                                    StaticRawType::from_void(),
+                                ))
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "timestamp",
+                Box::new(|_, args| {
+                    if !args.is_empty() {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 0 argument(s)".to_string(),
+                        );
+                    }
+                    VmNativeAnswer::Ok(VmNativeCallParameters::Static(StaticRawType::from_int(
+                        SystemTime::now()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis() as isize,
+                    )))
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "_openFile",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch, expected 'dynamic' argument".to_string(),
+                        ),
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                let file_handle = match File::open(dynamic_value.to_string()) {
+                                    Ok(e) => {
+                                        println!("Opened file: {:?}", e);
+                                        let handle = Box::new(e);
+                                        let handle = Box::into_raw(handle);
+
+                                        handle as *mut usize
+                                    }
+                                    Err(e) => {
+                                        return VmNativeAnswer::RuntimeError(format!(
+                                            "Failed to open file '{}', ({})",
+                                            dynamic_value.to_string(),
+                                            e.to_string()
+                                        ));
+                                    }
+                                };
+
+                                //convert handle back to file
+                                let file_handle = file_handle as *mut File;
+
+                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
+                                    StaticRawType::from_uint(file_handle as usize),
+                                ))
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "_readToEnd",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(static_value) => {
+                            if static_value.type_id.is_int() {
+                                let file_handle = static_value.to_int() as *mut usize;
+                                let file = unsafe { &mut *(file_handle as *mut File) };
+
+                                let mut file_contents = String::new();
+                                match file.read_to_string(&mut file_contents) {
+                                    Ok(_) => VmNativeAnswer::Ok(VmNativeCallParameters::Dynamic(
+                                        RawType::generate_string(file_contents),
+                                    )),
+                                    Err(e) => VmNativeAnswer::RuntimeError(format!(
+                                        "Failed to read file ({})",
+                                        e.to_string()
+                                    )),
+                                }
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'int' argument".to_string(),
+                                )
+                            }
+                        }
+                        VmNativeCallParameters::Dynamic(_) => {
+                            VmNativeAnswer::RuntimeError(
+                                "Signature mismatch expected static argument".to_string(),
+                            )
+                        }
+                    }
+                }),
+            )));
+
+            vm_settings.modules.push(ellie_core_module);
 
             let debug_file = match matches.value_of("debugInfo") {
                 Some(e) => {
@@ -168,7 +308,7 @@ fn main() {
                 None => None,
             };
 
-            let path = Path::new(matches.value_of("target").unwrap().clone());
+            let path = Path::new(matches.value_of("target").unwrap());
             let program = if path.exists() {
                 if path.is_file() {
                     match File::open(path) {
@@ -220,6 +360,162 @@ fn main() {
                 std::process::exit(1);
             };
             run::run(program, vm_settings, debug_file);
+        }
+        Some(("debug", matches)) => {
+            if !matches.is_present("allowPanics") {
+                std::panic::set_hook(Box::new(|e| {
+                    if e.to_string().contains("@Halt") {
+                        println!(
+                            "\n\n{}-----------------{}\n",
+                            cli_color.color(Colors::Blue),
+                            cli_color.color(Colors::Reset)
+                        );
+                        println!(
+                            "{}{}VM halted{}\n",
+                            cli_color.color(Colors::Yellow),
+                            cli_color.text_style(TextStyles::Bold),
+                            cli_color.color(Colors::Reset)
+                        );
+                        println!(
+                            "{}{}{}",
+                            cli_color.color(Colors::Blue),
+                            e.to_string().split("@Halt:").collect::<Vec<&str>>()[1]
+                                .split('@')
+                                .collect::<Vec<&str>>()[0]
+                                .trim(),
+                            cli_color.color(Colors::Red)
+                        );
+                        println!(
+                            "\n{}-----------------{}\n\n",
+                            cli_color.color(Colors::Blue),
+                            cli_color.color(Colors::Reset)
+                        );
+                        return;
+                    }
+
+                    println!(
+                        "\n\n{}-----------------{}\n",
+                        cli_color.color(Colors::Blue),
+                        cli_color.color(Colors::Reset)
+                    );
+                    println!(
+                        "{}{}Oh no! A internal error occured;{}",
+                        cli_color.color(Colors::Red),
+                        cli_color.text_style(TextStyles::Bold),
+                        cli_color.color(Colors::Red)
+                    );
+                    println!(
+                        "{}Can you please share this error with us? This can help us solve issue faster. All you have to do is follow the link below {}[{}CTRL + Mouse Left Click might help{}]",
+                        cli_color.color(Colors::Green),
+                        cli_color.color(Colors::Reset),
+                        cli_color.color(Colors::Yellow),
+                        cli_color.color(Colors::Reset),
+                    );
+
+                    let line_and_col = if let Some(real_loc) = e.location() {
+                        format!("{}:{}", real_loc.line(), real_loc.column())
+                    } else {
+                        "?:?".to_string()
+                    };
+                    println!("\n{}{}https://github.com/behemehal/Ellie-Language/issues/new?labels=vm,bug,Internal%20Error&title=Ellie%20Internal%20Error-{}&body=%23%20Ellie%20Internal%20Error%0AGenerated%20by%20ellievm%20located%20at%20{}%0AEllieVersion:{}%0A{}", cli_color.text_style(TextStyles::Underline),cli_color.color(Colors::Green),line_and_col, line_and_col, ellie_engine::engine_constants::ELLIE_ENGINE_VERSION, cli_color.color(Colors::Reset));
+                    println!(
+                        "\n{}-----------------{}\n\n",
+                        cli_color.color(Colors::Blue),
+                        cli_color.color(Colors::Reset)
+                    );
+                    std::process::exit(1);
+                }));
+            }
+
+            /* let mut ellie_core_module = EllieModule::new("ellieCore".to_string());
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "println",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0] {
+                        VmNativeCallParameters::Static(_) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 'dynamic' argument".to_string(),
+                        ),
+                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                eprintln!("{}", dynamic_value.to_string());
+                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
+                                    StaticRawType::from_void(),
+                                ))
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            vm_settings.modules.push(ellie_core_module); */
+
+            /* let path = Path::new(matches.value_of("target").unwrap().clone());
+            let program = if path.exists() {
+                if path.is_file() {
+                    match File::open(path) {
+                        Ok(mut e) => {
+                            let mut reader = RFile::new(&mut e);
+                            let mut program_reader = ProgramReader::new(&mut reader);
+                            let mut program = Program::new();
+                            match program.build_from_reader(&mut program_reader) {
+                                Ok(_) => program,
+                                Err(e) => {
+                                    println!(
+                                        "{}Error:{} Failed to read program {}[{:?}]{}",
+                                        cli_color.color(Colors::Red),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Cyan),
+                                        e,
+                                        cli_color.color(Colors::Reset)
+                                    );
+                                    std::process::exit(1);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            println!(
+                                "{}Error:{} Failed to read file {}[{}]{}",
+                                cli_color.color(Colors::Red),
+                                cli_color.color(Colors::Reset),
+                                cli_color.color(Colors::Cyan),
+                                e,
+                                cli_color.color(Colors::Reset)
+                            );
+                            std::process::exit(1);
+                        }
+                    }
+                } else {
+                    println!(
+                        "{}Error:{} Given path is not a file",
+                        cli_color.color(Colors::Red),
+                        cli_color.color(Colors::Reset)
+                    );
+                    std::process::exit(1);
+                }
+            } else {
+                println!(
+                    "{}Error:{} Target path does not exist",
+                    cli_color.color(Colors::Red),
+                    cli_color.color(Colors::Reset)
+                );
+                std::process::exit(1);
+            }; */
+
+            let imported_commands = matches
+                .values_of("insertCommands")
+                .unwrap_or_default()
+                .map(str::to_string)
+                .collect::<Vec<_>>();
+            debugger::debug(matches.is_present("jsonLog"), imported_commands);
         }
         Some(("version", matches)) => {
             if matches.is_present("detailed") {
@@ -287,44 +583,42 @@ fn main() {
                         engine_constants::ELLIE_CORE_VERSION,
                     );
                 }
+            } else if matches.is_present("jsonLog") {
+                let mut output = outputs::VERSION.clone();
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "version".to_string(),
+                    value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_hash".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "git_branch".to_string(),
+                    value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
+                });
+                output.extra.push(outputs::CliOuputExtraData {
+                    key: "build_date".to_string(),
+                    value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
+                });
+                println!("{}", serde_json::to_string(&output).unwrap());
             } else {
-                if matches.is_present("jsonLog") {
-                    let mut output = outputs::VERSION.clone();
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "version".to_string(),
-                        value: engine_constants::ELLIE_ENGINE_VERSION.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_hash".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_HASH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "git_branch".to_string(),
-                        value: engine_constants::ELLIE_BUILD_GIT_BRANCH.to_owned(),
-                    });
-                    output.extra.push(outputs::CliOuputExtraData {
-                        key: "build_date".to_string(),
-                        value: engine_constants::ELLIE_BUILD_DATE.to_owned(),
-                    });
-                    println!("{}", serde_json::to_string(&output).unwrap());
-                } else {
-                    println!(
-                        "EllieVM v{} ({} : {}){}",
-                        version,
-                        engine_constants::ELLIE_BUILD_GIT_HASH,
-                        engine_constants::ELLIE_BUILD_DATE,
-                        if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
-                            format!(
-                                " [{}{}{}] ",
-                                cli_color.color(Colors::Yellow),
-                                engine_constants::ELLIE_BUILD_GIT_BRANCH,
-                                cli_color.color(Colors::Reset)
-                            )
-                        } else {
-                            String::new()
-                        },
-                    );
-                }
+                println!(
+                    "EllieVM v{} ({} : {}){}",
+                    version,
+                    engine_constants::ELLIE_BUILD_GIT_HASH,
+                    engine_constants::ELLIE_BUILD_DATE,
+                    if engine_constants::ELLIE_BUILD_GIT_BRANCH != "main" {
+                        format!(
+                            " [{}{}{}] ",
+                            cli_color.color(Colors::Yellow),
+                            engine_constants::ELLIE_BUILD_GIT_BRANCH,
+                            cli_color.color(Colors::Reset)
+                        )
+                    } else {
+                        String::new()
+                    },
+                );
             }
         }
         _ => unreachable!("clap should ensure we don't get here"),

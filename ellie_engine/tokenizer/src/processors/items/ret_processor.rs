@@ -1,4 +1,4 @@
-use crate::{syntax::items::ret::Ret, processors::EscapeCharEmitter};
+use crate::{processors::EscapeCharEmitter, syntax::items::ret::Ret};
 use ellie_core::{defs, error};
 
 impl crate::processors::Processor for Ret {

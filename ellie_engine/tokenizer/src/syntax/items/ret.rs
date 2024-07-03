@@ -1,8 +1,6 @@
 use crate::processors::types::{Processors, TypeProcessor};
-use ellie_core::definite::Converter;
-use ellie_core::defs;
-use serde::Deserialize;
-use serde::Serialize;
+use ellie_core::{definite::Converter, defs};
+use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Ret {

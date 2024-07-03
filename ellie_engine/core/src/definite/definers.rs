@@ -1,8 +1,5 @@
 use crate::{definite::types::Types, defs};
-use alloc::format;
-use alloc::string::String;
-use alloc::vec::Vec;
-use alloc::{borrow::ToOwned, boxed::Box};
+use alloc::{borrow::ToOwned, boxed::Box, format, string::String, vec::Vec};
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Serialize};
 
@@ -133,24 +130,22 @@ impl DefinerCollecting {
     }
 
     pub fn same_as(&self, other: DefinerCollecting) -> bool {
+        if matches!(&other, DefinerCollecting::Generic(generic) if generic.rtype == "dyn")
+            || matches!(&self, DefinerCollecting::Generic(generic) if generic.rtype == "dyn")
+        {
+            return true;
+        }
         match self {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
                     other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
+                } else { DefinerCollecting::Dynamic == other }
             }
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
-                    (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash) || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
+                    (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash)
+                        || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
+                } else { DefinerCollecting::Dynamic == other }
             }
             DefinerCollecting::ParentGeneric(parent_generic) => {
                 if let DefinerCollecting::ParentGeneric(other_parent_generic) = other {
@@ -162,8 +157,6 @@ impl DefinerCollecting {
                             .iter()
                             .zip(parent_generic.generics.iter())
                             .all(|(a, b)| a.value.same_as(b.value.clone()))
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -176,8 +169,6 @@ impl DefinerCollecting {
                             .zip(other_e.params.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
                         && e.returning.same_as(*other_e.returning.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -190,8 +181,6 @@ impl DefinerCollecting {
                             .iter()
                             .zip(other_cloak.rtype.iter())
                             .all(|(a, b)| a.same_as(b.clone()))
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
                     false
                 }
@@ -207,15 +196,6 @@ impl DefinerCollecting {
             DefinerCollecting::Nullable(e) => {
                 if let DefinerCollecting::Nullable(other_e) = other {
                     e.value.same_as(*other_e.value.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
-            }
-            DefinerCollecting::Dynamic => {
-                if let DefinerCollecting::Dynamic = other {
-                    true
                 } else {
                     false
                 }
@@ -228,6 +208,70 @@ impl DefinerCollecting {
                 }
             }
             DefinerCollecting::ClassInstance(_) => todo!(),
+            DefinerCollecting::Dynamic => unreachable!(),
+        }
+    }
+
+    pub fn convert_generic(&mut self, generic_hash: usize, replacement_generic: DefinerCollecting) {
+        match self {
+            DefinerCollecting::Array(array) => {
+                array
+                    .rtype
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::Generic(generic) => {
+                if generic.hash == generic_hash {
+                    *self = replacement_generic;
+                }
+            }
+            DefinerCollecting::ParentGeneric(parrent_generic) => {
+                if parrent_generic.hash == generic_hash {
+                    *self = replacement_generic;
+                } else {
+                    parrent_generic.generics.iter_mut().for_each(|g| {
+                        g.value
+                            .convert_generic(generic_hash, replacement_generic.clone())
+                    });
+                }
+            }
+            DefinerCollecting::Function(function) => {
+                function
+                    .params
+                    .iter_mut()
+                    .for_each(|param: &mut DefinerCollecting| {
+                        param.convert_generic(generic_hash, replacement_generic.clone())
+                    });
+                function
+                    .returning
+                    .convert_generic(generic_hash, replacement_generic.clone());
+            }
+            DefinerCollecting::Cloak(cloak) => {
+                cloak
+                    .rtype
+                    .iter_mut()
+                    .for_each(|r| r.convert_generic(generic_hash, replacement_generic.clone()));
+            }
+            DefinerCollecting::Collective(collective) => {
+                collective
+                    .key
+                    .convert_generic(generic_hash, replacement_generic.clone());
+                collective
+                    .value
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::Nullable(nullable) => {
+                nullable
+                    .value
+                    .convert_generic(generic_hash, replacement_generic);
+            }
+            DefinerCollecting::EnumField(enum_field) => match &mut enum_field.field_data {
+                EnumFieldData::NoData => (),
+                EnumFieldData::Data(enum_field_data) => {
+                    enum_field_data.convert_generic(generic_hash, replacement_generic)
+                }
+            },
+            DefinerCollecting::Dynamic => (),
+            DefinerCollecting::ClassInstance(_) => (),
         }
     }
 }

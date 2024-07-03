@@ -4,9 +4,10 @@ use ellie_core::defs::PlatformArchitecture;
 use crate::{
     heap_memory::HeapMemory,
     instruction_utils::GQ,
+    raw_type::StaticRawType,
     stack::Stack,
     stack_memory::StackMemory,
-    utils::{AddressingValues, ThreadPanicReason}, raw_type::StaticRawType,
+    utils::{AddressingValues, ThreadPanicReason},
 };
 
 use super::{ExecuterPanic, ExecuterResult, StaticProgram};
