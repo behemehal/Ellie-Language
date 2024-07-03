@@ -1,7 +1,7 @@
 use crate::{
     assembler::LocalHeader,
     instruction_table,
-    instructions::{self, Instruction},
+    instructions::{Instruction},
     transpiler::types::{TypeTranspiler, TypeTranspilerOptions},
     utils::limit_platform_size,
 };
@@ -31,7 +31,7 @@ impl super::Transpiler for variable::Variable {
 
         let mut binding = TypeTranspilerOptions::new();
 
-        let mut type_transpiler_options = binding
+        let type_transpiler_options = binding
             .set_assembler(assembler)
             .set_dependencies(dependencies)
             .set_target_page(hash);

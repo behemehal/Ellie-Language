@@ -3,7 +3,6 @@ use std::hash::DefaultHasher;
 
 use ellie_core::{
     defs::{PlatformArchitecture, Version},
-    error::Error,
     utils::PageExport,
 };
 use ellie_engine::{
@@ -28,7 +27,7 @@ impl ProgramRepository for Repository {
             file_content: self.code.clone(),
             file_name: "playground.ei".to_string(),
             file_hash: first_page_hash as usize,
-            start_directory: format!("<ellie_module_playground>",),
+            start_directory: "<ellie_module_playground>".to_string(),
         }
     }
 

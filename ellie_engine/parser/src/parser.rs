@@ -1696,7 +1696,7 @@ impl Parser {
                                             );
                                         err.reference_block =
                                             Some((function_page.return_pos, page_path.clone()));
-                                        err.reference_message = "Defined here".to_owned();
+                                        "Defined here".clone_into(&mut err.reference_message);
                                         err.semi_assist = true;
                                         self.informations.push(&err);
                                     }
@@ -1725,7 +1725,7 @@ impl Parser {
                                             );
                                         err.reference_block =
                                             Some((function_page.return_pos, page_path));
-                                        err.reference_message = "Defined here".to_owned();
+                                        "Defined here".clone_into(&mut err.reference_message);
                                         err.semi_assist = true;
                                         self.informations.push(&err);
                                     }
@@ -1955,7 +1955,7 @@ impl Parser {
             if main_function.found {
                 match main_function.found_item {
                     DeepSearchItems::Function(e) => {
-                        if e.parameters.len() > 0 {
+                        if !e.parameters.is_empty() {
                             let path = self.find_page(self.initial_page).unwrap().path.clone();
                             self.informations.push(
                                 &error::error_list::ERROR_S67.clone().build_with_path(

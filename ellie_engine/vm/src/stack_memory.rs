@@ -18,10 +18,16 @@ pub struct StackMemory {
 impl Clone for StackMemory {
     fn clone(&self) -> Self {
         StackMemory {
-            data: self.data.clone(),
+            data: self.data,
             len: self.len,
             on_stack_overflow: None,
         }
+    }
+}
+
+impl Default for StackMemory {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -24,7 +24,7 @@ impl Leveler {
     pub fn new(path: &str) -> Leveler {
         Leveler {
             levels: path
-                .split("/")
+                .split('/')
                 .enumerate()
                 .map(|(index, path)| PathLevel {
                     name: path.to_string(),
@@ -62,7 +62,7 @@ impl Leveler {
     /// * `0` - Out of path bounds
     /// * `1` - Path is not a directory
     pub fn join(&mut self, path: &str) -> i8 {
-        for command in path.split("/").collect::<Vec<&str>>() {
+        for command in path.split('/').collect::<Vec<&str>>() {
             if command.starts_with("..") {
                 if !self.pop_one() {
                     return 1;
@@ -76,7 +76,7 @@ impl Leveler {
                 });
             }
         }
-        return 0;
+        0
     }
 }
 

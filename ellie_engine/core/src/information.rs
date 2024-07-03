@@ -12,6 +12,12 @@ pub struct Informations {
     pub errors: Vec<crate::error::Error>,
 }
 
+impl Default for Informations {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Informations {
     /// Create a new [`Informations`] instance
     pub fn new() -> Informations {

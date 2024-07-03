@@ -113,8 +113,6 @@ impl TypeTranspiler for ClassCall {
                 // First position taken by self
                 let idx = idx + 1;
 
-                let prev_ = options.assembler().location();
-
                 param.value.transpile(
                     options
                         .copy()

@@ -70,8 +70,8 @@ impl super::InstructionExecuter for CALLN {
                                         ReferenceType::Heap
                                     },
                                     raw_type.to_uint(),
-                                    &heap_memory,
-                                    &stack_memory,
+                                    heap_memory,
+                                    stack_memory,
                                 )
                                 .unwrap()
                                 {

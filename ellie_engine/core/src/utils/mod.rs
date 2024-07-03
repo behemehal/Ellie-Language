@@ -83,10 +83,8 @@ pub fn generate_hash() -> String {
             .map(|_| { rand::random::<u8>() })
             .collect::<Vec<u8>>()
     )
-    .replace(" ", "")
-    .replace(",", "")
-    .replace("]", "")
-    .replace("[", "")
+    .replace(' ', "")
+    .replace([',', ']', '['], "")
 }
 
 /// ReliableNameRanges is a enum indicates which charachter set is to be used
@@ -117,7 +115,7 @@ pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNa
 
     let find = variable_range.chars().position(|x| x == value);
     return ReliableNameRangeResponse {
-        reliable: find != None,
+        reliable: find.is_some(),
         at: find.unwrap_or(0),
         found: variable_range
             .chars()
@@ -477,8 +475,7 @@ pub fn operator_control(
         },
         Operators::Null => unreachable!(),
     };
-    match operator {
-        Some(operator_string) => Some(error::error_list::ERROR_S52.clone().build_with_path(
+    operator.map(|operator_string| error::error_list::ERROR_S52.clone().build_with_path(
             vec![
                 error::ErrorBuildField {
                     key: "opType".to_owned(),
@@ -496,9 +493,7 @@ pub fn operator_control(
             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
             path,
             pos,
-        )),
-        None => None,
-    }
+        ))
 }
 
 pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
@@ -580,19 +575,28 @@ pub struct PageExport<T> {
 
 impl<T> Index<usize> for PageExport<T> {
     type Output = T;
-    fn index<'a>(&'a self, i: usize) -> &'a Self::Output {
+    fn index(&self, i: usize) -> &Self::Output {
         &self.pages[i]
     }
 }
 
 impl<T> IndexMut<usize> for PageExport<T> {
-    fn index_mut<'a>(&'a mut self, i: usize) -> &'a mut Self::Output {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
         &mut self.pages[i]
     }
 }
 
 pub trait ExportPage {
     fn get_hash(&self) -> usize;
+}
+
+impl<T> Default for PageExport<T>
+where
+    T: ExportPage + core::fmt::Debug,
+ {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> PageExport<T>

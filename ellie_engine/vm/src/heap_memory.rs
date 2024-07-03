@@ -23,6 +23,12 @@ impl Clone for HeapMemory {
     }
 }
 
+impl Default for HeapMemory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HeapMemory {
     pub fn new() -> HeapMemory {
         HeapMemory {

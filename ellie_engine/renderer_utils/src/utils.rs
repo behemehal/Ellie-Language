@@ -295,20 +295,18 @@ pub fn _get_lines<T: ColorDisplay>(code: String, lines: defs::Cursor, color_outp
 /// Get line from code
 pub fn get_line(code: String, line: usize) -> String {
     let v: Vec<&str> = code
-        .split(code.contains("\r\n").then(|| "\r\n").unwrap_or("\n"))
+        .split(if code.contains("\r\n") { "\r\n" } else { "\n" })
         .collect();
     if line > v.len() {
         v[v.len() - 1]
             .to_string()
             .replace('\t', "    ")
-            .replace('\n', "")
-            .replace('\r', "")
+            .replace(['\n', '\r'], "")
     } else {
         v[line]
             .to_string()
             .replace('\t', "    ")
-            .replace('\n', "")
-            .replace('\r', "")
+            .replace(['\n', '\r'], "")
     }
 }
 

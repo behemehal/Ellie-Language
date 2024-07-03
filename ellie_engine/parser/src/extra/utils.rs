@@ -15,6 +15,12 @@ pub struct DeepSearchOptions<'a> {
     pub(in crate::extra) search_on_raw: bool,
 }
 
+impl<'a> Default for DeepSearchOptions<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> DeepSearchOptions<'a> {
     pub fn new() -> Self {
         Self {

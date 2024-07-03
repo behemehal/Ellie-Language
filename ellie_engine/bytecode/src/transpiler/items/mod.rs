@@ -12,8 +12,8 @@ pub mod ret;
 pub mod self_item;
 pub mod setter_call;
 /* pub mod type_resolver; */
-pub mod variable;
 pub mod brk;
+pub mod variable;
 
 use ellie_parser::parser::ProcessedPage;
 

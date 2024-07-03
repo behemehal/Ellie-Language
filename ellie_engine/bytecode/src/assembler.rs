@@ -114,10 +114,10 @@ impl AssembleResult {
             .iter()
             .filter(|x| x.rtype == DebugHeaderType::NativeFunction)
             .map(|x| NativeCallTrace {
-                module_name: if x.module_name.contains(">") {
+                module_name: if x.module_name.contains('>') {
                     x.module_name.to_string()
                 } else {
-                    x.module_name.clone().split(">").collect::<Vec<_>>()[0]
+                    x.module_name.clone().split('>').collect::<Vec<_>>()[0]
                         .split('_')
                         .last()
                         .unwrap()
@@ -205,13 +205,13 @@ impl AssembleResult {
         for (idx, header) in self.debug_headers.iter().enumerate() {
             if header.rtype == DebugHeaderType::NativeFunction {
                 native_calls.push(NativeCallTrace {
-                    module_name: if !header.module_name.contains(">") {
+                    module_name: if !header.module_name.contains('>') {
                         header.module_name.to_string()
                     } else {
                         header
                             .module_name
                             .clone()
-                            .split(">")
+                            .split('>')
                             .next()
                             .unwrap()
                             .split('_')

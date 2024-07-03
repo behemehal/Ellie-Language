@@ -58,7 +58,7 @@ impl super::ItemParserProcessor for Class {
                     self.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
             } else {
@@ -158,7 +158,7 @@ impl super::ItemParserProcessor for Class {
                         constructor.unwrap().pos,
                     );
                     err.reference_block = Some((prime.pos, page.path.clone()));
-                    err.reference_message = "Prime is here".to_owned();
+                    "Prime is here".clone_into(&mut err.reference_message);
                     err.semi_assist = true;
                     options.parser.informations.push(&err);
                 }
@@ -179,7 +179,7 @@ impl super::ItemParserProcessor for Class {
                         );
                         err.reference_block =
                             Some((self.generic_definings[other_index].pos, page.path.clone()));
-                        err.reference_message = "Prime is here".to_owned();
+                        "Prime is here".clone_into(&mut err.reference_message);
                         err.semi_assist = true;
                         options.parser.informations.push(&err);
                     }

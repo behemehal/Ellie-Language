@@ -23,7 +23,7 @@ impl super::Transpiler for setter_call::SetterCall {
         let location = assembler.location();
 
         let mut binding = TypeTranspilerOptions::new();
-        let mut type_transpiler_options = binding
+        let type_transpiler_options = binding
             .set_assembler(assembler)
             .set_target_register(instructions::Registers::C)
             .set_dependencies(dependencies.clone())
@@ -146,7 +146,7 @@ impl super::Transpiler for setter_call::SetterCall {
                 };
 
                 let mut binding = TypeTranspilerOptions::new();
-                let mut type_transpiler_options = binding
+                let type_transpiler_options = binding
                     .set_assembler(assembler)
                     .set_target_register(instructions::Registers::B)
                     .set_dependencies(dependencies)

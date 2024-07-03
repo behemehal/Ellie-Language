@@ -13,6 +13,12 @@ pub struct FoundPage {
     pub processed_page: Option<ProcessedPage>,
 }
 
+impl Default for FoundPage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FoundPage {
     pub fn new() -> Self {
         FoundPage {
@@ -22,11 +28,11 @@ impl FoundPage {
     }
 
     pub fn as_raw(&self) -> &Page {
-        &self.raw_page.as_ref().unwrap()
+        self.raw_page.as_ref().unwrap()
     }
 
     pub fn as_processed(&self) -> &ProcessedPage {
-        &self.processed_page.as_ref().unwrap()
+        self.processed_page.as_ref().unwrap()
     }
 
     pub fn fill(&mut self, page: &Page) {
@@ -42,6 +48,12 @@ impl FoundPage {
 pub struct FoundItem {
     raw_item: Option<Processors>,
     processed_item: Option<Collecting>,
+}
+
+impl Default for FoundItem {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FoundItem {

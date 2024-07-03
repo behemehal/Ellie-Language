@@ -139,21 +139,13 @@ impl DefinerCollecting {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
                     other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
+                } else { DefinerCollecting::Dynamic == other }
             }
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
                     (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash)
                         || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
-                } else if DefinerCollecting::Dynamic == other {
-                    true
-                } else {
-                    false
-                }
+                } else { DefinerCollecting::Dynamic == other }
             }
             DefinerCollecting::ParentGeneric(parent_generic) => {
                 if let DefinerCollecting::ParentGeneric(other_parent_generic) = other {

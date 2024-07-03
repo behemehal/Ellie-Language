@@ -349,7 +349,6 @@ fn iterate_deep_type(
                 _rtype: AttributeType,
                 name: String,
                 value: definers::DefinerCollecting,
-                page: usize,
             }
 
             fn resolve_chain(
@@ -412,7 +411,6 @@ fn iterate_deep_type(
                                                     _rtype: AttributeType::Property,
                                                     name: e.data.name.clone(),
                                                     value: resolved_type,
-                                                    page: class_inner_page.hash,
                                                 })
                                             },
                                             Processors::Function(e) => {
@@ -448,7 +446,6 @@ fn iterate_deep_type(
                                                             returning,
                                                         }
                                                     ),
-                                                    page: class_inner_page.hash,
                                                 })
                                             },
                                             Processors::Getter(e) => {
@@ -467,10 +464,9 @@ fn iterate_deep_type(
                                                     _rtype: AttributeType::Method,
                                                     name: e.name.clone(),
                                                     value,
-                                                    page: class_inner_page.hash,
                                                 })
                                             }
-                                            Processors::Setter(e) => {
+                                            Processors::Setter(_) => {
                                                todo!()
                                             }
                                             _ => None,
@@ -498,7 +494,6 @@ fn iterate_deep_type(
                                                         hash: enum_data.hash,
                                                     }
                                                 ),
-                                                page: page_id,
                                             }
                                         }).collect()
                                     )
@@ -691,7 +686,6 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value,
-                                        page: page_id,
                                     });
                                 }
                                 Collecting::Function(e) => {
@@ -708,7 +702,6 @@ fn iterate_deep_type(
                                                 returning: Box::new(e.return_type),
                                             },
                                         ),
-                                        page: page.hash,
                                     });
                                 }
                                 Collecting::Getter(e) => {
@@ -716,7 +709,6 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value: e.return_type,
-                                        page: page.hash,
                                     });
                                 }
                                 Collecting::Setter(e) => {
@@ -724,7 +716,6 @@ fn iterate_deep_type(
                                         _rtype: attribute._rtype.clone(),
                                         name: attribute.name.clone(),
                                         value: e.rtype,
-                                        page: page.hash,
                                     });
                                 }
                                 Collecting::NativeFunction(e) => {
@@ -741,7 +732,6 @@ fn iterate_deep_type(
                                                 returning: Box::new(e.return_type),
                                             },
                                         ),
-                                        page: page.hash,
                                     });
                                 }
                                 _ => (),

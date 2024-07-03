@@ -252,7 +252,7 @@ fn main() {
                                 )
                             }
                         }
-                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                        VmNativeCallParameters::Dynamic(_) => {
                             VmNativeAnswer::RuntimeError(
                                 "Signature mismatch expected static argument".to_string(),
                             )

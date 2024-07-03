@@ -46,7 +46,7 @@ impl super::ItemParserProcessor for VariableCollector {
                     self.data.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
             } else {
@@ -357,7 +357,7 @@ impl super::ItemParserProcessor for VariableCollector {
                                 );
                                 err.reference_block =
                                     Some((self.data.type_pos, current_page.path.clone()));
-                                err.reference_message = "Defined here".to_owned();
+                                "Defined here".clone_into(&mut err.reference_message);
                                 err.semi_assist = true;
                                 options.parser.informations.push(&err);
                                 return false;
@@ -385,7 +385,7 @@ impl super::ItemParserProcessor for VariableCollector {
                                 );
                                 err.reference_block =
                                     Some((self.data.type_pos, current_page.path.clone()));
-                                err.reference_message = "Defined here".to_owned();
+                                "Defined here".clone_into(&mut err.reference_message);
                                 err.semi_assist = true;
                                 options.parser.informations.push(&err);
                                 false

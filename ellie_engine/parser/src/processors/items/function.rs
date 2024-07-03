@@ -63,7 +63,7 @@ impl super::ItemParserProcessor for FunctionCollector {
                     self.data.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, found_page.path));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
             } else {
@@ -167,7 +167,7 @@ impl super::ItemParserProcessor for FunctionCollector {
                             },
                             page.path.clone(),
                         ));
-                        err.reference_message = "Prime is here".to_owned();
+                        "Prime is here".clone_into(&mut err.reference_message);
                         err.semi_assist = true;
                         options.parser.informations.push(&err);
                     }
@@ -191,7 +191,7 @@ impl super::ItemParserProcessor for FunctionCollector {
                                 parameter.name_pos,
                             );
                             err.reference_block = Some((cursor_pos, page.path));
-                            err.reference_message = "Prime is here".to_owned();
+                            "Prime is here".clone_into(&mut err.reference_message);
                             err.semi_assist = true;
                             options.parser.informations.push(&err);
                         } else {

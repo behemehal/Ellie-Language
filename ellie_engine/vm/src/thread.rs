@@ -33,6 +33,12 @@ pub struct Isolate {
     pub stack_memory: StackMemory,
 }
 
+impl Default for Isolate {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Isolate {
     pub fn new() -> Self {
         Isolate {
@@ -208,13 +214,13 @@ impl Thread {
                                         StepResult::Step
                                     }
                                     VmNativeAnswer::RuntimeError(e) => {
-                                        return StepResult::ThreadExit(ThreadExit::Panic(
+                                        StepResult::ThreadExit(ThreadExit::Panic(
                                             ThreadPanic {
                                                 reason: ThreadPanicReason::RuntimeError(e),
                                                 stack_trace: self.stack.clone(),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             },
-                                        ));
+                                        ))
                                     }
                                 }
                             } else {
@@ -267,7 +273,7 @@ impl Thread {
                                                             StepResult::Step
                                                         }
                                                         VmNativeAnswer::RuntimeError(e) => {
-                                                            return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                                                            StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
                                                         reason: ThreadPanicReason::RuntimeError(e),
                                                         stack_trace: self.stack.clone(),
                                                         code_location: format!(
@@ -275,13 +281,13 @@ impl Thread {
                                                             file!(),
                                                             line!()
                                                         ),
-                                                    }));
+                                                    }))
                                                         }
                                                     }
                                                 }
                                             },
                                             None => {
-                                                return StepResult::ThreadExit(ThreadExit::Panic(
+                                                StepResult::ThreadExit(ThreadExit::Panic(
                                                     ThreadPanic {
                                                         reason: ThreadPanicReason::CallToUnknown((
                                                             found_trace.function_name.clone(),
@@ -294,12 +300,12 @@ impl Thread {
                                                             line!()
                                                         ),
                                                     },
-                                                ));
+                                                ))
                                             }
                                         }
                                     }
                                     None => {
-                                        return StepResult::ThreadExit(ThreadExit::Panic(
+                                        StepResult::ThreadExit(ThreadExit::Panic(
                                             ThreadPanic {
                                                 reason: ThreadPanicReason::MissingModule(
                                                     native_call.hash,
@@ -307,27 +313,27 @@ impl Thread {
                                                 stack_trace: self.stack.clone(),
                                                 code_location: format!("{}:{}", file!(), line!()),
                                             },
-                                        ));
+                                        ))
                                     }
                                 }
                             }
                         }
                         None => {
-                            return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                            StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
                                 reason: ThreadPanicReason::MissingTrace(native_call.hash),
                                 stack_trace: self.stack.clone(),
                                 code_location: format!("{}:{}", file!(), line!()),
-                            }));
+                            }))
                         }
                     }
                 }
             },
             Err(panic) => {
-                return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
                     reason: panic.reason,
                     stack_trace: self.stack.clone(),
                     code_location: panic.code_location,
-                }));
+                }))
             }
         }
     }

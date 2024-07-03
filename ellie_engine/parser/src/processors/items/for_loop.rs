@@ -81,7 +81,7 @@ impl super::ItemParserProcessor for ForLoop {
                     self.variable_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
             } else {

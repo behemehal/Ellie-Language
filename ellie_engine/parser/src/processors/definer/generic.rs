@@ -16,7 +16,7 @@ impl super::DefinerParserProcessor for GenericType {
         let mut found = DefinerCollecting::Dynamic;
 
         let generic_search = item_search(
-            &mut &mut &mut &mut DeepSearchOptions::new()
+            &mut DeepSearchOptions::new()
                 .parser(options.parser)
                 .page_id(options.page_id)
                 .search_on_all()

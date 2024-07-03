@@ -12,7 +12,9 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum TokenizerType {
+    #[default]
     Raw,
     ClassParser,
     FunctionParser,
@@ -20,11 +22,6 @@ pub enum TokenizerType {
 }
 
 #[cfg(feature = "compiler_utils")]
-impl Default for TokenizerType {
-    fn default() -> Self {
-        TokenizerType::Raw
-    }
-}
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -235,7 +232,7 @@ impl Version {
     /// * `version` - [`String`] to parse
     pub fn build_from_string(input: &String) -> Version {
         let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        let caps = semver_regex.captures(&input).unwrap();
+        let caps = semver_regex.captures(input).unwrap();
 
         Version {
             major: caps
@@ -268,7 +265,7 @@ impl Version {
     /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
     pub fn build_from_string_checked(input: &String) -> Result<Version, u8> {
         let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        match semver_regex.captures(&input) {
+        match semver_regex.captures(input) {
             Some(caps) => {
                 let major = caps
                     .name("major")

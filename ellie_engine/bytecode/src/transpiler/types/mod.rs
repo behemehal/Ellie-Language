@@ -40,6 +40,12 @@ pub struct TypeTranspilerOptions<'a> {
     dependencies: Option<Vec<usize>>,
 }
 
+impl<'a> Default for TypeTranspilerOptions<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> TypeTranspilerOptions<'a> {
     pub fn new() -> Self {
         Self {

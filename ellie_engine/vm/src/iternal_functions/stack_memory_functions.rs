@@ -13,7 +13,7 @@ pub fn frame_pos_fn(
     thread_info: ThreadInfo,
     args: Vec<VmNativeCallParameters>,
 ) -> VmNativeAnswer {
-    if args.len() != 0 {
+    if !args.is_empty() {
         return VmNativeAnswer::RuntimeError(
             "Signature mismatch expected 0 argument(s)".to_string(),
         );
@@ -28,7 +28,7 @@ pub fn code_pos_fn(
     thread_info: ThreadInfo,
     args: Vec<VmNativeCallParameters>,
 ) -> VmNativeAnswer {
-    if args.len() != 0 {
+    if !args.is_empty() {
         return VmNativeAnswer::RuntimeError(
             "Signature mismatch expected 0 argument(s)".to_string(),
         );
@@ -39,11 +39,11 @@ pub fn code_pos_fn(
 }
 
 pub const FRAME_POS: InternalFunction = InternalFunction {
-    name: &"frame_pos",
+    name: "frame_pos",
     callback: frame_pos_fn,
 };
 
 pub const CODE_POS: InternalFunction = InternalFunction {
-    name: &"code_pos",
+    name: "code_pos",
     callback: code_pos_fn,
 };

@@ -24,6 +24,7 @@ use super::{definers, items::constructor_parameter};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Types {
     Byte(byte::ByteType),
     Integer(integer::IntegerType),
@@ -50,12 +51,8 @@ pub enum Types {
     VariableType(variable::VariableType),
     AsKeyword(as_keyword::AsKeyword),
     ClassInstance(class_instance::ClassInstance),
+    #[default]
     Null,
     Dynamic,
 }
 
-impl Default for Types {
-    fn default() -> Self {
-        Types::Null
-    }
-}

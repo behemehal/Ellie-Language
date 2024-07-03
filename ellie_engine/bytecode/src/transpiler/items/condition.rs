@@ -20,7 +20,7 @@ impl super::Transpiler for condition::Condition {
         for (_, chain) in self.chains.iter().enumerate() {
             if chain.rtype != ellie_core::definite::items::condition::ConditionType::Else {
                 let mut binding = TypeTranspilerOptions::new();
-                let mut type_transpiler_options = binding
+                let type_transpiler_options = binding
                     .set_assembler(assembler)
                     .set_dependencies(dependencies.clone())
                     .set_target_page(hash);

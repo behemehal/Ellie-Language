@@ -1,7 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ellie_engine::{compiler, parseText};
+use ellie_engine::{parseText};
 
-use crate::codes::BENCH_FIBONACCI_RECURSION;
 
 pub mod codes;
 pub mod utils;
@@ -70,11 +69,11 @@ fn byte_code_assembler(c: &mut Criterion) {
     let fibonacci_recursion_parse =
         parseText!(codes::BENCH_FIBONACCI_RECURSION).expect("should've been successful");
 
-    c.bench_function("class_byte_code_assembler", |b| {
-        b.iter(|| {
-            let _ = black_box(compiler::byte_code_assembler(class_parse.clone()));
-        })
-    });
+    //c.bench_function("class_byte_code_assembler", |b| {
+    //    b.iter(|| {
+    //        let _ = black_box(compiler::byte_code_assembler(class_parse.clone()));
+    //    })
+    //});
 }
 
 criterion_group!(benches, tokenize, parse);

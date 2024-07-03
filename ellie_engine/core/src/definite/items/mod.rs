@@ -30,6 +30,7 @@ pub mod loop_type;
 pub mod ret;
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Collecting {
     Variable(variable::Variable),
     Function(function::Function),
@@ -55,14 +56,10 @@ pub enum Collecting {
     ConstructorParameter(constructor_parameter::ConstructorParameter),
     SelfItem(self_item::SelfItem),
     ClassInstance(class_instance::ClassInstance),
+    #[default]
     None,
 }
 
-impl Default for Collecting {
-    fn default() -> Self {
-        Collecting::None
-    }
-}
 
 impl Collecting {
     pub fn get_pos(&self) -> defs::Cursor {

@@ -30,15 +30,15 @@ pub fn array_len_fn(
                         ))
                     }
                     None => {
-                        return VmNativeAnswer::RuntimeError(
+                        VmNativeAnswer::RuntimeError(
                             "Memory corruption occurred (array_len)".to_string(),
-                        );
+                        )
                     }
                 }
             } else {
-                return VmNativeAnswer::RuntimeError(
+                VmNativeAnswer::RuntimeError(
                     "Signature mismatch expected an array".to_string(),
-                );
+                )
             }
         }
         VmNativeCallParameters::Dynamic(_) => VmNativeAnswer::RuntimeError(
@@ -48,6 +48,6 @@ pub fn array_len_fn(
 }
 
 pub const ARRAY_LEN: InternalFunction = InternalFunction {
-    name: &"array_len",
+    name: "array_len",
     callback: array_len_fn,
 };

@@ -95,6 +95,12 @@ pub struct ModuleManager {
     pub modules: Vec<EllieModule>,
 }
 
+impl Default for ModuleManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleManager {
     pub fn new() -> Self {
         ModuleManager {

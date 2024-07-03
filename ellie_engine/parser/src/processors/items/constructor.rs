@@ -112,7 +112,7 @@ impl super::ItemParserProcessor for Constructor {
                     parameter.pos,
                 );
                 err.reference_block = Some((class_element.pos, path.clone()));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
                 return false;
@@ -131,7 +131,7 @@ impl super::ItemParserProcessor for Constructor {
                         parameter.pos,
                     );
                     err.reference_block = Some((self.parameters[other_index].pos, path.clone()));
-                    err.reference_message = "Prime is here".to_owned();
+                    "Prime is here".clone_into(&mut err.reference_message);
                     err.semi_assist = true;
                     options.parser.informations.push(&err);
                 }
@@ -159,7 +159,7 @@ impl super::ItemParserProcessor for Constructor {
                     parameter.pos,
                 );
                 err.reference_block = Some((class_element.pos, class_page.path.clone()));
-                err.reference_message = "Class body is here".to_owned();
+                "Class body is here".clone_into(&mut err.reference_message);
                 options.parser.informations.push(&err);
             }
 

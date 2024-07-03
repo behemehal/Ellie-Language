@@ -5,9 +5,8 @@ use ellie_core::{
 };
 use ellie_tokenizer::{
     processors::{items::Processors as ItemProcessors, types::Processors},
-    syntax::types::{class_call_type, variable_type},
+    syntax::types::{class_call_type},
 };
-use types::variable::VariableType;
 
 use crate::{
     deep_search_extensions::{
@@ -286,7 +285,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                             .path
                                             .clone(),
                                     ));
-                                    error.reference_message = "Defined here".to_owned();
+                                    "Defined here".clone_into(&mut error.reference_message);
                                     errors.push(error);
                                     Err(errors)
                                 } else if !undefined_generics.is_empty() {
