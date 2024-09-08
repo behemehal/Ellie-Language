@@ -183,42 +183,44 @@ fn main() {
                             "Signature mismatch expected 1 argument(s)".to_string(),
                         );
                     }
-                    match &args[0] {
-                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
-                            "Signature mismatch, expected 'dynamic' argument".to_string(),
-                        ),
+
+                    let path = match &args[0] {
+                        VmNativeCallParameters::Static(_e) => {
+                            return VmNativeAnswer::RuntimeError(
+                                "Signature mismatch, expected 'dynamic' argument".to_string(),
+                            )
+                        }
                         VmNativeCallParameters::Dynamic(dynamic_value) => {
                             if dynamic_value.is_string() {
-                                let file_handle = match File::open(dynamic_value.to_string()) {
-                                    Ok(e) => {
-                                        println!("Opened file: {:?}", e);
-                                        let handle = Box::new(e);
-                                        let handle = Box::into_raw(handle);
-
-                                        handle as *mut usize
-                                    }
-                                    Err(e) => {
-                                        return VmNativeAnswer::RuntimeError(format!(
-                                            "Failed to open file '{}', ({})",
-                                            dynamic_value.to_string(),
-                                            e.to_string()
-                                        ));
-                                    }
-                                };
-
-                                //convert handle back to file
-                                let file_handle = file_handle as *mut File;
-
-                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
-                                    StaticRawType::from_uint(file_handle as usize),
-                                ))
+                                dynamic_value.to_string()
                             } else {
-                                VmNativeAnswer::RuntimeError(
+                                return VmNativeAnswer::RuntimeError(
                                     "Signature mismatch expected 'string' argument".to_string(),
-                                )
+                                );
                             }
                         }
-                    }
+                    };
+
+                    let file_handle = match File::open(&path) {
+                        Ok(e) => {
+                            println!("Opened file: {:?}", e);
+                            let handle = Box::new(e);
+                            let handle = Box::into_raw(handle);
+
+                            handle as *mut usize
+                        }
+                        Err(e) => {
+                            return VmNativeAnswer::RuntimeError(format!(
+                                "Failed to open file '{}', ({})",
+                                path,
+                                e.to_string()
+                            ));
+                        }
+                    };
+
+                    VmNativeAnswer::Ok(VmNativeCallParameters::Static(StaticRawType::from_uint(
+                        file_handle as usize,
+                    )))
                 }),
             )));
 
@@ -252,11 +254,9 @@ fn main() {
                                 )
                             }
                         }
-                        VmNativeCallParameters::Dynamic(_) => {
-                            VmNativeAnswer::RuntimeError(
-                                "Signature mismatch expected static argument".to_string(),
-                            )
-                        }
+                        VmNativeCallParameters::Dynamic(_) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected static argument".to_string(),
+                        ),
                     }
                 }),
             )));
