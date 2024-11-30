@@ -19,6 +19,7 @@ ellie_core = { path = "../core", version = "0.7.3" }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", default-features = false, optional = true }
 path-absolutize = { version = "3.0.10", optional = true }
+regex = { version = "1.10.6" }
 
 [features]
 default = ["cli-utils", "std"]

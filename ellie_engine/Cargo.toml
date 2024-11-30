@@ -37,8 +37,8 @@ cli-utils = ["ellie_renderer_utils/cli-utils"]
 
 [build-dependencies]
 path-absolutize = { version = "3.0.10" }
-toml = "0.8.0"
-regex = { version = "1.1.7" }
+toml = "0.8.19"
+regex = { version = "1.10.6" }
 chrono = "0.4.22"
 
 [dev-dependencies]
@@ -49,5 +49,5 @@ name = "compile"
 harness = false
 
 [workspace]
-members = [".", "./core", "./tokenizer", "./parser", "./bytecode", "./vm", "./fmt", "./renderer_utils" ]
+members = [".", "./core", "./tokenizer", "./parser", "./bytecode", "./vm", "./fmt", "./renderer_utils"]
 default-members = ["."]

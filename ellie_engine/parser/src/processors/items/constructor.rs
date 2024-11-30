@@ -222,6 +222,9 @@ impl super::ItemParserProcessor for Constructor {
                 },
                 operator: AssignmentOperators::Assignment,
                 hash: generate_hash_usize(),
+                virtual_element: true,
+                value_pos: self.pos,
+                target_pos: self.pos,
                 ..Default::default()
             });
             items.push(self_setter);
@@ -249,6 +252,7 @@ impl super::ItemParserProcessor for Constructor {
                 ),
             );
         }
+
         items.extend(self.inside_code.clone());
         let inner_page_id: usize = ellie_core::utils::generate_hash_usize();
         let inner = ellie_tokenizer::tokenizer::Page {

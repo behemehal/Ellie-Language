@@ -1,4 +1,5 @@
 use crate::{
+    extra::{item_search::item_search, utils::DeepSearchOptions},
     parser::{DeepSearchItems, Parser},
     processors::{
         definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
@@ -84,9 +85,7 @@ pub fn generate_type_from_defining(
                 );
                 if hash_deep_search.found {
                     match hash_deep_search.found_item {
-                        crate::deep_search_extensions::ProcessedDeepSearchItems::Class(
-                            matched_class,
-                        ) => {
+                        ProcessedDeepSearchItems::Class(matched_class) => {
                             if matched_class.generic_definings.is_empty() {
                                 Some(Types::ClassCall(
                                     ellie_core::definite::types::class_call::ClassCall {
@@ -136,9 +135,7 @@ pub fn generate_type_from_defining(
                                 ))
                             }
                         }
-                        crate::deep_search_extensions::ProcessedDeepSearchItems::GenericItem(_) => {
-                            Some(Types::Dynamic)
-                        }
+                        ProcessedDeepSearchItems::GenericItem(_) => Some(Types::Dynamic),
                         _ => unreachable!(),
                     }
                 } else {
@@ -216,7 +213,7 @@ pub fn generate_type_from_defining(
                 );
                 if hash_deep_search.found {
                     match hash_deep_search.found_item {
-                                crate::deep_search_extensions::ProcessedDeepSearchItems::Class(matched_class) => {
+                                ProcessedDeepSearchItems::Class(matched_class) => {
                                         Some(
                                             Types::ClassCall(
                                                 ellie_core::definite::types::class_call::ClassCall {
@@ -299,6 +296,451 @@ pub fn generate_type_from_defining(
             },
         )),
         definers::DefinerCollecting::Dynamic => Some(Types::Dynamic),
+        definers::DefinerCollecting::Nullable(inner) => {
+            let nullable_class = item_search(
+                &mut DeepSearchOptions::new()
+                    .name("nullAble".to_string())
+                    .parser(parser)
+                    .page_id(page_id),
+            );
+
+            if nullable_class.found() {
+                match nullable_class.found_item.as_processed() {
+                    Collecting::Class(class) => Some(Types::ClassCall(
+                        ellie_core::definite::types::class_call::ClassCall {
+                            target: Box::new(Types::VariableType(
+                                ellie_core::definite::types::variable::VariableType {
+                                    value: class.name.clone(),
+                                    reference: class.hash,
+                                    pos: class.pos,
+                                },
+                            )),
+                            resolved_generics: vec![*inner.value.clone()],
+                            generic_parameters: vec![ClassCallGenericParameter {
+                                value: *inner.value,
+                                pos: defs::Cursor::default(),
+                            }],
+                            keyword_pos: defs::Cursor::default(),
+                            pos: defs::Cursor::default(),
+                            target_pos: defs::Cursor::default(),
+                            params: vec![],
+                        },
+                    )),
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
+pub fn generate_type_from_defining_v2(
+    rtype: ellie_core::definite::definers::DefinerCollecting,
+    page_id: usize,
+    parser: &mut crate::parser::Parser,
+) -> Result<Types, Vec<error::Error>> {
+    match rtype {
+        definers::DefinerCollecting::Generic(generic) => {
+            if generic.rtype == "int" {
+                Ok(Types::Integer(
+                    ellie_core::definite::types::integer::IntegerType {
+                        value: 0,
+                        pos: defs::Cursor::default(),
+                    },
+                ))
+            } else if generic.rtype == "float" {
+                Ok(Types::Decimal(
+                    ellie_core::definite::types::decimal::DecimalType {
+                        value: ellie_core::definite::types::decimal::DecimalTypeEnum::Float(0.0),
+                        pos: defs::Cursor::default(),
+                        is_double: false,
+                    },
+                ))
+            } else if generic.rtype == "string" {
+                Ok(Types::String(
+                    ellie_core::definite::types::string::StringType {
+                        value: "".to_owned(),
+                        pos: defs::Cursor::default(),
+                    },
+                ))
+            } else if generic.rtype == "bool" {
+                Ok(Types::Bool(ellie_core::definite::types::bool::BoolType {
+                    value: true,
+                }))
+            } else if generic.rtype == "dyn" {
+                Ok(Types::Dynamic)
+            } else if generic.rtype == "void" {
+                Ok(Types::Void)
+            } else if generic.rtype == "char" {
+                Ok(Types::Char(
+                    ellie_core::definite::types::ellie_char::CharType { value: '\0' },
+                ))
+            } else if generic.rtype == "null" {
+                Ok(Types::Null)
+            } else {
+                let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
+                    parser,
+                    page_id,
+                    generic.hash,
+                    vec![],
+                    0,
+                );
+                if hash_deep_search.found {
+                    match hash_deep_search.found_item {
+                        ProcessedDeepSearchItems::Class(matched_class) => {
+                            if matched_class.generic_definings.is_empty() {
+                                Ok(Types::ClassCall(
+                                    ellie_core::definite::types::class_call::ClassCall {
+                                        target: Box::new(Types::VariableType(
+                                            ellie_core::definite::types::variable::VariableType {
+                                                value: matched_class.name.clone(),
+                                                reference: matched_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        )),
+                                        resolved_generics: vec![],
+                                        generic_parameters: vec![],
+                                        keyword_pos: defs::Cursor::default(),
+                                        pos: defs::Cursor::default(),
+                                        target_pos: defs::Cursor::default(),
+                                        params: vec![],
+                                    },
+                                ))
+                            } else {
+                                Ok(Types::ClassCall(
+                                    ellie_core::definite::types::class_call::ClassCall {
+                                        target: Box::new(Types::VariableType(
+                                            ellie_core::definite::types::variable::VariableType {
+                                                value: matched_class.name.clone(),
+                                                reference: matched_class.hash,
+                                                pos: defs::Cursor::default(),
+                                            },
+                                        )),
+                                        resolved_generics: vec![],
+                                        generic_parameters: matched_class
+                                            .generic_definings
+                                            .iter()
+                                            .map(|gd| ClassCallGenericParameter {
+                                                value: DefinerCollecting::Generic(GenericType {
+                                                    rtype: gd.name.clone(),
+                                                    pos: gd.pos,
+                                                    hash: gd.hash,
+                                                }),
+                                                pos: gd.pos,
+                                            })
+                                            .collect(),
+                                        keyword_pos: defs::Cursor::default(),
+                                        pos: defs::Cursor::default(),
+                                        target_pos: defs::Cursor::default(),
+                                        params: vec![],
+                                    },
+                                ))
+                            }
+                        }
+                        ProcessedDeepSearchItems::GenericItem(_) => Ok(Types::Dynamic),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+        }
+        definers::DefinerCollecting::ParentGeneric(parent_generic) => {
+            if parent_generic.rtype == "array" {
+                generate_type_from_defining_v2(
+                    parent_generic.generics[0].value.clone(),
+                    page_id,
+                    parser,
+                )
+                .map(|t| {
+                    Types::Array(ellie_core::definite::types::array::ArrayType {
+                        collective: vec![ellie_core::definite::types::array::ArrayEntry {
+                            value: t,
+                            location: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
+            } else if parent_generic.rtype == "cloak" {
+                let mut cloak_entries = vec![];
+                let mut errors = Vec::new();
+                for generic in parent_generic.generics {
+                    match generate_type_from_defining_v2(generic.value, page_id, parser) {
+                        Ok(t) => {
+                            cloak_entries.push(ellie_core::definite::types::cloak::CloakEntry {
+                                value: t,
+                                location: defs::Cursor::default(),
+                            })
+                        }
+                        Err(errs) => {
+                            errors.extend(errs);
+                            break;
+                        }
+                    }
+                }
+                if !errors.is_empty() {
+                    Err(errors)
+                } else {
+                    Ok(Types::Cloak(
+                        ellie_core::definite::types::cloak::CloakType {
+                            collective: cloak_entries,
+                            pos: defs::Cursor::default(),
+                        },
+                    ))
+                }
+            } else if parent_generic.rtype == "collective" {
+                generate_type_from_defining_v2(
+                    parent_generic.generics[0].value.clone(),
+                    page_id,
+                    parser,
+                )
+                .map(|t| {
+                    Types::Collective(ellie_core::definite::types::collective::CollectiveType {
+                        entries: vec![ellie_core::definite::types::collective::CollectiveEntry {
+                            key: "?".to_string(),
+                            value: t,
+                            key_pos: defs::Cursor::default(),
+                            value_pos: defs::Cursor::default(),
+                        }],
+                        pos: defs::Cursor::default(),
+                    })
+                })
+            } else {
+                let hash_deep_search = crate::deep_search_extensions::deep_search_hash(
+                    parser,
+                    page_id,
+                    parent_generic.hash,
+                    vec![],
+                    0,
+                );
+                if hash_deep_search.found {
+                    match hash_deep_search.found_item {
+                                ProcessedDeepSearchItems::Class(matched_class) => {
+                                        Ok(
+                                            Types::ClassCall(
+                                                ellie_core::definite::types::class_call::ClassCall {
+                                                    target: Box::new(Types::VariableType(
+                                                        ellie_core::definite::types::variable::VariableType {
+                                                            value: matched_class.name.clone(),
+                                                            reference: matched_class.hash,
+                                                            pos: defs::Cursor::default(),
+                                                        },
+                                                    )),
+                                                    resolved_generics: parent_generic.generics.iter().map(|generic| {
+                                                        generic.value.clone()
+                                                    }).collect::<Vec<_>>(),
+                                                    generic_parameters: parent_generic.generics.iter().map(|generic| {
+                                                        ellie_core::definite::types::class_call::ClassCallGenericParameter {
+                                                            value: generic.value.clone(),
+                                                            pos: defs::Cursor::default(),
+                                                        }
+                                                    }).collect::<Vec<_>>(),
+                                                    keyword_pos: defs::Cursor::default(),
+                                                    pos: defs::Cursor::default(),
+                                                    target_pos: defs::Cursor::default(),
+                                                    params: vec![],
+                                                }
+                                            )
+                                        )
+                                }
+                                _ => unreachable!(),
+                            }
+                } else {
+                    unreachable!()
+                }
+            }
+        }
+        definers::DefinerCollecting::Function(function) => Ok(Types::Function(
+            ellie_core::definite::types::function::Function {
+                native: false,
+                parameters: function
+                    .params
+                    .iter()
+                    .map(
+                        |parameter| ellie_core::definite::types::function::FunctionParameter {
+                            name: "anonymous".to_string(),
+                            rtype: Some(parameter.clone()),
+                            rtype_pos: defs::Cursor::default(),
+                            name_pos: defs::Cursor::default(),
+                        },
+                    )
+                    .collect::<Vec<_>>(),
+                return_type: *function.returning,
+                has_parameter_definings: false,
+                arrow_function: false,
+                inside_code: vec![],
+                return_pos: defs::Cursor::default(),
+            },
+        )),
+        definers::DefinerCollecting::EnumField(enum_data) => Ok(Types::EnumData(
+            ellie_core::definite::types::enum_data::EnumData {
+                reference: Box::new(Types::VariableType(
+                    ellie_core::definite::types::variable::VariableType {
+                        value: enum_data.name.clone(),
+                        reference: enum_data.hash,
+                        pos: defs::Cursor::default(),
+                    },
+                )),
+                field_name: enum_data.field_name,
+                reference_pos: defs::Cursor::default(),
+                brace_pos: defs::Cursor::default(),
+                value: match enum_data.field_data {
+                    definers::EnumFieldData::NoData => {
+                        ellie_core::definite::types::enum_data::Pointer::NoData
+                    }
+                    definers::EnumFieldData::Data(e) => {
+                        ellie_core::definite::types::enum_data::Pointer::Data(Box::new(
+                            generate_type_from_defining(*e, page_id, parser).unwrap(),
+                        ))
+                    }
+                },
+                pos: defs::Cursor::default(),
+            },
+        )),
+        definers::DefinerCollecting::Dynamic => Ok(Types::Dynamic),
+        definers::DefinerCollecting::Nullable(inner) => {
+            let nullable_class = item_search(
+                &mut DeepSearchOptions::new()
+                    .name("nullAble".to_string())
+                    .parser(parser)
+                    .page_id(page_id)
+                    .search_on_all(),
+            );
+
+            if nullable_class.found() {
+                match nullable_class.found_item.processed() {
+                    Some(processed) => match processed {
+                        Collecting::Class(class) => {
+                            return Ok(Types::ClassCall(
+                                ellie_core::definite::types::class_call::ClassCall {
+                                    target: Box::new(Types::VariableType(
+                                        ellie_core::definite::types::variable::VariableType {
+                                            value: class.name.clone(),
+                                            reference: class.hash,
+                                            pos: class.pos,
+                                        },
+                                    )),
+                                    resolved_generics: vec![*inner.value.clone()],
+                                    generic_parameters: vec![ClassCallGenericParameter {
+                                        value: *inner.value,
+                                        pos: defs::Cursor::default(),
+                                    }],
+                                    keyword_pos: defs::Cursor::default(),
+                                    pos: defs::Cursor::default(),
+                                    target_pos: defs::Cursor::default(),
+                                    params: vec![],
+                                },
+                            ))
+                        }
+                        _ => {
+                            let mut errors = Vec::new();
+                            errors.push(error::error_list::ERROR_S21.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: "nullAble".to_owned(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                defs::Cursor::default(),
+                            ));
+                            return Err(errors);
+                        }
+                    },
+                    None => (),
+                }
+
+                match nullable_class.found_item.raw() {
+                    Some(raw) => match raw {
+                        Processors::Class(class) => {
+                            return Ok(Types::ClassCall(
+                                ellie_core::definite::types::class_call::ClassCall {
+                                    target: Box::new(Types::VariableType(
+                                        ellie_core::definite::types::variable::VariableType {
+                                            value: class.name.clone(),
+                                            reference: class.hash,
+                                            pos: class.pos,
+                                        },
+                                    )),
+                                    resolved_generics: vec![*inner.value.clone()],
+                                    generic_parameters: vec![ClassCallGenericParameter {
+                                        value: *inner.value,
+                                        pos: defs::Cursor::default(),
+                                    }],
+                                    keyword_pos: defs::Cursor::default(),
+                                    pos: defs::Cursor::default(),
+                                    target_pos: defs::Cursor::default(),
+                                    params: vec![],
+                                },
+                            ))
+                        }
+                        _ => {
+                            let mut errors = Vec::new();
+                            errors.push(error::error_list::ERROR_S21.clone().build_with_path(
+                                vec![error::ErrorBuildField {
+                                    key: "token".to_owned(),
+                                    value: "nullAble".to_owned(),
+                                }],
+                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                                parser.find_page(page_id).unwrap().path.clone(),
+                                defs::Cursor::default(),
+                            ));
+                            return Err(errors);
+                        }
+                    },
+                    None => (),
+                }
+
+                match nullable_class.found_item.as_processed() {
+                    Collecting::Class(class) => Ok(Types::ClassCall(
+                        ellie_core::definite::types::class_call::ClassCall {
+                            target: Box::new(Types::VariableType(
+                                ellie_core::definite::types::variable::VariableType {
+                                    value: class.name.clone(),
+                                    reference: class.hash,
+                                    pos: class.pos,
+                                },
+                            )),
+                            resolved_generics: vec![*inner.value.clone()],
+                            generic_parameters: vec![ClassCallGenericParameter {
+                                value: *inner.value,
+                                pos: defs::Cursor::default(),
+                            }],
+                            keyword_pos: defs::Cursor::default(),
+                            pos: defs::Cursor::default(),
+                            target_pos: defs::Cursor::default(),
+                            params: vec![],
+                        },
+                    )),
+                    _ => {
+                        let mut errors = Vec::new();
+                        errors.push(error::error_list::ERROR_S21.clone().build_with_path(
+                            vec![error::ErrorBuildField {
+                                key: "token".to_owned(),
+                                value: "nullAble".to_owned(),
+                            }],
+                            alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                            parser.find_page(page_id).unwrap().path.clone(),
+                            defs::Cursor::default(),
+                        ));
+                        Err(errors)
+                    }
+                }
+            } else {
+                let mut errors = Vec::new();
+                errors.push(error::error_list::ERROR_S38.clone().build_with_path(
+                    vec![error::ErrorBuildField {
+                        key: "token".to_owned(),
+                        value: "nullAble".to_owned(),
+                    }],
+                    alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
+                    parser.find_page(page_id).unwrap().path.clone(),
+                    defs::Cursor::default(),
+                ));
+                Err(errors)
+            }
+        }
         _ => unreachable!(),
     }
 }
@@ -1276,8 +1718,8 @@ fn iterate_deep_type(
                         }
                     }
                     ProcessedDeepSearchItems::ConstructorParameter(e) => {
-                        match generate_type_from_defining(e.rtype, page_id, parser) {
-                            Some(e) => match e {
+                        match generate_type_from_defining_v2(e.rtype, page_id, parser) {
+                            Ok(e) => match e {
                                 Types::Byte(e) => DeepTypeResult::Byte(e),
                                 Types::Integer(e) => DeepTypeResult::Integer(e),
                                 Types::Decimal(e) => DeepTypeResult::Decimal(e),
@@ -1297,7 +1739,10 @@ fn iterate_deep_type(
                                 Types::Dynamic => DeepTypeResult::Dynamic,
                                 _ => unreachable!(),
                             },
-                            None => panic!("This should never happen"),
+                            Err(errs) => {
+                                errors.extend(errs);
+                                DeepTypeResult::NotFound
+                            }
                         }
                     }
                     ProcessedDeepSearchItems::Getter(e) => {

@@ -10,9 +10,12 @@ use rand;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    definite::types::operator::{
-        assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
-        ArithmeticOperators, AssignmentOperators, Operators,
+    definite::{
+        definers::DefinerCollecting,
+        types::operator::{
+            assignment_operator_to_string, comparison_operator_to_string,
+            logical_operator_to_string, ArithmeticOperators, AssignmentOperators, Operators,
+        },
     },
     defs, error,
 };
@@ -345,13 +348,17 @@ pub fn operator_priority(operator: &str) -> usize {
 
 pub fn operator_control(
     operator: Operators,
-    first: String,
-    second: String,
+    definer_first: DefinerCollecting,
+    definer_second: DefinerCollecting,
     path: String,
     pos: defs::Cursor,
 ) -> Option<crate::error::Error> {
+    let first = definer_first.to_string();
+    let second = definer_second.to_string();
+
     let first = first.as_str();
     let second = second.as_str();
+
     let operator = match operator {
         Operators::ComparisonType(operator) => match operator {
             crate::definite::types::operator::ComparisonOperators::Equal
@@ -430,7 +437,30 @@ pub fn operator_control(
             crate::definite::types::operator::ArithmeticOperators::Null => unreachable!(),
         },
         Operators::AssignmentType(operator) => match operator {
-            crate::definite::types::operator::AssignmentOperators::Assignment => None,
+            crate::definite::types::operator::AssignmentOperators::Assignment => {
+                match (first, second) {
+                    ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("float", "int")
+                    | ("float", "byte")
+                    | ("double", "double")
+                    | ("double", "float")
+                    | ("double", "int")
+                    | ("double", "byte")
+                    | ("byte", "byte")
+                    | ("byte", "int")
+                    | ("string", "string")
+                    | ("string", "char")
+                    | ("string", "int")
+                    | ("string", "float")
+                    | ("string", "double")
+                    | ("dyn", _)
+                    | (_, "dyn")
+                    | ("string", "byte") => None,
+                    _ => Some("Assignment"),
+                }
+            }
             crate::definite::types::operator::AssignmentOperators::AdditionAssignment => {
                 match (first, second) {
                     ("int", "int")
@@ -475,7 +505,8 @@ pub fn operator_control(
         },
         Operators::Null => unreachable!(),
     };
-    operator.map(|operator_string| error::error_list::ERROR_S52.clone().build_with_path(
+    operator.map(|operator_string| {
+        error::error_list::ERROR_S52.clone().build_with_path(
             vec![
                 error::ErrorBuildField {
                     key: "opType".to_owned(),
@@ -493,7 +524,8 @@ pub fn operator_control(
             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
             path,
             pos,
-        ))
+        )
+    })
 }
 
 pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
@@ -593,7 +625,7 @@ pub trait ExportPage {
 impl<T> Default for PageExport<T>
 where
     T: ExportPage + core::fmt::Debug,
- {
+{
     fn default() -> Self {
         Self::new()
     }
