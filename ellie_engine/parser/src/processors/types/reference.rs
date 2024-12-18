@@ -309,7 +309,7 @@ impl super::TypeParserProcessor for reference_type::ReferenceTypeCollector {
                                                                 errors.extend(e);
                                                                 return None
                                                             },
-                                                                                                                         }
+                                                        }
                                                     } else {
                                                         let rtype = match e.data.value.process(options) {
                                                             Ok(e) => e,
@@ -500,12 +500,15 @@ impl super::TypeParserProcessor for reference_type::ReferenceTypeCollector {
                                                                         .iter()
                                                                         .enumerate()
                                                                 {
-                                                                    attr.value.convert_generic(
-                                                                        generic_defining.hash,
-                                                                        rtype.generics[i]
-                                                                            .value
-                                                                            .clone(),
-                                                                    );
+                                                                    attr.value
+                                                                        .convert_generic_by_name(
+                                                                            generic_defining
+                                                                                .name
+                                                                                .clone(),
+                                                                            rtype.generics[i]
+                                                                                .value
+                                                                                .clone(),
+                                                                        );
                                                                     // = rtype.generics[i].value.clone();
                                                                 }
                                                                 attr.clone()

@@ -988,8 +988,8 @@ fn iterate_deep_type(
                                                                 .iter()
                                                                 .enumerate()
                                                             {
-                                                                attr.value.convert_generic(
-                                                                    generic_defining.hash,
+                                                                attr.value.convert_generic_by_name(
+                                                                    generic_defining.name.clone(),
                                                                     rtype.generics[i].value.clone(),
                                                                 );
                                                                 // = rtype.generics[i].value.clone();

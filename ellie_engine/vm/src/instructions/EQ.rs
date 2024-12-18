@@ -98,6 +98,15 @@ impl super::InstructionExecuter for EQ {
                                 });
                             }
                         }
+                    },
+                    (10, 10) => {
+                        current_stack.registers.A = StaticRawType::from_bool(true);
+                    }
+                    (_, 10) => {
+                        current_stack.registers.A = StaticRawType::from_bool(false);
+                    }
+                    (10, _) => {
+                        current_stack.registers.A = StaticRawType::from_bool(false);
                     }
                     _ => {
                         return Err(ExecuterPanic {

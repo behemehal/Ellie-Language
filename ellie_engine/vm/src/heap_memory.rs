@@ -75,9 +75,10 @@ impl HeapMemory {
         for key in &self.data {
             let value = self.get(key.0).unwrap();
             result.push_str(&format!(
-                "{} : {} = {:?} =! {:?}\n",
+                "{} : {}[{}] = {:?} =! {:?}\n",
                 key.0,
                 value.type_id,
+                value.type_id.size,
                 match value.type_id.id {
                     1 => {
                         isize::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()

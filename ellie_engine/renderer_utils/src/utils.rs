@@ -701,19 +701,21 @@ where
         let file_content = file_reader(error.path.clone());
         let mut line_space = error.pos.range_start.0.to_string().len() + 1;
 
+        /*
         let is_reference = error.reference_block.is_some();
         let path = file_reader(if is_reference {
-            error.reference_block.clone().unwrap().1.clone()
-        } else {
-            error.path.clone()
-        });
-        let pos = if is_reference {
-            error.reference_block.clone().unwrap().0
-        } else {
-            error.pos
-        };
-
+                   error.reference_block.clone().unwrap().1.clone()
+               } else {
+                   error.path.clone()
+               });
+               let pos = if is_reference {
+                   error.reference_block.clone().unwrap().0
+               } else {
+                   error.pos
+               };
+        */
         if let Some(refr) = error.reference_block.clone() {
+            println!("Render reference block");
             let ref_file_content = file_reader(refr.1.clone());
             if line_space < refr.0.range_start.0.to_string().len() + 1 {
                 line_space = refr.0.range_start.0.to_string().len() + 1;
