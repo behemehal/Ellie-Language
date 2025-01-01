@@ -7,8 +7,9 @@ use crate::{
     stack::Stack,
     stack_memory::StackMemory,
     utils::{
-        resolve_reference, AddressingValues, ReferenceType, ThreadPanicReason, VmNativeCall,
-        VmNativeCallParameters,
+        resolve_parameter_data_from_raw_type, resolve_parameter_data_from_static_raw_type,
+        resolve_reference, AddressingValues, FunctionCallParameter, RawFunctionData, ReferenceType,
+        ResolvedReference, ThreadPanicReason, VmNativeCall,
     },
 };
 
@@ -22,7 +23,7 @@ impl super::InstructionExecuter for CALLN {
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        _arch: PlatformArchitecture,
+        arch: PlatformArchitecture,
     ) -> Result<ExecuterResult, ExecuterPanic> {
         match addressing_value {
             AddressingValues::Absolute(start_location) => {
@@ -53,7 +54,7 @@ impl super::InstructionExecuter for CALLN {
                         })
                     }
                 };
-                let mut params = Vec::new();
+                let mut params: Vec<FunctionCallParameter> = Vec::new();
                 let _start_position_of_params = current_stack.get_pos() - 2;
 
                 for i in 0..params_length {
@@ -72,18 +73,42 @@ impl super::InstructionExecuter for CALLN {
                                     raw_type.to_uint(),
                                     heap_memory,
                                     stack_memory,
+                                    arch,
                                 )
                                 .unwrap()
                                 {
-                                    crate::utils::ResolvedReference::StaticRawType(e) => {
-                                        VmNativeCallParameters::Static(e.0)
-                                    }
-                                    crate::utils::ResolvedReference::RawType(e) => {
-                                        VmNativeCallParameters::Dynamic(e.0)
-                                    }
+                                    ResolvedReference::StaticRawType(e) => FunctionCallParameter {
+                                        data: resolve_parameter_data_from_static_raw_type(
+                                            e.0,
+                                            stack_memory,
+                                            heap_memory,
+                                            arch,
+                                        ),
+                                        raw_data: RawFunctionData::Static(e.0),
+                                        memory_location: e.1,
+                                    },
+                                    ResolvedReference::RawType(e) => FunctionCallParameter {
+                                        data: resolve_parameter_data_from_raw_type(
+                                            e.0.clone(),
+                                            stack_memory,
+                                            heap_memory,
+                                            arch,
+                                        ),
+                                        raw_data: RawFunctionData::Dynamic(e.0),
+                                        memory_location: e.1,
+                                    },
                                 }
                             } else {
-                                VmNativeCallParameters::Static(raw_type)
+                                FunctionCallParameter {
+                                    data: resolve_parameter_data_from_static_raw_type(
+                                        raw_type,
+                                        stack_memory,
+                                        heap_memory,
+                                        arch,
+                                    ),
+                                    raw_data: RawFunctionData::Static(raw_type),
+                                    memory_location: pos,
+                                }
                             }
                         }
                         None => {

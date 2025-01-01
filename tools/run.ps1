@@ -1,11 +1,12 @@
 param (
     [string]$inputFilePath,
-    [string]$additionalParams
+    [string]$additionalParams,
+    [string]$additionalVmParams
 )
 
 # Define the compile and run commands with manifest paths
 $compileCommand = "cargo run --manifest-path=../elliec/Cargo.toml -- compile $inputFilePath -s -a -e -o $additionalParams"
-$runCommand = "cargo run --manifest-path=../ellievm/Cargo.toml -- run $($inputFilePath -replace '\.ei$', '.eic') -d $($inputFilePath -replace '\.ei$', '.eig') -a"
+$runCommand = "cargo run --manifest-path=../ellievm/Cargo.toml -- run $($inputFilePath -replace '\.ei$', '.eic') -d $($inputFilePath -replace '\.ei$', '.eig') -a $additionalVmParams"
 
 # Start the compile command process
 $compileProcess = Start-Process -FilePath "cmd" -ArgumentList "/c $compileCommand" -PassThru -NoNewWindow

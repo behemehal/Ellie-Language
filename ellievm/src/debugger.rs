@@ -8,9 +8,10 @@ use ellie_engine::{
     ellie_core::defs::PlatformArchitecture,
     ellie_vm::{
         channel::ModuleManager,
+        isolate::Isolate,
         program::{Program, VmProgram},
         raw_type::RawType,
-        thread::{Isolate, Thread},
+        thread::Thread,
         utils::{ProgramReader, StepResult, ThreadExit},
     },
     vm::{parse_debug_file, RFile},

@@ -3,8 +3,9 @@ use ellie_engine::{
     ellie_renderer_utils::utils::{CliColor, ColorDisplay, Colors},
     ellie_vm::{
         channel::{EllieModule, ModuleManager},
+        isolate::Isolate,
         program::{Program, VmProgram},
-        thread::{Isolate, Thread},
+        thread::Thread,
         utils::{ThreadExit, ThreadPanicReason},
     },
 };

@@ -62,6 +62,19 @@ impl HeapMemory {
         }
     }
 
+    pub fn get_def_ptr(&self, key: &usize) -> Option<usize> {
+        match self.get(key) {
+            Some(e) => {
+                if e.type_id.id == 13 {
+                    self.get_def_ptr(&(e.to_int() as usize))
+                } else {
+                    Some(e.to_int() as usize)
+                }
+            }
+            None => None,
+        }
+    }
+
     pub fn set(&mut self, key: &usize, value: RawType) {
         self.data.insert(*key, value.to_bytes());
     }

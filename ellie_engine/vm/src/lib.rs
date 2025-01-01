@@ -41,3 +41,5 @@ pub mod stack_memory;
 pub mod thread;
 /// Ellie VM's utils
 pub mod utils;
+// Ellie Isolate
+pub mod isolate;

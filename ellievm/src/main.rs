@@ -15,16 +15,20 @@ use ellie_engine::{
         utils::{CliColor, ColorDisplay, Colors, TextStyles},
     },
     ellie_vm::{
+        assert_arg_size,
         channel::{EllieModule, FunctionElement, ModuleElements},
+        expect_arg,
         program::Program,
         raw_type::{RawType, StaticRawType},
-        utils::{ProgramReader, VmNativeAnswer, VmNativeCallParameters},
+        utils::{EllieData, ProgramReader, RawFunctionData, VmNativeAnswer},
     },
     engine_constants,
     vm::{parse_debug_file, RFile},
 };
 use run::VmSettings;
-use std::{fs::File, io::Read, path::Path, time::SystemTime};
+use std::{
+    ffi::CString, fs::File, io::Read, os::windows::io::AsRawHandle, path::Path, time::SystemTime,
+};
 
 fn main() {
     let app = options::generate_ellievm_options();
@@ -130,31 +134,25 @@ fn main() {
             };
 
             let mut ellie_core_module = EllieModule::new("ellieCore".to_string());
+
             ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
                 "println",
                 Box::new(|_, args| {
-                    if args.len() != 1 {
-                        return VmNativeAnswer::RuntimeError(
-                            "Signature mismatch expected 1 argument(s)".to_string(),
-                        );
-                    }
-                    match &args[0] {
-                        VmNativeCallParameters::Static(_e) => VmNativeAnswer::RuntimeError(
-                            "Signature mismatch, expected 'dynamic' argument".to_string(),
-                        ),
-                        VmNativeCallParameters::Dynamic(dynamic_value) => {
-                            if dynamic_value.is_string() {
-                                eprintln!("{}", dynamic_value.to_string());
-                                VmNativeAnswer::Ok(VmNativeCallParameters::Static(
-                                    StaticRawType::from_void(),
-                                ))
-                            } else {
-                                VmNativeAnswer::RuntimeError(
-                                    "Signature mismatch expected 'string' argument".to_string(),
-                                )
-                            }
+                    assert_arg_size!(args, 1);
+
+                    // Extract the argument using the macro
+                    let arg = match args[0].clone().data.into_string() {
+                        Ok(e) => e,
+                        Err(_) => {
+                            return VmNativeAnswer::RuntimeError(
+                                "Signature mismatch expected 'string' argument".to_string(),
+                            )
                         }
-                    }
+                    };
+
+                    eprintln!("{arg}");
+
+                    VmNativeAnswer::Ok(().into())
                 }),
             )));
 
@@ -166,12 +164,13 @@ fn main() {
                             "Signature mismatch expected 0 argument(s)".to_string(),
                         );
                     }
-                    VmNativeAnswer::Ok(VmNativeCallParameters::Static(StaticRawType::from_int(
+                    VmNativeAnswer::Ok(
                         SystemTime::now()
                             .duration_since(SystemTime::UNIX_EPOCH)
                             .unwrap()
-                            .as_millis() as isize,
-                    )))
+                            .as_millis()
+                            .into(),
+                    )
                 }),
             )));
 
@@ -184,13 +183,13 @@ fn main() {
                         );
                     }
 
-                    let path = match &args[0] {
-                        VmNativeCallParameters::Static(_e) => {
+                    let path = match &args[0].raw_data {
+                        RawFunctionData::Static(_e) => {
                             return VmNativeAnswer::RuntimeError(
                                 "Signature mismatch, expected 'dynamic' argument".to_string(),
                             )
                         }
-                        VmNativeCallParameters::Dynamic(dynamic_value) => {
+                        RawFunctionData::Dynamic(dynamic_value) => {
                             if dynamic_value.is_string() {
                                 dynamic_value.to_string()
                             } else {
@@ -201,26 +200,21 @@ fn main() {
                         }
                     };
 
-                    let file_handle = match File::open(&path) {
+                    match File::open(&path) {
                         Ok(e) => {
                             println!("Opened file: {:?}", e);
                             let handle = Box::new(e);
                             let handle = Box::into_raw(handle);
 
-                            handle as *mut usize
-                        }
-                        Err(e) => {
-                            return VmNativeAnswer::RuntimeError(format!(
-                                "Failed to open file '{}', ({})",
-                                path,
-                                e.to_string()
-                            ));
-                        }
-                    };
+                            println!("Handle: {:?}", handle);
+                            //handle as *mut usize,
 
-                    VmNativeAnswer::Ok(VmNativeCallParameters::Static(StaticRawType::from_uint(
-                        file_handle as usize,
-                    )))
+                            VmNativeAnswer::Ok(((handle as *mut usize) as usize).into())
+                        }
+                        Err(e) => VmNativeAnswer::Ok(
+                            format!("Failed to open file '{}', ({})", path, e.to_string()).into(),
+                        ),
+                    }
                 }),
             )));
 
@@ -232,17 +226,15 @@ fn main() {
                             "Signature mismatch expected 1 argument(s)".to_string(),
                         );
                     }
-                    match &args[0] {
-                        VmNativeCallParameters::Static(static_value) => {
+                    match &args[0].raw_data {
+                        RawFunctionData::Static(static_value) => {
                             if static_value.type_id.is_int() {
                                 let file_handle = static_value.to_int() as *mut usize;
                                 let file = unsafe { &mut *(file_handle as *mut File) };
 
                                 let mut file_contents = String::new();
                                 match file.read_to_string(&mut file_contents) {
-                                    Ok(_) => VmNativeAnswer::Ok(VmNativeCallParameters::Dynamic(
-                                        RawType::generate_string(file_contents),
-                                    )),
+                                    Ok(_) => VmNativeAnswer::Ok(file_contents.into()),
                                     Err(e) => VmNativeAnswer::RuntimeError(format!(
                                         "Failed to read file ({})",
                                         e.to_string()
@@ -254,10 +246,78 @@ fn main() {
                                 )
                             }
                         }
-                        VmNativeCallParameters::Dynamic(_) => VmNativeAnswer::RuntimeError(
+                        RawFunctionData::Dynamic(_) => VmNativeAnswer::RuntimeError(
                             "Signature mismatch expected static argument".to_string(),
                         ),
                     }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "panic",
+                Box::new(|_, args| {
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+                    match &args[0].raw_data {
+                        RawFunctionData::Static(_e) => VmNativeAnswer::RuntimeError(
+                            "Signature mismatch, expected 'dynamic' argument".to_string(),
+                        ),
+                        RawFunctionData::Dynamic(dynamic_value) => {
+                            if dynamic_value.is_string() {
+                                VmNativeAnswer::RuntimeError(dynamic_value.to_string())
+                            } else {
+                                VmNativeAnswer::RuntimeError(
+                                    "Signature mismatch expected 'string' argument".to_string(),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "render_value",
+                Box::new(|ti, args| {
+                    println!("Thread info: {:#?}", ti);
+                    println!("Args Length: {:#?}", args.len());
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+
+                    if args.len() != 1 {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 1 argument(s)".to_string(),
+                        );
+                    }
+
+                    println!("Args memory_location: {:#?}", args[0].memory_location);
+                    println!("Args raw_data       : {:#?}", args[0].raw_data);
+                    println!("Args data           : {:#?}", args[0].data);
+
+                    VmNativeAnswer::RuntimeError("Debugging".to_string())
+                }),
+            )));
+
+            ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+                "stdout_handle",
+                Box::new(|_, args| {
+                    if !args.is_empty() {
+                        return VmNativeAnswer::RuntimeError(
+                            "Signature mismatch expected 0 argument(s)".to_string(),
+                        );
+                    }
+
+                    std::io::stdout().as_raw_handle();
+
+                    let handle = Box::new(std::io::stdout());
+                    let handle = Box::into_raw(handle);
+
+                    VmNativeAnswer::Ok(((handle as *mut usize) as usize).into())
                 }),
             )));
 

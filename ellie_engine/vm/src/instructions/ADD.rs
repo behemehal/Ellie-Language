@@ -22,7 +22,7 @@ impl super::InstructionExecuter for ADD {
         current_stack: &mut Stack,
         stack_memory: &mut StackMemory,
         addressing_value: &AddressingValues,
-        _arch: PlatformArchitecture,
+        arch: PlatformArchitecture,
     ) -> Result<super::ExecuterResult, super::ExecuterPanic> {
         match &addressing_value {
             AddressingValues::Implicit => {
@@ -40,6 +40,7 @@ impl super::InstructionExecuter for ADD {
                         reference_data,
                         heap_memory,
                         stack_memory,
+                        arch,
                     ) {
                         Ok(e) => e,
                         Err(e) => {
@@ -66,6 +67,7 @@ impl super::InstructionExecuter for ADD {
                         reference_data,
                         heap_memory,
                         stack_memory,
+                        arch,
                     ) {
                         Ok(e) => e,
                         Err(e) => {

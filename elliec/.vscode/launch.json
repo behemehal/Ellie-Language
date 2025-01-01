@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'elliec'",
+            "name": "Compile debug_files/main.ei",
             "cargo": {
                 "args": [
                     "build",
@@ -27,7 +27,40 @@
                 "${input:outputType}",
                 "--module-name",
                 "EllieApp",
-                "-n",
+                "--disable-colors",
+                "--show-debug-lines",
+                "--allow-panics",
+                "tools/debug_files/main.ei",
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'elliec'",
+            "sourceLanguages": [
+                "rust"
+            ],
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=elliec",
+                    "--package=elliec"
+                ],
+                "filter": {
+                    "name": "elliec",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "compile",
+                "--exclude-std",
+                "--compile-lib",
+                "--output-type",
+                "${input:outputType}",
+                "--module-name",
+                "EllieApp",
+                "--disable-colors",
                 "--show-debug-lines",
                 "--allow-panics",
                 "${input:file}",

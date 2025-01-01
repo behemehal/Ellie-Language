@@ -1,3 +1,5 @@
+use std::vec::Vec;
+
 use alloc::{
     boxed::Box,
     format,
@@ -10,7 +12,7 @@ pub type StackOverflowCallback = Box<dyn FnMut()>;
 
 //Static memory allocation
 pub struct StackMemory {
-    pub data: [StaticRawType; STACK_MEMORY_SIZE],
+    pub data: Vec<StaticRawType>,
     pub len: usize,
     pub on_stack_overflow: Option<StackOverflowCallback>,
 }
@@ -18,7 +20,7 @@ pub struct StackMemory {
 impl Clone for StackMemory {
     fn clone(&self) -> Self {
         StackMemory {
-            data: self.data,
+            data: self.data.clone(),
             len: self.len,
             on_stack_overflow: None,
         }
@@ -34,7 +36,7 @@ impl Default for StackMemory {
 impl StackMemory {
     pub fn new() -> StackMemory {
         StackMemory {
-            data: [StaticRawType::from_void(); STACK_MEMORY_SIZE],
+            data: Vec::new(),
             len: 0,
             on_stack_overflow: None,
         }
@@ -53,12 +55,17 @@ impl StackMemory {
     }
 
     pub fn set(&mut self, key: &usize, value: StaticRawType) {
-        if (self.data.len() - 1) < *key {
-            if let Some(callback) = &mut self.on_stack_overflow {
-                callback();
-                return;
-            }
+        //if (self.data.len() - 1) < *key {
+        //    if let Some(callback) = &mut self.on_stack_overflow {
+        //        callback();
+        //        return;
+        //    }
+        //}
+
+        if self.data.len() <= *key {
+            self.data.resize(*key + 1, StaticRawType::from_void());
         }
+
         self.data[*key] = value;
     }
 
@@ -87,7 +94,7 @@ impl StackMemory {
                 12 => String::from("function"),
                 13 => String::from("stack_reference"),
                 14 => String::from("heap_reference"),
-                15 => String::from("static_array"),
+                15 => format!("static_array({})", value.to_uint()),
                 _ => unreachable!("Wrong typeid"),
             };
             result.push_str(&format!(
