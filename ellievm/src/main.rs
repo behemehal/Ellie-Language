@@ -17,7 +17,6 @@ use ellie_engine::{
     ellie_vm::{
         assert_arg_size,
         channel::{EllieModule, FunctionElement, ModuleElements},
-        expect_arg,
         program::Program,
         raw_type::{RawType, StaticRawType},
         utils::{EllieData, ProgramReader, RawFunctionData, VmNativeAnswer},
