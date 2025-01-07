@@ -1,0 +1,120 @@
+@dont_fix_variant;
+pub class Null {}
+
+@ellie_deep_cast=null;
+c null : Null = 0 as Null;
+
+@dont_fix_variant;
+pub class int {}
+
+@dont_fix_variant;
+pub class float {}
+
+@dont_fix_variant;
+pub class double {}
+
+@dont_fix_variant;
+pub class dyn {}
+
+@dont_fix_variant;
+pub class string {
+	pri v value : string;
+	co(value);
+
+	pub fn len() : int {
+		println("string.len() called");
+        println("self.value: " + self.value);
+        //println("array_len(self): " + array_len(self));
+		ret 0;
+	}
+}
+
+//pub fn type_to_raw_type(value: dyn, rawTypeClass: 
+
+@dont_fix_variant;
+pub class char {}
+
+@dont_fix_variant;
+pub class bool {}
+
+@dont_fix_variant;
+pub class void {}
+
+@dont_fix_variant;
+pub class function {}
+
+@dont_fix_variant;
+pub class array<T> {
+    co(arr);
+    v arr: [T];
+
+    /* pub fn at(index: int) : T {
+        if index == -1 {
+            ret self.arr[self.arr.len() - 1];
+        } else {
+            ret self.arr[index];
+        }
+    } */
+
+    pub fn len() : int {
+        ret array_len(self);
+    }
+}
+
+
+@dont_fix_variant;
+pub class cloak<T> {
+    pri v value : T;
+    co(value);
+}
+
+/* pub class Vector<T> {
+    co() {
+        self.arr = frame_pos();
+    }
+
+    pub fn create() {
+        v a = 332;
+        v pointer = frame_pos();
+        v aa = code_pos();
+        println(pointer as string);
+        println(aa as string);
+    }
+} */
+
+pub fn println(s: string);
+
+//Ellie internal function
+pub fn array_len(value: dyn): int;
+
+pub fn frame_pos() : int;
+
+pub fn code_pos() : int;
+
+pub fn panic(message: string);
+
+pub fn timestamp() : int;
+
+pub fn render_value(value: dyn);
+
+@ellie_deep_cast=true;
+pub c true : bool = 1 as bool;
+@ellie_deep_cast=false;
+pub c false : bool = 0 as bool;
+
+@dont_fix_variant;
+pub class nullAble<T> {
+    pri v value : T;
+    co(value);
+
+    pub fn is_null() : bool {
+        ret self.value == null;
+    }
+
+    pub fn unwrap() : T {
+        if self.value == null {
+            panic("Error: value is null");
+        }
+        ret self.value;
+    }
+}

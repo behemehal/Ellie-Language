@@ -1,0 +1,192 @@
+import "./core.ei";
+
+
+class File {
+	pri v handle : int;
+	co(handle);
+}
+
+fn _openFile(path: string) : dyn;
+
+fn openFile(path : string) {
+	v file_handle = _openFile(path);
+
+
+
+	//println("File Handle: " + (typeof file_handle as string));
+	 //if (file_handle.isError()) {
+	 //	ret new Result<File>(null, file_handle.getError());
+	 //}
+ //
+	 //ret new Result<File>(new File(file_handle.unwrap()), null);
+}
+
+/* 
+class File {
+	pri v handle : int;
+	co(handle);
+}
+
+fn _openFile(path: string) : Result<int>;
+
+fn openFile(path : string) : Result<File> {
+	v file_handle = _openFile(path);
+
+	if (file_handle.isError()) {
+		ret new Result<File>(null, file_handle.getError());
+	}
+
+	ret new Result<File>(new File(file_handle.unwrap()), null);
+}
+ */
+
+class Error {
+	pri v message : string;
+	pri v code : int;
+	co(message, code);
+}
+
+class Result<T> {
+	pri v value : ?T;
+	pri v error: ?Error;
+	co(value, error);
+
+	fn unwrap() : string {
+		if (self.error.is_null()) {
+			ret self.value.unwrap() as string;
+		} else {
+			panic("Error: " + self.error.unwrap().message);
+			ret "";
+		}
+	}
+
+	//fn isOk() : bool {
+	//	ret self.error.is_null();
+	//}
+
+	// need to enable this
+	//fn isError() : bool {
+	//	ret self.error.is_null() == false;
+	//}
+
+	//fn getError() : Error {
+	//	ret self.error!;
+	//}
+}
+
+
+pub fn alloc(pointer: int, size: int) : void;
+pub fn realloc(pointer: int, size: int) : void;
+pub fn ptr(data: dyn) : int;
+
+//!ptr in parameter conflicts with ptr function??
+//pub fn index_mut(idx: int, ptr: int, data: dyn) : void;
+pub fn index_mut(array_ptr: int, idx: int, data: dyn) : void;
+
+pub fn platform_size() : int;
+
+/*
+@dont_fix_variant = true;
+@notConstructable = true;
+pub class Vec<Type> {
+	co() {
+		println("pointer: " + self.pointer);
+        //Create heap pointer with 0 size
+		alloc(self.pointer, 0);
+
+        //Create array on stack pointer reference it to heap pointer.
+        //write_pointer(self.pointer, new TypeId(0, 9), self.pointer.to_le_bytes());
+    }
+    pri v size = 0;
+    pri v pointer = frame_pos();
+
+
+	//element: Type , causes compiler to cant find property,
+	pub fn push(element: dyn) : void {
+		//v p_size = platform_size();
+
+		//println("platform size: " + p_size);
+		println("size: " + self.size);
+
+		//Resize heap pointer
+		//realloc(self.pointer, self.size);
+
+		v ptr_of_e = ptr(element);
+		println("Pointer of element: " + ptr_of_e);
+
+		index_mut(self.pointer, self.size, element);
+
+
+		//println("Inserting data to heap");
+		//Insert data to resized region
+		//alloc(self.pointer + self.size, ptr_of_e);
+
+        self.size += 1;
+	}
+}
+*/
+
+
+fn fib_recurisve(n: int) : int {
+	if (n <= 1) {
+		ret n;
+	}
+
+	ret fib_recurisve(n - 1) + fib_recurisve(n - 2);
+}
+
+
+
+pub fn load_library_handle(path: string) : int;
+pub fn call_library_function(handle: int, name: string, args: [(string, dyn)]) : dyn;
+
+class Library {
+	co(path) {
+		self.handle = load_library_handle(path);
+		println("Library handle: " + self.handle);
+	}
+	pri v path : string;
+	pri v handle : int;
+
+	pub fn call_function(name: string, args: [(string, dyn)]) : dyn {
+		ret call_library_function(self.handle, name, args);
+	}
+}
+ 
+
+
+fn main() {
+	v belirteç = "ahmet";
+	v user32 = new Library("user32.dll");
+
+	//v stat = [(1, 2), (3, 4), ("5", 6)];
+
+	//render_value(stat);
+
+
+	println("Calling windows api function");
+	v dialog_response = user32.call_function(
+		"MessageBoxA", 
+		[("uint64", 0), ("pointer", "Hello, World!"), ("pointer", "Ellie Test"), ("uint32", 0)]
+	) as int;
+	println("Dialog response: " + dialog_response);
+
+	//loop true {}
+
+	
+
+	//v test = new Vec<int>();
+
+	//test.psg; compiler fails
+
+	//test.push(1);
+
+	//v start_timestamp = timestamp();
+
+	//fib 99
+	//v fib_of_99 = fib_recurisve(25);
+
+	//v end_timestamp = timestamp();
+	//println("Fib of 99: " + fib_of_99);
+	//println("Time elapsed: " + (end_timestamp - start_timestamp));
+}
