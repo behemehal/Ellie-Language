@@ -23,6 +23,12 @@ pub struct Stack {
     pub caller: Option<Caller>,
 }
 
+impl Default for Stack {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Stack {
     pub fn new() -> Stack {
         Stack {
@@ -54,6 +60,12 @@ impl Stack {
 pub struct StackArray {
     pub data: [Stack; STACK_SIZE],
     pub len: usize,
+}
+
+impl Default for StackArray {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StackArray {

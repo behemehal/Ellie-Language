@@ -18,6 +18,7 @@ pub enum TextStyles {
     Underline,
 }
 
+#[derive(Copy, Clone)]
 pub enum Colors {
     Black,
     Red,
@@ -295,21 +296,96 @@ pub fn _get_lines<T: ColorDisplay>(code: String, lines: defs::Cursor, color_outp
 /// Get line from code
 pub fn get_line(code: String, line: usize) -> String {
     let v: Vec<&str> = code
-        .split(code.contains("\r\n").then(|| "\r\n").unwrap_or("\n"))
+        .split(if code.contains("\r\n") { "\r\n" } else { "\n" })
         .collect();
     if line > v.len() {
         v[v.len() - 1]
             .to_string()
             .replace('\t', "    ")
-            .replace('\n', "")
-            .replace('\r', "")
+            .replace(['\n', '\r'], "")
     } else {
         v[line]
             .to_string()
             .replace('\t', "    ")
-            .replace('\n', "")
-            .replace('\r', "")
+            .replace(['\n', '\r'], "")
     }
+}
+
+#[cfg(feature = "cli-utils")]
+macro_rules! color_format {
+    ($fmt:expr, $color_output:expr, $( $arg:tt )*) => {{
+        use regex::Regex;
+        // First, use the standard format! macro to inject variables into the format string
+        let formatted = format!($fmt, $( $arg )*);
+
+        // Define a regex to match the color pattern
+        let re = Regex::new(r"%(?<color>black|red|green|yellow|blue|magenta|cyan|white|reset)-(?<message>.*?)%").unwrap();
+
+        // Map colors to ColorDisplay method calls using closures
+        let color_map= std::collections::HashMap::from([
+            ("black", Colors::Black),
+            ("red", Colors::Red),
+            ("green", Colors::Green),
+            ("yellow", Colors::Yellow),
+            ("blue", Colors::Blue),
+            ("magenta", Colors::Magenta),
+            ("cyan", Colors::Cyan),
+            ("white", Colors::White),
+            ("reset", Colors::Reset),
+        ]);
+
+        // Replace the matches in the format string with their corresponding color methods
+        re.replace_all(&formatted, |caps: &regex::Captures| {
+            let color = caps.name("color").unwrap().as_str();
+            let message = caps.name("message").unwrap().as_str();
+            let color_code = color_map.get(color).unwrap_or(&Colors::Reset);
+
+            format!("{}{}{}", $color_output.color(*color_code), message, $color_output.color(Colors::Reset)) // Add reset after the message
+        }).to_string()
+    }};
+}
+
+fn render_path_line<T: ColorDisplay>(
+    item_path: String,
+    item_pos: defs::Cursor,
+    line_space: usize,
+    reference: bool,
+    is_error: bool,
+    color_output: T,
+) -> String {
+    color_format!(
+        "  %{}-[{}]{}%╞ %green-{}%%cyan-:{}%\n",
+        color_output,
+        if reference {
+            "green"
+        } else if is_error {
+            "red"
+        } else {
+            "yellow"
+        },
+        if reference {
+            "@"
+        } else if is_error {
+            "~"
+        } else {
+            "?"
+        },
+        if line_space < 3 {
+            String::new()
+        } else {
+            generate_blank(line_space - 3)
+        },
+        item_path,
+        format!(
+            "{}:{}{} > {}{}:{}",
+            item_pos.range_start.0 + 1,
+            item_pos.range_start.1 + 1,
+            color_output.color(Colors::Red),
+            color_output.color(Colors::Cyan),
+            item_pos.range_end.0 + 1,
+            item_pos.range_end.1 + 1
+        ),
+    )
 }
 
 /// Render code block with desired output type (Warning | Error)
@@ -334,37 +410,6 @@ pub(crate) fn render_code_block<T: ColorDisplay>(
 ) -> String {
     let mut output = String::new();
     let multi_line = item_pos.range_start.0 != item_pos.range_end.0;
-    output += &format!(
-        "  {}[{}]{}{}╞ {}{}:{}{}{}\n",
-        if reference {
-            color_output.color(Colors::Green)
-        } else if is_error {
-            color_output.color(Colors::Red)
-        } else {
-            color_output.color(Colors::Yellow)
-        },
-        if reference { "@" } else { "~" },
-        if line_space < 3 {
-            String::new()
-        } else {
-            generate_blank(line_space - 3)
-        },
-        color_output.color(Colors::Reset),
-        color_output.color(Colors::Green),
-        item_path,
-        color_output.color(Colors::Cyan),
-        format!(
-            "{}:{}{} > {}{}:{}",
-            item_pos.range_start.0 + 1,
-            item_pos.range_start.1 + 1,
-            color_output.color(Colors::Red),
-            color_output.color(Colors::Cyan),
-            item_pos.range_end.0 + 1,
-            item_pos.range_end.1 + 1
-        ),
-        color_output.color(Colors::Reset),
-    );
-
     let line_start = if item_pos.range_start.0 >= 2 {
         item_pos.range_start.0 - 2
     } else {
@@ -574,6 +619,19 @@ pub fn read_error_text(error: u8) -> &'static str {
     }
 }
 
+fn render_message_title<T>(error: &error::Error, color_output: T) -> String
+where
+    T: ColorDisplay,
+{
+    color_format!(
+        "\n%red-{title}[{code:#04x}]%: %cyan-{message}%\n",
+        color_output,
+        title = error.title,
+        code = error.code,
+        message = error.builded_message.builded,
+    )
+}
+
 /// Output given error list as string
 /// ## Parameters
 /// * errors: Vector of errors [`Vec<error::Error>`]
@@ -638,29 +696,40 @@ where
 {
     let mut output = String::new();
     for error in errors {
-        output += &format!(
-            "\n{}{}[{:#04x}{}]{}: {}{}{}\n",
-            color_output.color(Colors::Red),
-            error.title,
-            error.code,
-            if show_debug_lines {
-                format!(" - {}", error.debug_message)
-            } else {
-                "".to_string()
-            },
-            color_output.color(Colors::Reset),
-            color_output.color(Colors::Cyan),
-            error.builded_message.builded,
-            color_output.color(Colors::Reset),
-        );
+        let mut error_text = render_message_title(error, color_output);
+
         let file_content = file_reader(error.path.clone());
         let mut line_space = error.pos.range_start.0.to_string().len() + 1;
+
+        /*
+        let is_reference = error.reference_block.is_some();
+        let path = file_reader(if is_reference {
+                   error.reference_block.clone().unwrap().1.clone()
+               } else {
+                   error.path.clone()
+               });
+               let pos = if is_reference {
+                   error.reference_block.clone().unwrap().0
+               } else {
+                   error.pos
+               };
+        */
         if let Some(refr) = error.reference_block.clone() {
+            println!("Render reference block");
             let ref_file_content = file_reader(refr.1.clone());
             if line_space < refr.0.range_start.0.to_string().len() + 1 {
                 line_space = refr.0.range_start.0.to_string().len() + 1;
             }
-            output += &render_code_block(
+            error_text += &render_path_line(
+                path_resolver(refr.1.clone()),
+                refr.0,
+                line_space,
+                true,
+                true,
+                color_output,
+            );
+
+            error_text += &render_code_block(
                 path_resolver(refr.1.clone()),
                 refr.0,
                 ref_file_content,
@@ -670,9 +739,19 @@ where
                 true,
                 color_output,
             );
-            output += "\n"
+            error_text += "\n"
         }
-        output += &render_code_block(
+
+        error_text += &render_path_line(
+            path_resolver(error.path.clone()),
+            error.pos,
+            line_space,
+            true,
+            true,
+            color_output,
+        );
+
+        error_text += &render_code_block(
             path_resolver(error.path.clone()),
             error.pos,
             file_content,
@@ -682,7 +761,7 @@ where
             true,
             color_output,
         );
-        output += &format!(
+        error_text += &format!(
             "{}{}[?]{} ╞ Check online error repo for more info {}{}{}\n",
             generate_blank(line_space - 2),
             color_output.color(Colors::Magenta),
@@ -694,7 +773,7 @@ where
 
         if error.full_assist || error.semi_assist {
             if cfg!(feature = "ellie_assist") {
-                output += &format!(
+                error_text += &format!(
                     "{}{}[{}]{} ╞ {} assistment available type '{}ellie{} {}assist{} {}{}{}' for request assist\n",
                     generate_blank(line_space - 2),
                     color_output.color(Colors::Yellow),
@@ -718,7 +797,7 @@ where
                     color_output.color(Colors::Reset),
                 );
             } else {
-                output += &format!(
+                error_text += &format!(
                     "{}{}[x]{} ╞ {} assistment available but {}ellie_assist{} feature is not enabled\n",
                     generate_blank(line_space - 2),
                     color_output.color( Colors::Yellow),
@@ -734,8 +813,20 @@ where
             }
         }
 
+        if show_debug_lines {
+            error_text += &format!(
+                "{}{}[D]{} ╞ Debug: {}{}{}\n",
+                generate_blank(line_space - 2),
+                color_output.color(Colors::Magenta),
+                color_output.color(Colors::Reset),
+                color_output.color(Colors::Cyan),
+                error.debug_message,
+                color_output.color(Colors::Reset),
+            );
+        }
+
         if error.code == 0x00 && errors.len() > 2 {
-            output += &format!(
+            error_text += &format!(
                 "\n{}{}{} other error omitted\n",
                 color_output.color(Colors::Red),
                 errors.len() - 2,
@@ -743,6 +834,7 @@ where
             );
             break;
         }
+        output += &error_text;
     }
     output
 }

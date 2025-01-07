@@ -17,3 +17,5 @@ ellie_engine = { path = "../ellie_engine", default-features = false, features = 
 ] }
 bincode = { version = "1.3.3" }
 lazy_static = "1.4.0"
+libloading = "0.8.6"
+libffi = "3.2.0"

@@ -1,4 +1,4 @@
-use crate::utils::{ThreadInfo, VmNativeAnswer, VmNativeCallParameters};
+use crate::utils::{FunctionCallParameter, ThreadInfo, VmNativeAnswer};
 use alloc::{boxed::Box, string::String, vec::Vec};
 use ellie_core::defs::NativeCallTrace;
 
@@ -32,7 +32,7 @@ pub struct EllieModule {
 }
 
 pub type FunctionElementCallback =
-    Box<dyn FnMut(ThreadInfo, Vec<VmNativeCallParameters>) -> VmNativeAnswer + Send>;
+    Box<dyn FnMut(ThreadInfo, Vec<FunctionCallParameter>) -> VmNativeAnswer + Send>;
 
 pub struct FunctionElement {
     pub name: &'static str,
@@ -93,6 +93,12 @@ impl EllieModule {
 
 pub struct ModuleManager {
     pub modules: Vec<EllieModule>,
+}
+
+impl Default for ModuleManager {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ModuleManager {

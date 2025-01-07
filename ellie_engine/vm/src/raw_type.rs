@@ -279,7 +279,7 @@ pub struct Function {
 }
 
 pub struct MutatableRawType<'a> {
-    pub data: &'a mut Vec<u8>,
+    pub(crate) data: &'a mut Vec<u8>,
 }
 
 impl MutatableRawType<'_> {
@@ -299,6 +299,15 @@ impl MutatableRawType<'_> {
 
     pub fn set_data(&mut self, data: Vec<u8>) {
         self.data[TYPE_SIZE..].copy_from_slice(&data);
+    }
+
+    pub fn get_data_size(&self) -> usize {
+        self.data.len() - TYPE_SIZE
+    }
+
+    /// Resize the data partition of the raw type
+    pub fn resize(&mut self, size: usize, value: u8) {
+        self.data.resize(size + TYPE_SIZE, 0);
     }
 }
 
@@ -322,7 +331,9 @@ impl RawType {
     pub fn to_bytes(&self) -> Vec<u8> {
         let type_id = self.type_id.to_bytes();
         let mut bytes = Vec::from(type_id);
-        bytes.extend(self.data.clone());
+        for byte in &self.data {
+            bytes.push(*byte);
+        }
         bytes
     }
 
@@ -330,6 +341,16 @@ impl RawType {
         let type_id = TypeId::from_bytes(&bytes[..TYPE_SIZE].try_into().unwrap());
         let data = bytes[TYPE_SIZE..].to_vec();
         RawType { type_id, data }
+    }
+
+    pub fn from_usize(uint: usize) -> RawType {
+        RawType {
+            type_id: TypeId {
+                id: 1,
+                size: mem::size_of::<usize>(),
+            },
+            data: uint.to_le_bytes().to_vec(),
+        }
     }
 
     pub fn to_register_raw(&self) -> Result<StaticRawType, u8> {
@@ -501,6 +522,13 @@ impl RawType {
         RawType {
             type_id: TypeId { id: 8, size: 0 },
             data: vec![],
+        }
+    }
+
+    pub fn array(data: Vec<u8>) -> RawType {
+        RawType {
+            type_id: TypeId::array(data.len()),
+            data,
         }
     }
 

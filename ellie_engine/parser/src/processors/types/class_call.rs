@@ -3,12 +3,16 @@ use ellie_core::{
     definite::{definers::DefinerCollecting, types, Converter},
     error,
 };
-use ellie_tokenizer::{processors::types::Processors, syntax::types::class_call_type};
+use ellie_tokenizer::{
+    processors::{items::Processors as ItemProcessors, types::Processors},
+    syntax::types::{class_call_type},
+};
 
 use crate::{
     deep_search_extensions::{
         deep_search, deep_search_hash, find_type, resolve_type, ProcessedDeepSearchItems,
     },
+    extra::{item_search::item_search, utils::DeepSearchOptions},
     processors::{
         definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
         types::TypeParserProcessorOptions,
@@ -187,97 +191,75 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                 Err(errors)
             }
             Processors::Variable(variable) => {
-                let deep_search_result = options.parser.deep_search(
-                    options.page_id,
-                    variable.data.value.clone(),
-                    options.ignore_hash,
-                    Vec::new(),
-                    0,
-                    options.variable_pos,
-                );
+                let mut deep_seach_options = DeepSearchOptions::new()
+                    .page_id(options.page_id)
+                    .name(variable.data.value.clone())
+                    //.search_on_all()
+                    .search_on_raw()
+                    .parser(options.parser)
+                    .build();
 
-                if deep_search_result.found {
-                    match deep_search_result.found_item {
-                        crate::parser::DeepSearchItems::Class(e) => {
-                            let undefined_generics = self
-                                .data
-                                .generic_parameters
-                                .iter()
-                                .filter_map(|g| {
-                                    match g.value.process(
-                                        DefinerParserProcessorOptions::new(
-                                            options.parser,
-                                            options.page_id,
-                                        )
-                                        .optional_ignore_hash(options.ignore_hash)
-                                        .build(),
-                                    ) {
-                                        Ok(e) => {
-                                            if !resolved_generics_defined {
-                                                resolved_generics.push(e);
+                if let Some(hash) = options.ignore_hash {
+                    deep_seach_options = deep_seach_options.hash(hash);
+                }
+
+                if let Some(pos) = options.variable_pos {
+                    deep_seach_options = deep_seach_options.position(pos);
+                }
+                let deep_search_result = item_search(&mut deep_seach_options);
+
+                if deep_search_result.found() {
+                    if let Some(raw_item) = deep_search_result.found_item.raw() {
+                        match raw_item {
+                            ItemProcessors::Class(class) => {
+                                let undefined_generics = self
+                                    .data
+                                    .generic_parameters
+                                    .iter()
+                                    .filter_map(|g| {
+                                        match g.value.process(
+                                            DefinerParserProcessorOptions::new(
+                                                options.parser,
+                                                options.page_id,
+                                            )
+                                            .optional_ignore_hash(options.ignore_hash)
+                                            .build(),
+                                        ) {
+                                            Ok(e) => {
+                                                if !resolved_generics_defined {
+                                                    resolved_generics.push(e);
+                                                }
+                                                None
                                             }
-                                            None
+                                            Err(err) => {
+                                                errors.extend(err);
+                                                Some(g)
+                                            }
                                         }
-                                        Err(err) => {
-                                            errors.extend(err);
-                                            Some(g)
-                                        }
-                                    }
-                                })
-                                .collect::<Vec<_>>();
-                            if e.generic_definings.len() != self.data.generic_parameters.len() {
-                                let mut error =
-                                    error::error_list::ERROR_S44.clone().build_with_path(
-                                        vec![
-                                            error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: e.generic_definings.len().to_string(),
-                                            },
-                                            error::ErrorBuildField {
-                                                key: "token2".to_string(),
-                                                value: self
-                                                    .data
-                                                    .generic_parameters
-                                                    .len()
-                                                    .to_string(),
-                                            },
-                                        ],
-                                        alloc::format!(
-                                            "{}:{}:{}",
-                                            file!().to_owned(),
-                                            line!(),
-                                            column!()
-                                        ),
-                                        options
-                                            .parser
-                                            .find_page(options.page_id)
-                                            .unwrap()
-                                            .path
-                                            .clone(),
-                                        self.data.target_pos,
-                                    );
-                                error.builded_message.builded +=
-                                    " (https://github.com/behemehal/Ellie-Language/issues/59)";
-                                error.reference_block = Some((
-                                    e.name_pos,
-                                    options
-                                        .parser
-                                        .find_page(options.page_id)
-                                        .unwrap()
-                                        .path
-                                        .clone(),
-                                ));
-                                error.reference_message = "Defined here".to_owned();
-                                errors.push(error);
-                                Err(errors)
-                            } else if !undefined_generics.is_empty() {
-                                for g in undefined_generics {
-                                    errors.push(
-                                        error::error_list::ERROR_S6.clone().build_with_path(
-                                            vec![error::ErrorBuildField {
-                                                key: "token".to_string(),
-                                                value: g.value.clone().to_definite().to_string(),
-                                            }],
+                                    })
+                                    .collect::<Vec<_>>();
+                                if class.generic_definings.len()
+                                    != self.data.generic_parameters.len()
+                                {
+                                    let mut error =
+                                        error::error_list::ERROR_S44.clone().build_with_path(
+                                            vec![
+                                                error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: class
+                                                        .generic_definings
+                                                        .len()
+                                                        .to_string(),
+                                                },
+                                                error::ErrorBuildField {
+                                                    key: "token2".to_string(),
+                                                    value: self
+                                                        .data
+                                                        .generic_parameters
+                                                        .len()
+                                                        .to_string(),
+                                                },
+                                            ],
                                             alloc::format!(
                                                 "{}:{}:{}",
                                                 file!().to_owned(),
@@ -290,47 +272,34 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                 .unwrap()
                                                 .path
                                                 .clone(),
-                                            g.pos,
-                                        ),
-                                    );
-                                }
-                                Err(errors)
-                            } else {
-                                let constructor = e.body.iter().find_map(|x| match x {
-                                    ellie_tokenizer::processors::items::Processors::Constructor(
-                                        e,
-                                    ) => Some(e),
-                                    _ => None,
-                                });
-
-                                if constructor.is_some() {
-                                    if constructor.unwrap().parameters.len()
-                                        != self.data.parameters.len()
-                                    {
+                                            self.data.target_pos,
+                                        );
+                                    error.builded_message.builded +=
+                                        " (https://github.com/behemehal/Ellie-Language/issues/59)";
+                                    error.reference_block = Some((
+                                        class.name_pos,
+                                        options
+                                            .parser
+                                            .find_page(options.page_id)
+                                            .unwrap()
+                                            .path
+                                            .clone(),
+                                    ));
+                                    "Defined here".clone_into(&mut error.reference_message);
+                                    errors.push(error);
+                                    Err(errors)
+                                } else if !undefined_generics.is_empty() {
+                                    for g in undefined_generics {
                                         errors.push(
-                                            error::error_list::ERROR_S7.clone().build_with_path(
-                                                vec![
-                                                    error::ErrorBuildField {
-                                                        key: "name".to_string(),
-                                                        value: e.name.clone(),
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token".to_string(),
-                                                        value: constructor
-                                                            .unwrap()
-                                                            .parameters
-                                                            .len()
-                                                            .to_string(),
-                                                    },
-                                                    error::ErrorBuildField {
-                                                        key: "token2".to_string(),
-                                                        value: self
-                                                            .data
-                                                            .parameters
-                                                            .len()
-                                                            .to_string(),
-                                                    },
-                                                ],
+                                            error::error_list::ERROR_S6.clone().build_with_path(
+                                                vec![error::ErrorBuildField {
+                                                    key: "token".to_string(),
+                                                    value: g
+                                                        .value
+                                                        .clone()
+                                                        .to_definite()
+                                                        .to_string(),
+                                                }],
                                                 alloc::format!(
                                                     "{}:{}:{}",
                                                     file!().to_owned(),
@@ -343,33 +312,92 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                     .unwrap()
                                                     .path
                                                     .clone(),
-                                                self.data.target_pos,
+                                                g.pos,
                                             ),
                                         );
-                                        return Err(errors);
-                                    } else {
-                                        let class_page = deep_search_hash(
-                                            options.parser,
-                                            options.page_id,
-                                            e.hash,
-                                            Vec::new(),
-                                            0,
-                                        );
-                                        let belonging_class =
-                                            class_page.found_item.as_class().unwrap_or_else(|| {
-                                                unreachable!(
-                                                    "options.parser should have prevented this"
-                                                )
-                                            });
-                                        let constructor_elements: Vec<_> = constructor
+                                    }
+                                    Err(errors)
+                                } else {
+                                    let constructor = class.body.iter().find_map(|x| match x {
+                                        ItemProcessors::Constructor(e) => Some(e),
+                                        _ => None,
+                                    });
+
+                                    if constructor.is_some() {
+                                        // If Class's body has variables with data, data will be built in construction time so we will ignore them
+                                        let constructor_size = constructor
                                             .unwrap()
                                             .parameters
                                             .iter()
+                                            .filter(|x| !x.body_element_defiener)
+                                            .count();
+                                        let used_size = self.data.parameters.len();
+
+                                        if constructor_size != used_size {
+                                            errors.push(
+                                                error::error_list::ERROR_S7
+                                                    .clone()
+                                                    .build_with_path(
+                                                        vec![
+                                                            error::ErrorBuildField {
+                                                                key: "name".to_string(),
+                                                                value: class.name.clone(),
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token".to_string(),
+                                                                value: constructor_size.to_string(),
+                                                            },
+                                                            error::ErrorBuildField {
+                                                                key: "token2".to_string(),
+                                                                value: self
+                                                                    .data
+                                                                    .parameters
+                                                                    .len()
+                                                                    .to_string(),
+                                                            },
+                                                        ],
+                                                        alloc::format!(
+                                                            "{}:{}:{}",
+                                                            file!().to_owned(),
+                                                            line!(),
+                                                            column!()
+                                                        ),
+                                                        options
+                                                            .parser
+                                                            .find_page(options.page_id)
+                                                            .unwrap()
+                                                            .path
+                                                            .clone(),
+                                                        self.data.target_pos,
+                                                    ),
+                                            );
+                                            return Err(errors);
+                                        } else {
+                                            let class_page = deep_search_hash(
+                                                options.parser,
+                                                options.page_id,
+                                                class.hash,
+                                                Vec::new(),
+                                                0,
+                                            );
+                                            let belonging_class = class_page
+                                                .found_item
+                                                .as_class()
+                                                .unwrap_or_else(|| {
+                                                    unreachable!(
+                                                        "options.parser should have prevented this"
+                                                    )
+                                                });
+                                            let constructor_elements: Vec<_> = constructor
+                                            .unwrap()
+                                            .parameters
+                                            .iter()
+                                            .filter(|x| !x.body_element_defiener)
                                             .enumerate()
                                             .filter_map(|(index, x)| {
                                                 let attribute_search =  deep_search(
                                                     options.parser,
-                                                    belonging_class.inner_page_id,
+                                                    options.page_id,
                                                     x.name.clone(),
                                                     Some(belonging_class.hash),
                                                     vec![],
@@ -410,19 +438,23 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                             })
                                             .collect();
 
-                                        //Ignore if length is not a match
-                                        if constructor.unwrap().parameters.len()
-                                            == constructor_elements.len()
-                                        {
-                                            for (index, element) in
-                                                constructor_elements.iter().enumerate()
+                                            //Ignore if length is not a match
+                                            if constructor.unwrap().parameters.len()
+                                                == constructor_elements.len()
                                             {
-                                                //element.convert_generic();
+                                                for (index, element) in
+                                                    constructor_elements.iter().enumerate()
+                                                {
+                                                    //element.convert_generic();
 
-                                                let matching_param = &self.data.parameters[index];
+                                                    let matching_param =
+                                                        &self.data.parameters[index];
 
-                                                let element_to_be_compared =
-                                                    match self.data.generic_parameters.get(index) {
+                                                    let element_to_be_compared = match self
+                                                        .data
+                                                        .generic_parameters
+                                                        .get(index)
+                                                    {
                                                         Some(generic_param) => generic_param
                                                             .value
                                                             .process(
@@ -439,38 +471,43 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                         None => element.clone(),
                                                     };
 
-                                                let mut _options = TypeParserProcessorOptions::new(
-                                                    options.parser,
-                                                    options.page_id,
-                                                );
+                                                    let mut _options =
+                                                        TypeParserProcessorOptions::new(
+                                                            options.parser,
+                                                            options.page_id,
+                                                        );
 
-                                                match matching_param.value.process(
-                                                    _options
-                                                        .dont_exclude_getter()
-                                                        .dont_ignore_type()
-                                                        .dont_include_setter()
-                                                        .optional_variable_pos(options.variable_pos)
-                                                        .optional_ignore_hash(options.ignore_hash)
-                                                        .build(),
-                                                ) {
-                                                    Ok(resolved_type) => {
-                                                        let comperable = options
-                                                            .parser
-                                                            .compare_defining_with_type(
-                                                                element_to_be_compared.clone(),
-                                                                resolved_type.clone(),
-                                                                options.page_id,
-                                                            );
-                                                        let path = options
-                                                            .parser
-                                                            .find_page(options.page_id)
-                                                            .unwrap()
-                                                            .path
-                                                            .clone();
-                                                        match comperable {
-                                                            Ok(result) => {
-                                                                if result.requires_cast {
-                                                                    options.parser.informations.push(
+                                                    match matching_param.value.process(
+                                                        _options
+                                                            .dont_exclude_getter()
+                                                            .dont_ignore_type()
+                                                            .dont_include_setter()
+                                                            .optional_variable_pos(
+                                                                options.variable_pos,
+                                                            )
+                                                            .optional_ignore_hash(
+                                                                options.ignore_hash,
+                                                            )
+                                                            .build(),
+                                                    ) {
+                                                        Ok(resolved_type) => {
+                                                            let comperable = options
+                                                                .parser
+                                                                .compare_defining_with_type(
+                                                                    element_to_be_compared.clone(),
+                                                                    resolved_type.clone(),
+                                                                    options.page_id,
+                                                                );
+                                                            let path = options
+                                                                .parser
+                                                                .find_page(options.page_id)
+                                                                .unwrap()
+                                                                .path
+                                                                .clone();
+                                                            match comperable {
+                                                                Ok(result) => {
+                                                                    if result.requires_cast {
+                                                                        options.parser.informations.push(
                                                                         &error::error_list::ERROR_S41.clone().build_with_path(
                                                                             vec![error::ErrorBuildField {
                                                                                 key: "token".to_owned(),
@@ -486,7 +523,7 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                                         matching_param.pos,
                                                                         ),
                                                                     );
-                                                                    let err = error::error_list::ERROR_S3
+                                                                        let err = error::error_list::ERROR_S3
                                                                     .clone()
                                                                     .build_with_path(
                                                                         vec![
@@ -508,12 +545,12 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                                         path,
                                                                         matching_param.pos,
                                                                     );
-                                                                    errors.push(err);
-                                                                    return Err(errors);
-                                                                }
+                                                                        errors.push(err);
+                                                                        return Err(errors);
+                                                                    }
 
-                                                                if !result.same {
-                                                                    let err = error::error_list::ERROR_S3
+                                                                    if !result.same {
+                                                                        let err = error::error_list::ERROR_S3
                                                                         .clone()
                                                                         .build_with_path(
                                                                             vec![
@@ -535,26 +572,70 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                                             options.parser.find_page(options.page_id).unwrap().path.clone(),
                                                                             matching_param.pos,
                                                                         );
-                                                                    errors.push(err);
-                                                                    return Err(errors);
+                                                                        errors.push(err);
+                                                                        return Err(errors);
+                                                                    }
                                                                 }
+                                                                Err(err) => errors.extend(err),
                                                             }
-                                                            Err(err) => errors.extend(err),
                                                         }
+                                                        Err(err) => errors.extend(err),
                                                     }
-                                                    Err(err) => errors.extend(err),
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                Ok(types::Types::ClassCall(
+
+                                    let mut params = self
+                                        .data
+                                        .parameters
+                                        .iter()
+                                        .map(|x| types::class_call::ClassCallParameter {
+                                            value: x.value.to_definite(),
+                                            pos: x.pos,
+                                        })
+                                        .collect::<Vec<_>>();
+
+                                    let body_element_definer_parameters = constructor
+                                        .unwrap()
+                                        .parameters
+                                        .iter()
+                                        .filter(|x| x.body_element_defiener)
+                                        .collect::<Vec<_>>();
+
+                                    for element in body_element_definer_parameters {
+                                        let found_variable_value = class
+                                            .body
+                                            .iter()
+                                            .find_map(|x| match x {
+                                                ItemProcessors::Variable(e) => {
+                                                    if e.data.name == element.name {
+                                                        if e.data.value.is_complete() {
+                                                            Some(e.data.value.to_definite())
+                                                        } else {
+                                                            Some(types::Types::Null)
+                                                        }
+                                                    } else {
+                                                        None
+                                                    }
+                                                }
+                                                _ => None,
+                                            })
+                                            .unwrap();
+
+                                        params.push(types::class_call::ClassCallParameter {
+                                            value: found_variable_value,
+                                            pos: element.pos,
+                                        });
+                                    }
+
+                                    Ok(types::Types::ClassCall(
                                     ellie_core::definite::types::class_call::ClassCall {
                                         target: Box::new(ellie_core::definite::types::Types::VariableType(
                                             ellie_core::definite::types::variable::VariableType {
                                                 value: variable.data.value,
                                                 pos: self.data.target_pos,
-                                                reference: e.hash,
+                                                reference: class.hash,
                                             },
                                         )),
                                         keyword_pos: self.data.keyword_pos,
@@ -581,122 +662,93 @@ impl super::TypeParserProcessor for class_call_type::ClassCallCollector {
                                                 pos: x.pos
                                             }
                                         }).collect::<Vec<_>>(),
-                                        params: self.data.parameters.iter().map(|x| types::class_call::ClassCallParameter { value: x.value.to_definite(), pos: x.pos }).collect::<Vec<_>>(),
+                                        params,
                                         pos: self.data.pos,
                                     },
                                 ))
+                                }
+                            }
+                            ItemProcessors::Variable(var) => {
+                                errors.push(
+                                    error::error_list::ERROR_S31.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_string(),
+                                            value: "variable".to_string(),
+                                        }],
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
+                                        options
+                                            .parser
+                                            .find_page(options.page_id)
+                                            .unwrap()
+                                            .path
+                                            .clone(),
+                                        var.data.pos,
+                                    ),
+                                );
+                                Err(errors)
+                            }
+                            ItemProcessors::Function(fun) => {
+                                errors.push(
+                                    error::error_list::ERROR_S31.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_string(),
+                                            value: "function".to_string(),
+                                        }],
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
+                                        options
+                                            .parser
+                                            .find_page(options.page_id)
+                                            .unwrap()
+                                            .path
+                                            .clone(),
+                                        fun.data.name_pos,
+                                    ),
+                                );
+                                Err(errors)
+                            }
+                            _ => {
+                                errors.push(
+                                    error::error_list::ERROR_S31.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_string(),
+                                            value: variable.data.value,
+                                        }],
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
+                                        options
+                                            .parser
+                                            .find_page(options.page_id)
+                                            .unwrap()
+                                            .path
+                                            .clone(),
+                                        variable.data.pos,
+                                    ),
+                                );
+                                Err(errors)
                             }
                         }
-                        crate::parser::DeepSearchItems::Variable(e) => {
-                            errors.push(
-                                error::error_list::ERROR_S31.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: "variable".to_string(),
-                                    }],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    options
-                                        .parser
-                                        .find_page(options.page_id)
-                                        .unwrap()
-                                        .path
-                                        .clone(),
-                                    e.pos,
-                                ),
-                            );
-                            Err(errors)
-                        }
-                        crate::parser::DeepSearchItems::Function(e) => {
-                            errors.push(
-                                error::error_list::ERROR_S31.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: "function".to_string(),
-                                    }],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    options
-                                        .parser
-                                        .find_page(options.page_id)
-                                        .unwrap()
-                                        .path
-                                        .clone(),
-                                    e.name_pos,
-                                ),
-                            );
-                            Err(errors)
-                        }
-                        crate::parser::DeepSearchItems::ImportReference(e) => {
-                            errors.push(
-                                error::error_list::ERROR_S31.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: "variable".to_string(),
-                                    }],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    options
-                                        .parser
-                                        .find_page(options.page_id)
-                                        .unwrap()
-                                        .path
-                                        .clone(),
-                                    e.reference_pos,
-                                ),
-                            );
-                            Err(errors)
-                        }
-                        crate::parser::DeepSearchItems::ClassInstance(_) => todo!(),
-                        crate::parser::DeepSearchItems::GenericItem(_) => todo!(),
-                        crate::parser::DeepSearchItems::FunctionParameter(_) => {
-                            unimplemented!()
-                        }
-                        crate::parser::DeepSearchItems::ConstructorParameter(_) => {
-                            unimplemented!()
-                        }
-                        _ => {
-                            errors.push(
-                                error::error_list::ERROR_S31.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_string(),
-                                        value: variable.data.value,
-                                    }],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
-                                    ),
-                                    options
-                                        .parser
-                                        .find_page(options.page_id)
-                                        .unwrap()
-                                        .path
-                                        .clone(),
-                                    variable.data.pos,
-                                ),
-                            );
-                            Err(errors)
-                        }
+                    } else {
+                        unreachable!("Something is wrong with item_search")
                     }
                 } else {
                     errors.push(
-                        error::error_list::ERROR_S6.clone().build_with_path(
+                        error::error_list::ERROR_S31.clone().build_with_path(
                             vec![error::ErrorBuildField {
-                                key: "token".to_owned(),
+                                key: "token".to_string(),
                                 value: variable.data.value,
                             }],
                             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),

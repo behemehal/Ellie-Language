@@ -53,6 +53,7 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
             Some(e) => e,
             None => return Err(errors),
         };
+
         let _second_value = match resolve_type(
             processed_second_value.clone().unwrap(),
             options.page_id,
@@ -63,9 +64,6 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
             Some(e) => e,
             None => return Err(errors),
         };
-
-        let first = _first_value.to_string();
-        let second = _second_value.to_string();
 
         if let Operators::AssignmentType(_) = self.data.operator {
             if !self.data.first.is_assignable() {
@@ -87,8 +85,8 @@ impl super::TypeParserProcessor for operator_type::OperatorTypeCollector {
 
         match ellie_core::utils::operator_control(
             self.data.operator.clone().to_definite(),
-            first,
-            second,
+            _first_value,
+            _second_value,
             options.parser.find_page(page_id).unwrap().path.clone(),
             self.data.pos,
         ) {

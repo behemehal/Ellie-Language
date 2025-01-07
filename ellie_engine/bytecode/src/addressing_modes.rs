@@ -17,7 +17,7 @@ pub struct Immediate;
 pub struct Implict;
 
 #[derive(Clone, Debug)]
-pub struct Absolute(usize);
+pub struct Absolute(());
 
 #[derive(Clone, Debug)]
 pub struct IndirectA;

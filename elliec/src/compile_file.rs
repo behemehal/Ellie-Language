@@ -766,9 +766,10 @@ pub fn compile(
                             key: "errors".to_string(),
                             value: errors,
                         });
-                        println!("{}", serde_json::to_string(&output).unwrap());
+                        eprintln!("{}", serde_json::to_string(&output).unwrap());
+                        std::process::exit(1);
                     } else {
-                        println!(
+                        eprintln!(
                             "{}",
                             print_errors(
                                 &errors,
@@ -900,6 +901,7 @@ pub fn compile(
                         for message in exit_messages.lock().unwrap().iter() {
                             (message)();
                         }
+                        std::process::exit(1);
                     }
                 }
             }
@@ -911,51 +913,128 @@ pub fn compile(
                     key: "errors".to_string(),
                     value: pager_errors,
                 });
-                println!("{}", serde_json::to_string(&output).unwrap());
+                eprintln!("{}", serde_json::to_string(&output).unwrap());
+                std::process::exit(1);
             } else {
-                println!(
+                eprintln!(
                     "{}",
                     print_errors(
                         &pager_errors,
-                        |path| match read_file(
-                            path.replace(
-                                &starter_name,
-                                Path::new(target_path)
-                                    .absolutize()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .to_str()
-                                    .unwrap(),
-                            ),
-                        ) {
-                            Ok(e) => e,
-                            Err(err) => {
-                                println!(
-                                    "{}[Internal Error]{} Cannot build error, read file failed '{}' {}[{}]{}",
-                                    cli_color.color(Colors::Red),
-                                    cli_color.color(Colors::Reset),
-                                    path,
-                                    cli_color.color(Colors::Red),
-                                    err,
-                                    cli_color.color(Colors::Reset),
-                                );
-                                std::process::exit(1);
+                        |path| {
+                            let path_starter = path.split('/').next().unwrap();
+                            let virtual_path_identifier =
+                                match path_starter.split("<ellie_module_").last() {
+                                    Some(e) => e.split('>').next().unwrap(),
+                                    None => "",
+                                };
+                            if path_starter == starter_name {
+                                let real_path = path
+                                    .replace(
+                                        &starter_name,
+                                        Path::new(target_path)
+                                            .absolutize()
+                                            .unwrap()
+                                            .parent()
+                                            .unwrap()
+                                            .to_str()
+                                            .unwrap(),
+                                    )
+                                    .clone();
+                                match read_file(real_path) {
+                                    Ok(e) => e,
+                                    Err(err) => {
+                                        panic!(
+                                            "Failed to ouput error. Cannot read file '{}' {}[{}]{}",
+                                            path,
+                                            cli_color.color(Colors::Red),
+                                            err,
+                                            cli_color.color(Colors::Reset)
+                                        );
+                                    }
+                                }
+                            } else if let Some((_, module_path)) = modules
+                                .iter()
+                                .find(|(module, _)| module.name == virtual_path_identifier)
+                            {
+                                if let Some(module_path) = module_path.clone() {
+                                    let real_path =
+                                        path.replace(path_starter, &module_path).clone();
+                                    match read_file(real_path.clone()) {
+                                        Ok(e) => e,
+                                        Err(err) => {
+                                            exit_messages.lock().unwrap().push(Box::new(move || {
+                                            println!(
+                                                "{}[!]{}: Failed to read module targeted code directory: {}{}{} - [{}]",
+                                                cli_color.color(Colors::Red),
+                                                cli_color.color(Colors::Reset),
+                                                cli_color.color(Colors::Yellow),
+                                                real_path.clone(),
+                                                cli_color.color(Colors::Reset),
+                                                err,
+                                            );
+                                        }));
+                                            module_path
+                                        }
+                                    }
+                                } else {
+                                    exit_messages.lock().unwrap().push(Box::new(move || {
+                                        println!(
+                                            "{}[!]{}: Path not provided no output will be shown: {}{}{}",
+                                            cli_color.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Yellow),
+                                            path,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                    }));
+                                    "No output path provided".to_string()
+                                }
+                            } else {
+                                panic!("Failed to ouput error. Cannot identify module '{}'", path,)
                             }
                         },
                         cli_settings.show_debug_lines,
                         |path| {
-                            path.replace(
-                                &starter_name,
-                                Path::new(target_path)
-                                    .absolutize()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .to_str()
-                                    .unwrap(),
-                            )
-                            .to_string()
+                            let path_starter = path.split('/').next().unwrap();
+                            let virtual_path_identifier =
+                                match path_starter.split("<ellie_module_").last() {
+                                    Some(e) => e.split('>').next().unwrap(),
+                                    None => "",
+                                };
+                            if path_starter == starter_name {
+                                path.replace(
+                                    &starter_name,
+                                    Path::new(target_path)
+                                        .absolutize()
+                                        .unwrap()
+                                        .parent()
+                                        .unwrap()
+                                        .to_str()
+                                        .unwrap(),
+                                )
+                                .clone()
+                            } else if let Some((_, module_path)) = modules
+                                .iter()
+                                .find(|(module, _)| module.name == virtual_path_identifier)
+                            {
+                                if let Some(module_path) = module_path.clone() {
+                                    path.replace(path_starter, &module_path).clone()
+                                } else {
+                                    exit_messages.lock().unwrap().push(Box::new(move || {
+                                        println!(
+                                            "{}[!]{}: Path not provided no output will be shown: {}{}{}",
+                                            cli_color.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Yellow),
+                                            path,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                    }));
+                                    "[No output path provided]".to_string()
+                                }
+                            } else {
+                                panic!("Failed to ouput error. Cannot identify module '{}'", path,);
+                            }
                         },
                         cli_color
                     )
@@ -963,6 +1042,7 @@ pub fn compile(
                 for message in exit_messages.lock().unwrap().iter() {
                     (message)();
                 }
+                std::process::exit(1);
             }
         }
     }

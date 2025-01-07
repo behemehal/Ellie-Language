@@ -55,6 +55,27 @@ impl super::InstructionExecuter for A2S {
                         current_stack.registers.A =
                             StaticRawType::from_heap_reference(current_stack.get_pos());
                     }
+                    11 => {
+                        let class_ref = current_stack.registers.A.to_uint();
+                        heap_memory.set(
+                            &current_stack.get_pos(),
+                            RawType::generate_string(format!("Class<{:#?}>", class_ref)),
+                        );
+                        current_stack.registers.A =
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
+                    }
+                    14 => {
+                        let refr = current_stack.registers.A.to_uint();
+                        let data = heap_memory.get(&refr).unwrap();
+
+                        heap_memory.set(
+                            &current_stack.get_pos(),
+                            RawType::generate_string(data.to_string()),
+                        );
+
+                        current_stack.registers.A =
+                            StaticRawType::from_heap_reference(current_stack.get_pos());
+                    }
                     e => {
                         return Err(ExecuterPanic {
                             reason: ThreadPanicReason::CannotConvertToType(e, 7),

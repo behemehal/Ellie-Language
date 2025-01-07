@@ -2,7 +2,7 @@
 mod array_tests {
     use ellie_core::{defs, error};
     use ellie_tokenizer::processors::{
-        types::{Processors, TypeProcessor},
+        types::{TypeProcessor},
         Processor,
     };
     use std::{

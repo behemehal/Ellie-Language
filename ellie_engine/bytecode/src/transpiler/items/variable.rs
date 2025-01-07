@@ -1,8 +1,8 @@
-use super::type_resolver::resolve_type;
 use crate::{
     assembler::LocalHeader,
     instruction_table,
-    instructions::{self, Instruction},
+    instructions::{Instruction},
+    transpiler::types::{TypeTranspiler, TypeTranspilerOptions},
     utils::limit_platform_size,
 };
 use alloc::vec;
@@ -29,13 +29,14 @@ impl super::Transpiler for variable::Variable {
 
         let first_instruction_index = assembler.instructions.len();
 
-        resolve_type(
-            assembler,
-            &self.value,
-            instructions::Registers::A,
-            &hash,
-            Some(dependencies),
-        );
+        let mut binding = TypeTranspilerOptions::new();
+
+        let type_transpiler_options = binding
+            .set_assembler(assembler)
+            .set_dependencies(dependencies)
+            .set_target_page(hash);
+
+        self.value.transpile(type_transpiler_options);
 
         if self.constant {
             assembler.instructions[first_instruction_index] = instruction_table::Instructions::STA(

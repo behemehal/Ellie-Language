@@ -251,6 +251,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                     Arg::new("disableColors")
                         .help("Disable colors")
                         .short('n')
+                        .long("--disable-colors")
                         .takes_value(false),
                 ),
         )

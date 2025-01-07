@@ -8,7 +8,10 @@ use ellie_core::{
     },
     defs, error,
 };
-use ellie_tokenizer::syntax::items::variable::VariableCollector;
+use ellie_tokenizer::{
+    processors::items::Processors as ItemProcessors, syntax::items::variable::VariableCollector,
+    tokenizer::PageType,
+};
 
 use crate::processors::{
     definer::{DefinerParserProcessor, DefinerParserProcessorOptions},
@@ -46,7 +49,7 @@ impl super::ItemParserProcessor for VariableCollector {
                     self.data.name_pos,
                 );
                 err.reference_block = Some((cursor_pos, page.path));
-                err.reference_message = "Prime is here".to_owned();
+                "Prime is here".clone_into(&mut err.reference_message);
                 err.semi_assist = true;
                 options.parser.informations.push(&err);
             } else {
@@ -165,69 +168,101 @@ impl super::ItemParserProcessor for VariableCollector {
             };
 
             let resolved_type = if !self.data.has_value {
-                let null_able_class = crate::deep_search_extensions::find_type(
-                    "nullAble".to_string(),
-                    options.page_hash,
-                    options.parser,
-                );
+                let current_page = options.parser.pages.nth_mut(options.page_idx).unwrap();
 
-                match null_able_class {
-                    Some(null_able_class) => {
-                        let nullable_parameter = if resolved_defining.is_ok()
-                            && matches!(resolved_defining.clone().unwrap(), DefinerCollecting::ParentGeneric(parent_generic) if parent_generic.rtype == "nullAble")
-                        {
-                            resolved_defining
-                                .clone()
-                                .unwrap()
-                                .as_parent_generic()
-                                .unwrap()
-                                .generics[0]
-                                .clone()
-                                .value
+                let mut belongs_to_constructor_parameter = false;
+                if let PageType::ClassBody(_) = current_page.page_type.clone() {
+                    let constructor = current_page.items.iter().find_map(|item| {
+                        if let ItemProcessors::Constructor(constructor) = item {
+                            Some(constructor)
                         } else {
-                            resolved_defining.clone().unwrap()
-                        };
+                            None
+                        }
+                    });
 
-                        Ok(Types::ClassCall(
-                            ellie_core::definite::types::class_call::ClassCall {
-                                target: Box::new(Types::VariableType(
-                                    ellie_core::definite::types::variable::VariableType {
-                                        value: null_able_class.rtype.clone(),
-                                        reference: null_able_class.hash,
-                                        pos: defs::Cursor::default(),
-                                    },
-                                )),
-                                resolved_generics: vec![],
-                                generic_parameters: vec![class_call::ClassCallGenericParameter {
-                                    value: nullable_parameter,
-                                    pos: defs::Cursor::default(),
-                                }],
-                                keyword_pos: defs::Cursor::default(),
-                                pos: defs::Cursor::default(),
-                                target_pos: defs::Cursor::default(),
-                                params: vec![],
-                            },
-                        ))
+                    if let Some(constructor) = constructor {
+                        belongs_to_constructor_parameter = constructor
+                            .parameters
+                            .iter()
+                            .any(|p| p.name == self.data.name);
                     }
-                    None => {
-                        options.parser.informations.push(
-                            &error::error_list::ERROR_S38.clone().build_with_path(
-                                vec![error::ErrorBuildField {
-                                    key: "token".to_owned(),
-                                    value: "nullAble".to_string(),
-                                }],
-                                alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
-                                options
-                                    .parser
-                                    .processed_pages
-                                    .nth_mut(options.processed_page_idx)
+                }
+
+                //If the variable is a constructor parameter, it should be dynamic to not get caught by the type check, we're sure that it will be assigned in the constructor
+                if belongs_to_constructor_parameter {
+                    Ok(Types::Dynamic)
+                } else {
+                    let null_able_class = crate::deep_search_extensions::find_type(
+                        "nullAble".to_string(),
+                        options.page_hash,
+                        options.parser,
+                    );
+
+                    match null_able_class {
+                        Some(null_able_class) => {
+                            let nullable_parameter = if resolved_defining.is_ok()
+                                && matches!(resolved_defining.clone().unwrap(), DefinerCollecting::ParentGeneric(parent_generic) if parent_generic.rtype == "nullAble")
+                            {
+                                resolved_defining
+                                    .clone()
                                     .unwrap()
-                                    .path
-                                    .clone(),
-                                self.data.pos,
-                            ),
-                        );
-                        return false;
+                                    .as_parent_generic()
+                                    .unwrap()
+                                    .generics[0]
+                                    .clone()
+                                    .value
+                            } else {
+                                resolved_defining.clone().unwrap()
+                            };
+
+                            Ok(Types::ClassCall(
+                                ellie_core::definite::types::class_call::ClassCall {
+                                    target: Box::new(Types::VariableType(
+                                        ellie_core::definite::types::variable::VariableType {
+                                            value: null_able_class.rtype.clone(),
+                                            reference: null_able_class.hash,
+                                            pos: defs::Cursor::default(),
+                                        },
+                                    )),
+                                    resolved_generics: vec![],
+                                    generic_parameters: vec![
+                                        class_call::ClassCallGenericParameter {
+                                            value: nullable_parameter,
+                                            pos: defs::Cursor::default(),
+                                        },
+                                    ],
+                                    keyword_pos: defs::Cursor::default(),
+                                    pos: defs::Cursor::default(),
+                                    target_pos: defs::Cursor::default(),
+                                    params: vec![],
+                                },
+                            ))
+                        }
+                        None => {
+                            options.parser.informations.push(
+                                &error::error_list::ERROR_S38.clone().build_with_path(
+                                    vec![error::ErrorBuildField {
+                                        key: "token".to_owned(),
+                                        value: "nullAble".to_string(),
+                                    }],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    options
+                                        .parser
+                                        .processed_pages
+                                        .nth_mut(options.processed_page_idx)
+                                        .unwrap()
+                                        .path
+                                        .clone(),
+                                    self.data.pos,
+                                ),
+                            );
+                            return false;
+                        }
                     }
                 }
             } else {
@@ -320,21 +355,21 @@ impl super::ItemParserProcessor for VariableCollector {
                         Ok(result) => {
                             if result.requires_cast {
                                 options.parser.informations.push(
-                                &error::error_list::ERROR_S41.clone().build_with_path(
-                                    vec![error::ErrorBuildField {
-                                        key: "token".to_owned(),
-                                        value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
-                                    }],
-                                    alloc::format!(
-                                        "{}:{}:{}",
-                                        file!().to_owned(),
-                                        line!(),
-                                        column!()
+                                    &error::error_list::ERROR_S41.clone().build_with_path(
+                                        vec![error::ErrorBuildField {
+                                            key: "token".to_owned(),
+                                            value: "Type helpers are not completely implemented yet. Next error is result of this. Follow progress here (https://github.com/behemehal/EllieWorks/issues/8)".to_owned(),
+                                        }],
+                                        alloc::format!(
+                                            "{}:{}:{}",
+                                            file!().to_owned(),
+                                            line!(),
+                                            column!()
+                                        ),
+                                        current_page.path.clone(),
+                                        self.data.value_pos,
                                     ),
-                                    current_page.path.clone(),
-                                    self.data.value_pos,
-                                ),
-                            );
+                                );
                                 let mut err = error::error_list::ERROR_S3.clone().build_with_path(
                                     vec![
                                         error::ErrorBuildField {
@@ -357,7 +392,7 @@ impl super::ItemParserProcessor for VariableCollector {
                                 );
                                 err.reference_block =
                                     Some((self.data.type_pos, current_page.path.clone()));
-                                err.reference_message = "Defined here".to_owned();
+                                "Defined here".clone_into(&mut err.reference_message);
                                 err.semi_assist = true;
                                 options.parser.informations.push(&err);
                                 return false;
@@ -385,7 +420,7 @@ impl super::ItemParserProcessor for VariableCollector {
                                 );
                                 err.reference_block =
                                     Some((self.data.type_pos, current_page.path.clone()));
-                                err.reference_message = "Defined here".to_owned();
+                                "Defined here".clone_into(&mut err.reference_message);
                                 err.semi_assist = true;
                                 options.parser.informations.push(&err);
                                 false

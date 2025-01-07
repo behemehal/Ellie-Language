@@ -1,11 +1,20 @@
-use alloc::{borrow::ToOwned, format, string::String, vec::Vec};
+use alloc::{string::String, vec::Vec};
+
+#[cfg(feature = "compiler_utils")]
+use alloc::{borrow::ToOwned, format};
 use core::fmt::{Display, Error, Formatter};
+
+#[cfg(feature = "compiler_utils")]
 use regex::Regex;
+
+#[cfg(feature = "compiler_utils")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum TokenizerType {
+    #[default]
     Raw,
     ClassParser,
     FunctionParser,
@@ -13,11 +22,6 @@ pub enum TokenizerType {
 }
 
 #[cfg(feature = "compiler_utils")]
-impl Default for TokenizerType {
-    fn default() -> Self {
-        TokenizerType::Raw
-    }
-}
 
 #[cfg(feature = "compiler_utils")]
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -73,6 +77,13 @@ impl Default for TokenizerOptions {
 /// A struct that represents a position in a file.
 /// (line, column)
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct CursorPosition(pub usize, pub usize);
+
+/// A struct that represents a position in a file.
+/// (line, column)
+#[cfg(not(feature = "compiler_utils"))]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
 pub struct CursorPosition(pub usize, pub usize);
 
 impl core::fmt::Display for CursorPosition {
@@ -116,6 +127,18 @@ impl CursorPosition {
 /// * `range_start` - Start of range [`CursorPosition`]
 /// * `range_end` - End of range [`CursorPosition`]
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[cfg(feature = "compiler_utils")]
+pub struct Cursor {
+    pub range_start: CursorPosition,
+    pub range_end: CursorPosition,
+}
+
+/// Cursor position
+/// ## Fields
+/// * `range_start` - Start of range [`CursorPosition`]
+/// * `range_end` - End of range [`CursorPosition`]
+#[derive(PartialEq, Debug, Clone, Copy, Default)]
+#[cfg(not(feature = "compiler_utils"))]
 pub struct Cursor {
     pub range_start: CursorPosition,
     pub range_end: CursorPosition,
@@ -184,6 +207,7 @@ impl Cursor {
 /// * `major` - Major version [`u8`]
 /// * `minor` - Minor version [`u8`]
 /// * `bug` - Bug version [`u8`]
+#[cfg(feature = "compiler_utils")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
     pub major: usize,
@@ -193,6 +217,7 @@ pub struct Version {
     pub build_metadata: Option<String>,
 }
 
+#[cfg(feature = "compiler_utils")]
 impl PartialEq for Version {
     fn eq(&self, other: &Self) -> bool {
         //Ignore bug
@@ -200,13 +225,14 @@ impl PartialEq for Version {
     }
 }
 
+#[cfg(feature = "compiler_utils")]
 impl Version {
     /// Create new [`Version`] from given [`String`]
     /// ## Arguments
     /// * `version` - [`String`] to parse
     pub fn build_from_string(input: &String) -> Version {
         let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        let caps = semver_regex.captures(&input).unwrap();
+        let caps = semver_regex.captures(input).unwrap();
 
         Version {
             major: caps
@@ -239,7 +265,7 @@ impl Version {
     /// [`Result`] - If versionb is valid [`Ok(Version)`] otherwise [`Err(u8)`]-
     pub fn build_from_string_checked(input: &String) -> Result<Version, u8> {
         let semver_regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        match semver_regex.captures(&input) {
+        match semver_regex.captures(input) {
             Some(caps) => {
                 let major = caps
                     .name("major")

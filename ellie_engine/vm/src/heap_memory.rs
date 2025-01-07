@@ -1,21 +1,44 @@
 use crate::raw_type::{MutatableRawType, RawType};
 use alloc::{
+    boxed::Box,
     collections::BTreeMap,
     format,
     string::{String, ToString},
     vec::Vec,
 };
 
-#[derive(Clone)]
+pub type HeapOutOfMemoryCallback = Box<dyn FnMut()>;
+
 pub struct HeapMemory {
     pub data: BTreeMap<usize, Vec<u8>>,
+    pub on_heap_out_of_memory: Option<HeapOutOfMemoryCallback>,
+}
+
+impl Clone for HeapMemory {
+    fn clone(&self) -> Self {
+        HeapMemory {
+            data: self.data.clone(),
+            on_heap_out_of_memory: None,
+        }
+    }
+}
+
+impl Default for HeapMemory {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HeapMemory {
     pub fn new() -> HeapMemory {
         HeapMemory {
             data: BTreeMap::new(),
+            on_heap_out_of_memory: None,
         }
+    }
+
+    pub fn set_on_heap_out_of_memory(&mut self, callback: HeapOutOfMemoryCallback) {
+        self.on_heap_out_of_memory = Some(callback);
     }
 
     pub fn get_mut(&mut self, key: &usize) -> Option<MutatableRawType> {
@@ -39,6 +62,19 @@ impl HeapMemory {
         }
     }
 
+    pub fn get_def_ptr(&self, key: &usize) -> Option<usize> {
+        match self.get(key) {
+            Some(e) => {
+                if e.type_id.id == 13 {
+                    self.get_def_ptr(&(e.to_int() as usize))
+                } else {
+                    Some(e.to_int() as usize)
+                }
+            }
+            None => None,
+        }
+    }
+
     pub fn set(&mut self, key: &usize, value: RawType) {
         self.data.insert(*key, value.to_bytes());
     }
@@ -52,9 +88,10 @@ impl HeapMemory {
         for key in &self.data {
             let value = self.get(key.0).unwrap();
             result.push_str(&format!(
-                "{} : {} = {:?} =! {:?}\n",
+                "{} : {}[{}] = {:?} =! {:?}\n",
                 key.0,
                 value.type_id,
+                value.type_id.size,
                 match value.type_id.id {
                     1 => {
                         isize::from_le_bytes(value.data.clone().try_into().unwrap()).to_string()

@@ -622,6 +622,14 @@ impl Parser {
                         defining.to_string(),
                         "dyn".to_owned(),
                     ))
+                } else if let ellie_core::definite::definers::DefinerCollecting::ParentGeneric(_) =
+                    defining
+                {
+                    Ok(CompareResult::result(
+                        true,
+                        defining.to_string(),
+                        "dyn".to_owned(),
+                    ))
                 } else if let ellie_core::definite::definers::DefinerCollecting::Dynamic = defining
                 {
                     if errors.is_empty() {
@@ -1617,7 +1625,6 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Module {
-        self.process_page(self.initial_page);
         let mut idx = 0;
         loop {
             let page = match self.pages.nth(idx) {
@@ -1628,9 +1635,6 @@ impl Parser {
             let page_type = page.page_type.clone();
             let page_path = page.path.clone();
             idx += 1;
-            if page.hash == self.initial_page {
-                continue;
-            }
             self.process_page(page_hash);
             match page_type {
                 PageType::FunctionBody(function_page) => {
@@ -1692,7 +1696,7 @@ impl Parser {
                                             );
                                         err.reference_block =
                                             Some((function_page.return_pos, page_path.clone()));
-                                        err.reference_message = "Defined here".to_owned();
+                                        "Defined here".clone_into(&mut err.reference_message);
                                         err.semi_assist = true;
                                         self.informations.push(&err);
                                     }
@@ -1721,7 +1725,7 @@ impl Parser {
                                             );
                                         err.reference_block =
                                             Some((function_page.return_pos, page_path));
-                                        err.reference_message = "Defined here".to_owned();
+                                        "Defined here".clone_into(&mut err.reference_message);
                                         err.semi_assist = true;
                                         self.informations.push(&err);
                                     }
@@ -1950,7 +1954,24 @@ impl Parser {
                 self.deep_search(self.initial_page, "main".to_string(), None, vec![], 0, None);
             if main_function.found {
                 match main_function.found_item {
-                    DeepSearchItems::Function(_) => (),
+                    DeepSearchItems::Function(e) => {
+                        if !e.parameters.is_empty() {
+                            let path = self.find_page(self.initial_page).unwrap().path.clone();
+                            self.informations.push(
+                                &error::error_list::ERROR_S67.clone().build_with_path(
+                                    vec![],
+                                    alloc::format!(
+                                        "{}:{}:{}",
+                                        file!().to_owned(),
+                                        line!(),
+                                        column!()
+                                    ),
+                                    path,
+                                    e.name_pos,
+                                ),
+                            );
+                        }
+                    }
                     _ => {
                         let path = self.find_page(self.initial_page).unwrap().path.clone();
                         self.informations.push(

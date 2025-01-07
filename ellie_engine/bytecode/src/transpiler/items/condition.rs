@@ -1,12 +1,7 @@
-use crate::{
-    instruction_table,
-    instructions::{self, Instruction},
-    types::Types,
-};
+use crate::transpiler::types::{TypeTranspiler, TypeTranspilerOptions};
+use crate::{instruction_table, instructions::Instruction, types::Types};
 use alloc::{vec, vec::Vec};
 use ellie_core::definite::items::condition;
-
-use super::type_resolver::resolve_type;
 
 impl super::Transpiler for condition::Condition {
     fn transpile(
@@ -24,13 +19,13 @@ impl super::Transpiler for condition::Condition {
 
         for (_, chain) in self.chains.iter().enumerate() {
             if chain.rtype != ellie_core::definite::items::condition::ConditionType::Else {
-                resolve_type(
-                    assembler,
-                    &chain.condition,
-                    instructions::Registers::A,
-                    &hash,
-                    Some(dependencies.clone()),
-                );
+                let mut binding = TypeTranspilerOptions::new();
+                let type_transpiler_options = binding
+                    .set_assembler(assembler)
+                    .set_dependencies(dependencies.clone())
+                    .set_target_page(hash);
+
+                chain.condition.transpile(type_transpiler_options);
             } else {
                 assembler
                     .instructions
@@ -86,6 +81,17 @@ impl super::Transpiler for condition::Condition {
             assembler.instructions[pos] =
                 instruction_table::Instructions::JMPA(Instruction::absolute(*location));
         }
+
+        // TODO: Add this, but this lacks place on debug information.
+        /* assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::Condition,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
+            name: "<Ellie:Condition>".to_string(),
+            start_end: (debug_header_start, assembler.location()),
+            pos: self.pos,
+        }); */
         true
     }
 }

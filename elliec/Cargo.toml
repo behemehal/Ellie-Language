@@ -17,3 +17,10 @@ ellie_engine = { path = "../ellie_engine", default-features = false, features = 
     "cli-utils",
 ] }
 bincode = { version = "1.3.3" }
+
+[build-dependencies]
+winresource = { version = "0.1.0" }
+
+[package.metadata.winresource]
+OriginalFilename = "elliec.exe"
+LegalCopyright = "Copyright (c) 2020 Behemehal. Licensed under GPL-2.0."

@@ -104,7 +104,7 @@ impl Formatter {
         for item in &page.items {
             match item {
                 Processors::Function(_) | Processors::Class(_) => {
-                    if output.lines.len() != 0 {
+                    if !output.lines.is_empty() {
                         output.lines.push(String::new());
                     }
                     last_element_is_fn_or_class = true;

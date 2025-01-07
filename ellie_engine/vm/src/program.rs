@@ -55,6 +55,12 @@ pub struct Program {
     pub instructions: Vec<ReadInstruction>,
 }
 
+impl Default for Program {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Program {
     pub fn new() -> Self {
         Self {
@@ -330,6 +336,12 @@ pub struct VmProgram {
     pub instructions: [ReadInstruction; PROGRAM_MAX_SIZE],
     pub traces: Vec<NativeCallTrace>,
     pub length: usize,
+}
+
+impl Default for VmProgram {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl VmProgram {

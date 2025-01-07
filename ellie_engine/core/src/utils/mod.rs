@@ -10,9 +10,12 @@ use rand;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    definite::types::operator::{
-        assignment_operator_to_string, comparison_operator_to_string, logical_operator_to_string,
-        ArithmeticOperators, AssignmentOperators, Operators,
+    definite::{
+        definers::DefinerCollecting,
+        types::operator::{
+            assignment_operator_to_string, comparison_operator_to_string,
+            logical_operator_to_string, ArithmeticOperators, AssignmentOperators, Operators,
+        },
     },
     defs, error,
 };
@@ -83,10 +86,8 @@ pub fn generate_hash() -> String {
             .map(|_| { rand::random::<u8>() })
             .collect::<Vec<u8>>()
     )
-    .replace(" ", "")
-    .replace(",", "")
-    .replace("]", "")
-    .replace("[", "")
+    .replace(' ', "")
+    .replace([',', ']', '['], "")
 }
 
 /// ReliableNameRanges is a enum indicates which charachter set is to be used
@@ -105,19 +106,19 @@ pub enum ReliableNameRanges {
 pub fn reliable_name_range(range: ReliableNameRanges, value: char) -> ReliableNameRangeResponse {
     let variable_range = match range {
         ReliableNameRanges::VariableName => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789_"
+            "QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇqwertyuıopğüasdfghjklşizxcvbnmöç0123456789_"
         }
         ReliableNameRanges::Type => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789"
+            "QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇqwertyuıopğüasdfghjklşizxcvbnmöç0123456789"
         }
         ReliableNameRanges::Path => {
-            "QWERTYUIOPASDFGHJKLIZXCVBNMqwertyuıopasşdfghjklizxcvbnm0123456789_@!?"
+            "QWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇqwertyuıopğüasdfghjklşizxcvbnmöç0123456789_@!?"
         }
     };
 
     let find = variable_range.chars().position(|x| x == value);
     return ReliableNameRangeResponse {
-        reliable: find != None,
+        reliable: find.is_some(),
         at: find.unwrap_or(0),
         found: variable_range
             .chars()
@@ -260,7 +261,7 @@ pub fn colapseable_operator(parent: Operators, child: Operators) -> bool {
                         },
                     }
                 }
-                Operators::AssignmentType(_) => todo!(),
+                Operators::AssignmentType(_) => true,
                 Operators::Null => todo!(),
             }
         }
@@ -347,13 +348,17 @@ pub fn operator_priority(operator: &str) -> usize {
 
 pub fn operator_control(
     operator: Operators,
-    first: String,
-    second: String,
+    definer_first: DefinerCollecting,
+    definer_second: DefinerCollecting,
     path: String,
     pos: defs::Cursor,
 ) -> Option<crate::error::Error> {
+    let first = definer_first.to_string();
+    let second = definer_second.to_string();
+
     let first = first.as_str();
     let second = second.as_str();
+
     let operator = match operator {
         Operators::ComparisonType(operator) => match operator {
             crate::definite::types::operator::ComparisonOperators::Equal
@@ -432,7 +437,30 @@ pub fn operator_control(
             crate::definite::types::operator::ArithmeticOperators::Null => unreachable!(),
         },
         Operators::AssignmentType(operator) => match operator {
-            crate::definite::types::operator::AssignmentOperators::Assignment => None,
+            crate::definite::types::operator::AssignmentOperators::Assignment => {
+                match (first, second) {
+                    ("int", "int")
+                    | ("float", "float")
+                    | ("float", "double")
+                    | ("float", "int")
+                    | ("float", "byte")
+                    | ("double", "double")
+                    | ("double", "float")
+                    | ("double", "int")
+                    | ("double", "byte")
+                    | ("byte", "byte")
+                    | ("byte", "int")
+                    | ("string", "string")
+                    | ("string", "char")
+                    | ("string", "int")
+                    | ("string", "float")
+                    | ("string", "double")
+                    | ("dyn", _)
+                    | (_, "dyn")
+                    | ("string", "byte") => None,
+                    _ => Some("Assignment"),
+                }
+            }
             crate::definite::types::operator::AssignmentOperators::AdditionAssignment => {
                 match (first, second) {
                     ("int", "int")
@@ -477,8 +505,8 @@ pub fn operator_control(
         },
         Operators::Null => unreachable!(),
     };
-    match operator {
-        Some(operator_string) => Some(error::error_list::ERROR_S52.clone().build_with_path(
+    operator.map(|operator_string| {
+        error::error_list::ERROR_S52.clone().build_with_path(
             vec![
                 error::ErrorBuildField {
                     key: "opType".to_owned(),
@@ -496,9 +524,8 @@ pub fn operator_control(
             alloc::format!("{}:{}:{}", file!().to_owned(), line!(), column!()),
             path,
             pos,
-        )),
-        None => None,
-    }
+        )
+    })
 }
 
 pub fn is_operators_chainable(target: Operators, current: Operators) -> bool {
@@ -580,19 +607,28 @@ pub struct PageExport<T> {
 
 impl<T> Index<usize> for PageExport<T> {
     type Output = T;
-    fn index<'a>(&'a self, i: usize) -> &'a Self::Output {
+    fn index(&self, i: usize) -> &Self::Output {
         &self.pages[i]
     }
 }
 
 impl<T> IndexMut<usize> for PageExport<T> {
-    fn index_mut<'a>(&'a mut self, i: usize) -> &'a mut Self::Output {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
         &mut self.pages[i]
     }
 }
 
 pub trait ExportPage {
     fn get_hash(&self) -> usize;
+}
+
+impl<T> Default for PageExport<T>
+where
+    T: ExportPage + core::fmt::Debug,
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> PageExport<T>

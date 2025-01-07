@@ -139,20 +139,16 @@ impl DefinerCollecting {
             DefinerCollecting::Array(data) => {
                 if let DefinerCollecting::Array(other_data) = other {
                     other_data.size == data.size && other_data.rtype.same_as(*data.rtype.clone())
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
-                    false
+                    DefinerCollecting::Dynamic == other
                 }
             }
             DefinerCollecting::Generic(generic) => {
                 if let DefinerCollecting::Generic(other_generic) = other {
                     (other_generic.rtype == generic.rtype && other_generic.hash == generic.hash)
                         || (other_generic.rtype == "dyn" || generic.rtype == "dyn")
-                } else if DefinerCollecting::Dynamic == other {
-                    true
                 } else {
-                    false
+                    DefinerCollecting::Dynamic == other
                 }
             }
             DefinerCollecting::ParentGeneric(parent_generic) => {
@@ -276,6 +272,69 @@ impl DefinerCollecting {
                 EnumFieldData::NoData => (),
                 EnumFieldData::Data(enum_field_data) => {
                     enum_field_data.convert_generic(generic_hash, replacement_generic)
+                }
+            },
+            DefinerCollecting::Dynamic => (),
+            DefinerCollecting::ClassInstance(_) => (),
+        }
+    }
+
+    pub fn convert_generic_by_name(&mut self, generic_name: String, replacement_generic: DefinerCollecting) {
+        match self {
+            DefinerCollecting::Array(array) => {
+                array
+                    .rtype
+                    .convert_generic_by_name(generic_name, replacement_generic);
+            }
+            DefinerCollecting::Generic(generic) => {
+                if generic.rtype == generic_name {
+                    *self = replacement_generic;
+                }
+            }
+            DefinerCollecting::ParentGeneric(parrent_generic) => {
+                if parrent_generic.rtype == generic_name {
+                    *self = replacement_generic;
+                } else {
+                    parrent_generic.generics.iter_mut().for_each(|g| {
+                        g.value
+                            .convert_generic_by_name(generic_name.clone(), replacement_generic.clone())
+                    });
+                }
+            }
+            DefinerCollecting::Function(function) => {
+                function
+                    .params
+                    .iter_mut()
+                    .for_each(|param: &mut DefinerCollecting| {
+                        param.convert_generic_by_name(generic_name.clone(), replacement_generic.clone())
+                    });
+                function
+                    .returning
+                    .convert_generic_by_name(generic_name.clone(), replacement_generic.clone());
+            }
+            DefinerCollecting::Cloak(cloak) => {
+                cloak
+                    .rtype
+                    .iter_mut()
+                    .for_each(|r| r.convert_generic_by_name(generic_name.clone(), replacement_generic.clone()));
+            }
+            DefinerCollecting::Collective(collective) => {
+                collective
+                    .key
+                    .convert_generic_by_name(generic_name.clone(), replacement_generic.clone());
+                collective
+                    .value
+                    .convert_generic_by_name(generic_name.clone(), replacement_generic);
+            }
+            DefinerCollecting::Nullable(nullable) => {
+                nullable
+                    .value
+                    .convert_generic_by_name(generic_name, replacement_generic);
+            }
+            DefinerCollecting::EnumField(enum_field) => match &mut enum_field.field_data {
+                EnumFieldData::NoData => (),
+                EnumFieldData::Data(enum_field_data) => {
+                    enum_field_data.convert_generic_by_name(generic_name, replacement_generic)
                 }
             },
             DefinerCollecting::Dynamic => (),

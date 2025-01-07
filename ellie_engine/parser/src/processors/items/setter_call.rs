@@ -63,13 +63,10 @@ impl super::ItemParserProcessor for SetterCall {
                                 }
                             };
 
-                            let first = target_type.to_string();
-                            let second = value_defining.to_string();
-
                             match ellie_core::utils::operator_control(
                                 Operators::AssignmentType(self.operator.clone()).to_definite(),
-                                first,
-                                second,
+                                target_type,
+                                value_defining,
                                 current_page.path,
                                 self.value_pos,
                             ) {
@@ -153,13 +150,10 @@ impl super::ItemParserProcessor for SetterCall {
                                 }
                             };
 
-                            let first = target_type.to_string();
-                            let second = value_defining.to_string();
-
                             match ellie_core::utils::operator_control(
                                 Operators::AssignmentType(self.operator.clone()).to_definite(),
-                                first,
-                                second,
+                                target_type,
+                                value_defining,
                                 current_page.path.clone(),
                                 self.value_pos,
                             ) {
@@ -234,7 +228,7 @@ impl super::ItemParserProcessor for SetterCall {
                                     match self.value.process(
                                         TypeParserProcessorOptions::new(
                                             options.parser,
-                                            options.page_idx,
+                                            options.page_hash,
                                         )
                                         .variable_pos(self.target_pos)
                                         .build(),
@@ -274,14 +268,11 @@ impl super::ItemParserProcessor for SetterCall {
                                                 }
                                             };
 
-                                            let first = target_type.to_string();
-                                            let second = value_defining.to_string();
-
                                             match ellie_core::utils::operator_control(
                                                 Operators::AssignmentType(self.operator.clone())
                                                     .to_definite(),
-                                                first,
-                                                second,
+                                                target_type,
+                                                value_defining,
                                                 current_page.path.clone(),
                                                 self.value_pos,
                                             ) {
@@ -368,13 +359,10 @@ impl super::ItemParserProcessor for SetterCall {
                                 }
                             };
 
-                            let first = target_type.to_string();
-                            let second = value_defining.to_string();
-
                             match ellie_core::utils::operator_control(
                                 Operators::AssignmentType(self.operator.clone()).to_definite(),
-                                first,
-                                second,
+                                target_type,
+                                value_defining,
                                 current_page.path,
                                 self.value_pos,
                             ) {

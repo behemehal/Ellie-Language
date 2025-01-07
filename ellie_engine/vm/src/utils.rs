@@ -1,19 +1,242 @@
-use core::mem;
-
 use alloc::{string::String, vec::Vec};
-use ellie_core::defs::CursorPosition;
+use core::mem;
+use ellie_core::defs::{CursorPosition, PlatformArchitecture};
+use enum_as_inner::EnumAsInner;
+use std::string::ToString;
 
 use crate::{
-    heap_memory,
+    heap_memory::{self, HeapMemory},
     raw_type::{RawType, StaticRawType, TypeId},
     stack::Stack,
-    stack_memory,
+    stack_memory::{self, StackMemory},
 };
 
 #[derive(Clone, Debug)]
-pub enum VmNativeCallParameters {
+pub enum RawFunctionData {
+    /// Static raw type
     Static(StaticRawType),
+    /// Raw type
     Dynamic(RawType),
+}
+
+impl RawFunctionData {
+    pub fn as_static(self) -> Option<StaticRawType> {
+        match self {
+            RawFunctionData::Static(e) => Some(e),
+            _ => None,
+        }
+    }
+
+    pub fn as_dynamic(self) -> Option<RawType> {
+        match self {
+            RawFunctionData::Dynamic(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct EllieInteger {
+    pub as_isize: isize,
+    pub as_usize: usize,
+}
+
+impl From<isize> for EllieInteger {
+    fn from(value: isize) -> Self {
+        EllieInteger {
+            as_isize: value,
+            as_usize: value as usize,
+        }
+    }
+}
+
+impl From<usize> for EllieInteger {
+    fn from(value: usize) -> Self {
+        EllieInteger {
+            as_isize: value as isize,
+            as_usize: value,
+        }
+    }
+}
+
+impl From<&EllieInteger> for isize {
+    fn from(value: &EllieInteger) -> Self {
+        value.as_isize
+    }
+}
+
+impl From<&EllieInteger> for usize {
+    fn from(value: &EllieInteger) -> Self {
+        value.as_usize
+    }
+}
+
+#[derive(Clone, Debug, EnumAsInner)]
+pub enum EllieData {
+    Integer(EllieInteger),
+    Float(f32),
+    Double(f64),
+    Byte(u8),
+    Bool(bool),
+    String(String),
+    Char(char),
+    Void,
+    Null,
+    Array(Vec<EllieData>),
+    Class(Vec<EllieData>),
+}
+
+impl Into<EllieData> for &str {
+    fn into(self) -> EllieData {
+        EllieData::String(self.to_string())
+    }
+}
+
+impl Into<EllieData> for String {
+    fn into(self) -> EllieData {
+        EllieData::String(self)
+    }
+}
+
+impl Into<EllieData> for char {
+    fn into(self) -> EllieData {
+        EllieData::Char(self)
+    }
+}
+
+impl Into<EllieData> for u8 {
+    fn into(self) -> EllieData {
+        EllieData::Byte(self)
+    }
+}
+
+impl Into<EllieData> for f32 {
+    fn into(self) -> EllieData {
+        EllieData::Float(self)
+    }
+}
+
+impl Into<EllieData> for f64 {
+    fn into(self) -> EllieData {
+        EllieData::Double(self)
+    }
+}
+
+impl Into<EllieData> for isize {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for usize {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self,
+        })
+    }
+}
+
+#[cfg(target_pointer_width = "64")]
+impl Into<EllieData> for i128 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+#[cfg(target_pointer_width = "64")]
+impl Into<EllieData> for u128 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for u64 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for i64 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for u32 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for i32 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for u16 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for i16 {
+    fn into(self) -> EllieData {
+        EllieData::Integer(EllieInteger {
+            as_isize: self as isize,
+            as_usize: self as usize,
+        })
+    }
+}
+
+impl Into<EllieData> for bool {
+    fn into(self) -> EllieData {
+        EllieData::Bool(self)
+    }
+}
+
+impl Into<EllieData> for () {
+    fn into(self) -> EllieData {
+        EllieData::Void
+    }
+}
+
+impl Into<EllieData> for Vec<EllieData> {
+    fn into(self) -> EllieData {
+        EllieData::Array(self)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct FunctionCallParameter {
+    pub data: EllieData,
+    pub raw_data: RawFunctionData,
+    pub memory_location: usize,
 }
 
 #[derive(Clone, Debug)]
@@ -21,7 +244,7 @@ pub struct VmNativeCall {
     /// Native function's hash
     pub hash: usize,
     /// Parameter array
-    pub params: Vec<VmNativeCallParameters>,
+    pub params: Vec<FunctionCallParameter>,
     /// Return heap position is location of the ret instruction
     /// If a non static value want to be returned, it will be stored in the heap,
     /// and Y register will be referencing to this position,
@@ -30,9 +253,16 @@ pub struct VmNativeCall {
 }
 
 #[derive(Clone, Debug)]
+// ! Todo: implement Into for VmNativeAnswer
 pub enum VmNativeAnswer {
-    Ok(VmNativeCallParameters),
+    Ok(EllieData),
     RuntimeError(String),
+}
+
+impl Into<VmNativeAnswer> for EllieData {
+    fn into(self) -> VmNativeAnswer {
+        VmNativeAnswer::Ok(self)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +272,7 @@ pub struct ThreadInfo {
     pub frame_pos: usize,
     pub pos: usize,
     pub stack_caller: Option<usize>,
+    pub arch: PlatformArchitecture,
 }
 
 impl ThreadInfo {
@@ -62,7 +293,7 @@ pub enum ThreadPanicReason {
     FloatOverflow,
     DoubleOverflow,
     /// This panic triggered when the types are not mergeble with each other MOD, DIV, MUL, EXP, SUB AND ADD instructions can trigger this panic
-    UnmergebleTypes(u8, u8),
+    UnmergebleTypes(String, String),
     /// This panic triggered when the types are not comparable with each other
     UncomparableTypes(u8, u8),
     /// This panic triggered when stack exceeded the maximum size
@@ -87,7 +318,7 @@ pub enum ThreadPanicReason {
     /// This panic triggered when the program trying to access a array index with negative value
     /// * first: index
     CannotIndexWithNegative(isize),
-    ParemeterMemoryAccessViolation(usize),
+    ParameterMemoryAccessViolation(usize),
     MemoryAccessViolation(usize, usize),
     /// This triggered when types like string, array, class tried to be kept in immediate mode
     ImmediateUseViolation(u8),
@@ -349,6 +580,7 @@ pub fn resolve_reference(
     reference_data: usize,
     heap_memory: &heap_memory::HeapMemory,
     stack_memory: &stack_memory::StackMemory,
+    arch: PlatformArchitecture,
 ) -> Result<ResolvedReference, usize> {
     match reference_type {
         ReferenceType::Heap => match heap_memory.get(&reference_data) {
@@ -359,6 +591,7 @@ pub fn resolve_reference(
                         usize::from_le_bytes(data.data.try_into().unwrap()),
                         heap_memory,
                         stack_memory,
+                        arch,
                     )
                 } else if data.type_id.id == 14 {
                     resolve_reference(
@@ -366,6 +599,7 @@ pub fn resolve_reference(
                         usize::from_le_bytes(data.data.try_into().unwrap()),
                         heap_memory,
                         stack_memory,
+                        arch,
                     )
                 } else {
                     Ok(ResolvedReference::RawType((data, reference_data)))
@@ -381,6 +615,7 @@ pub fn resolve_reference(
                         data.to_int() as usize,
                         heap_memory,
                         stack_memory,
+                        arch,
                     )
                 } else if data.type_id.id == 14 {
                     resolve_reference(
@@ -388,6 +623,7 @@ pub fn resolve_reference(
                         data.to_int() as usize,
                         heap_memory,
                         stack_memory,
+                        arch,
                     )
                 } else {
                     Ok(ResolvedReference::StaticRawType((data, reference_data)))
@@ -396,4 +632,343 @@ pub fn resolve_reference(
             None => Err(reference_data),
         },
     }
+}
+
+pub fn resolve_parameter_data_from_static_raw_type(
+    raw_data: StaticRawType,
+    stack_memory: &mut StackMemory,
+    heap_memory: &mut HeapMemory,
+    arch: PlatformArchitecture,
+) -> EllieData {
+    match raw_data.type_id.id {
+        1 => {
+            let as_isize = raw_data.to_int();
+            let as_usize = raw_data.to_uint();
+            EllieData::Integer(EllieInteger { as_isize, as_usize })
+        }
+        2 => EllieData::Float(raw_data.to_float()),
+        3 => EllieData::Double(raw_data.to_double()),
+        4 => EllieData::Byte(raw_data.to_byte()),
+        5 => EllieData::Bool(raw_data.to_bool()),
+        6 => unreachable!("String type is not supported in static raw type"),
+        7 => EllieData::Char(raw_data.to_char()),
+        8 => EllieData::Void,
+        9 => {
+            todo!()
+        }
+        10 => EllieData::Null,
+        11 => {
+            std::println!("class origin: {:#?}", raw_data);
+            let array_origin = raw_data.to_uint();
+            std::println!("class origin: {:#?}", array_origin);
+
+            let class_data = heap_memory.get(&array_origin).unwrap();
+
+            std::println!("class_data: {:#?}", class_data);
+
+            let array_entry_size = usize::from_le_bytes(
+                class_data.data[..arch.usize_len() as usize]
+                    .try_into()
+                    .unwrap(),
+            );
+            let array_data = &class_data.data[arch.usize_len() as usize..];
+            let array_entries = array_data.chunks(array_entry_size).collect::<Vec<_>>();
+
+            let class_variables_raw = array_entries
+                .iter()
+                .map(|entry| RawType::from_bytes(&entry))
+                .collect::<Vec<_>>();
+
+            EllieData::Class(
+                class_variables_raw
+                    .iter()
+                    .map(|raw_type| {
+                        resolve_parameter_data_from_raw_type(
+                            raw_type.clone(),
+                            stack_memory,
+                            heap_memory,
+                            arch,
+                        )
+                    })
+                    .collect::<Vec<_>>(),
+            )
+        }
+        13 => {
+            let reference_data = raw_data.to_uint();
+            let resolved_reference = resolve_reference(
+                ReferenceType::Stack,
+                reference_data,
+                heap_memory,
+                stack_memory,
+                arch,
+            )
+            .expect("Memory corruption");
+
+            match resolved_reference {
+                ResolvedReference::StaticRawType(static_raw_type) => {
+                    resolve_parameter_data_from_static_raw_type(
+                        static_raw_type.0,
+                        stack_memory,
+                        heap_memory,
+                        arch,
+                    )
+                }
+                ResolvedReference::RawType(raw_type) => resolve_parameter_data_from_raw_type(
+                    raw_type.0,
+                    stack_memory,
+                    heap_memory,
+                    arch,
+                ),
+            }
+        }
+        14 => {
+            let reference_data = raw_data.to_uint();
+            let resolved_reference = resolve_reference(
+                ReferenceType::Heap,
+                reference_data,
+                heap_memory,
+                stack_memory,
+                arch,
+            )
+            .expect("Memory corruption");
+
+            match resolved_reference {
+                ResolvedReference::StaticRawType(static_raw_type) => {
+                    resolve_parameter_data_from_static_raw_type(
+                        static_raw_type.0,
+                        stack_memory,
+                        heap_memory,
+                        arch,
+                    )
+                }
+                ResolvedReference::RawType(raw_type) => resolve_parameter_data_from_raw_type(
+                    raw_type.0,
+                    stack_memory,
+                    heap_memory,
+                    arch,
+                ),
+            }
+        }
+        15 => {
+            let array_origin = raw_data.to_uint();
+            let array_size = stack_memory.get(&(array_origin + 1)).unwrap().to_uint();
+            let index_on_stack = array_origin + 2;
+            let mut array = Vec::new();
+
+            for i in 0..array_size {
+                let pos = index_on_stack + i;
+                let static_raw_type = stack_memory.get(&pos).unwrap();
+
+                let definite_element = if static_raw_type.type_id.is_heap_reference()
+                    || static_raw_type.type_id.is_stack_reference()
+                {
+                    resolve_reference(
+                        if static_raw_type.type_id.is_heap_reference() {
+                            ReferenceType::Heap
+                        } else {
+                            ReferenceType::Stack
+                        },
+                        static_raw_type.to_uint(),
+                        heap_memory,
+                        stack_memory,
+                        arch,
+                    )
+                    .expect("Memory corruption")
+                } else {
+                    ResolvedReference::StaticRawType((static_raw_type, pos))
+                };
+
+                match definite_element {
+                    ResolvedReference::StaticRawType(static_raw_type) => {
+                        array.push(resolve_parameter_data_from_static_raw_type(
+                            static_raw_type.0,
+                            stack_memory,
+                            heap_memory,
+                            arch,
+                        ));
+                    }
+                    ResolvedReference::RawType(raw_type) => {
+                        array.push(resolve_parameter_data_from_raw_type(
+                            raw_type.0,
+                            stack_memory,
+                            heap_memory,
+                            arch,
+                        ));
+                    }
+                }
+            }
+
+            EllieData::Array(array)
+        }
+        _ => unreachable!("Unknown type id"),
+    }
+}
+
+pub fn resolve_parameter_data_from_raw_type(
+    raw_data: RawType,
+    stack_memory: &mut StackMemory,
+    heap_memory: &mut HeapMemory,
+    arch: PlatformArchitecture,
+) -> EllieData {
+    match raw_data.type_id.id {
+        1 => {
+            let as_isize = raw_data.to_int();
+            let as_usize = raw_data.to_uint();
+            EllieData::Integer(EllieInteger { as_isize, as_usize })
+        }
+        2 => EllieData::Float(raw_data.to_float()),
+        3 => EllieData::Double(raw_data.to_double()),
+        4 => EllieData::Byte(raw_data.to_byte()),
+        5 => EllieData::Bool(raw_data.to_bool()),
+        6 => EllieData::String(raw_data.to_string()),
+        7 => EllieData::Char(raw_data.to_char()),
+        8 => EllieData::Void,
+        9 => {
+            todo!()
+        }
+        10 => EllieData::Null,
+        13 => {
+            let reference_data = raw_data.to_uint();
+            let resolved_reference = resolve_reference(
+                ReferenceType::Stack,
+                reference_data,
+                heap_memory,
+                stack_memory,
+                arch,
+            )
+            .expect("Memory corruption");
+
+            match resolved_reference {
+                ResolvedReference::StaticRawType(static_raw_type) => {
+                    resolve_parameter_data_from_static_raw_type(
+                        static_raw_type.0,
+                        stack_memory,
+                        heap_memory,
+                        arch,
+                    )
+                }
+                ResolvedReference::RawType(raw_type) => resolve_parameter_data_from_raw_type(
+                    raw_type.0,
+                    stack_memory,
+                    heap_memory,
+                    arch,
+                ),
+            }
+        }
+        14 => {
+            let reference_data = raw_data.to_uint();
+            let resolved_reference = resolve_reference(
+                ReferenceType::Heap,
+                reference_data,
+                heap_memory,
+                stack_memory,
+                arch,
+            )
+            .expect("Memory corruption");
+
+            match resolved_reference {
+                ResolvedReference::StaticRawType(static_raw_type) => {
+                    resolve_parameter_data_from_static_raw_type(
+                        static_raw_type.0,
+                        stack_memory,
+                        heap_memory,
+                        arch,
+                    )
+                }
+                ResolvedReference::RawType(raw_type) => resolve_parameter_data_from_raw_type(
+                    raw_type.0,
+                    stack_memory,
+                    heap_memory,
+                    arch,
+                ),
+            }
+        }
+        15 => {
+            let array_origin = raw_data.to_uint();
+            let array_size = stack_memory.get(&(array_origin + 1)).unwrap().to_uint();
+
+            let index_on_stack = array_origin + 2;
+            let mut array = Vec::new();
+
+            for i in 0..array_size {
+                let pos = index_on_stack + i;
+                let raw_type = stack_memory.get(&pos).unwrap();
+                match resolve_reference(
+                    ReferenceType::Stack,
+                    raw_type.to_uint(),
+                    heap_memory,
+                    stack_memory,
+                    arch,
+                )
+                .expect("Memory corruption")
+                {
+                    ResolvedReference::StaticRawType(static_raw_type) => {
+                        array.push(resolve_parameter_data_from_static_raw_type(
+                            static_raw_type.0,
+                            stack_memory,
+                            heap_memory,
+                            arch,
+                        ));
+                    }
+                    ResolvedReference::RawType(raw_type) => {
+                        array.push(resolve_parameter_data_from_raw_type(
+                            raw_type.0,
+                            stack_memory,
+                            heap_memory,
+                            arch,
+                        ))
+                    }
+                }
+            }
+
+            EllieData::Array(array)
+        }
+        _ => unreachable!("Unknown type id"),
+    }
+}
+
+pub fn ellie_data_to_static_raw_type(data: EllieData) -> StaticRawType {
+    match data {
+        EllieData::Integer(integer) => StaticRawType::from_int(integer.as_isize),
+        EllieData::Float(float) => StaticRawType::from_float(float),
+        EllieData::Double(double) => StaticRawType::from_double(double),
+        EllieData::Byte(byte) => StaticRawType::from_byte(byte),
+        EllieData::Bool(bool) => StaticRawType::from_bool(bool),
+        EllieData::Char(char) => StaticRawType::from_char(char),
+        EllieData::Void => StaticRawType::from_void(),
+        EllieData::Null => StaticRawType::from_null(),
+        _ => unreachable!(),
+    }
+}
+
+#[macro_export]
+/// Asserts the argument size
+/// ## Parameters
+/// * `$args` - Arguments
+/// * `$expected_size` - Expected size
+/// ## Returns
+/// * `VmNativeAnswer::RuntimeError` if the argument size is not equal to the expected size
+/// * `VmNativeAnswer::Ok` if the argument size is equal to the expected size
+/// ## Example
+/// ```rust
+/// use ellie_vm::{assert_arg_size, channel::{EllieModule, FunctionElement, ModuleElements, VmNativeAnswer}};
+/// let mut ellie_core_module = EllieModule::new("ellieCore".to_string());
+///
+/// ellie_core_module.register_element(ModuleElements::Function(FunctionElement::new(
+///     "println",
+///     Box::new(|_, args| {
+///         assert_arg_size!(args, 1);
+///         VmNativeAnswer::Ok(().into())
+///     }),
+/// )));
+///```
+macro_rules! assert_arg_size {
+    ($args:expr, $expected_size:expr) => {
+        if $args.len() != $expected_size {
+            return VmNativeAnswer::RuntimeError(format!(
+                "Signature mismatch, expected {} argument(s)",
+                $expected_size
+            ));
+        }
+    };
 }

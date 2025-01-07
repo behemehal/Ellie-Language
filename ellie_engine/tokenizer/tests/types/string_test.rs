@@ -33,7 +33,7 @@ mod string_tests {
             last_char = letter_char;
         }
         assert!(
-            errors.len() != 0
+            !errors.is_empty()
                 && errors[0].code == 0
                 && errors[0].builded_message.fields[0].value == "e"
         );

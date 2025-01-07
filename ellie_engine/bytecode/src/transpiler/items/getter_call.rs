@@ -1,5 +1,7 @@
-use super::type_resolver::resolve_type;
-use crate::{instructions, utils::limit_platform_size};
+use crate::{
+    transpiler::types::{TypeTranspiler, TypeTranspilerOptions},
+    utils::limit_platform_size,
+};
 use alloc::{string::ToString, vec};
 use ellie_core::{
     definite::items::getter_call,
@@ -16,13 +18,16 @@ impl super::Transpiler for getter_call::GetterCall {
         let debug_header_start = assembler.location();
         let mut dependencies = vec![processed_page.hash];
         dependencies.extend(processed_page.dependencies.iter().map(|d| d.hash));
-        resolve_type(
-            assembler,
-            &self.data,
-            instructions::Registers::A,
-            &hash,
-            Some(dependencies),
+
+        let mut binding = TypeTranspilerOptions::new();
+
+        self.data.transpile(
+            binding
+                .set_assembler(assembler)
+                .set_target_page(hash)
+                .set_dependencies(dependencies),
         );
+
         assembler.debug_headers.push(DebugHeader {
             rtype: DebugHeaderType::GetterCall,
             hash: limit_platform_size(00099999999, assembler.platform_attributes.architecture),

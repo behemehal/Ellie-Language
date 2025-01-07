@@ -69,7 +69,7 @@ impl super::TypeParserProcessor for variable_type::VariableTypeCollector {
                         );
                         error.reference_block =
                             Some((e.pos, deep_search_result.found_page.path.clone()));
-                        error.reference_message = "Defined here".to_owned();
+                        "Defined here".clone_into(&mut error.reference_message);
                         errors.push(error);
                         return Err(errors);
                     }

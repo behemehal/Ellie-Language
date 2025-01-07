@@ -49,6 +49,11 @@ pub mod compiler;
 /// This module contains utilities that easing up usage of tokenizer
 #[cfg(feature = "compiler")]
 pub mod tokenizer;
+
+/// This module contains utilities that easing up usage of bytecode
+#[cfg(feature = "compiler")]
+pub mod byte_code;
+
 /// This module contains utilities that easing up usage of vm
 #[cfg(feature = "vm")]
 pub mod vm;

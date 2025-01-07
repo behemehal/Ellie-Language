@@ -1,18 +1,21 @@
 #![allow(non_snake_case)]
-use alloc::{format, string::String};
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use alloc::{boxed::Box, format, string::String};
 use ellie_core::defs::PlatformArchitecture;
 
 use crate::{
     channel::ModuleManager,
     heap_memory::HeapMemory,
+    isolate::Isolate,
     iternal_functions::INTERNAL_FUNCTIONS,
     program::{MainProgram, VmProgram},
-    raw_type::StaticRawType,
+    raw_type::{RawType, StaticRawType},
     stack::{Caller, Stack, StackArray},
     stack_memory::StackMemory,
     utils::{
-        StepResult, ThreadExit, ThreadInfo, ThreadPanic, ThreadPanicReason, VmNativeAnswer,
-        VmNativeCallParameters,
+        ellie_data_to_static_raw_type, EllieData, RawFunctionData, StepResult, ThreadExit,
+        ThreadInfo, ThreadPanic, ThreadPanicReason, VmNativeAnswer,
     },
 };
 
@@ -23,29 +26,6 @@ pub struct Registers {
     pub C: StaticRawType,
     pub X: StaticRawType,
     pub Y: StaticRawType,
-}
-
-#[derive(Clone)]
-pub struct Isolate {
-    pub heap_memory: HeapMemory,
-    pub stack_memory: StackMemory,
-}
-
-impl Isolate {
-    pub fn new() -> Self {
-        Isolate {
-            heap_memory: HeapMemory::new(),
-            stack_memory: StackMemory::new(),
-        }
-    }
-
-    pub fn heap_dump(&self) -> String {
-        self.heap_memory.dump()
-    }
-
-    pub fn stack_dump(&self) -> String {
-        self.stack_memory.dump()
-    }
 }
 
 pub struct Thread {
@@ -182,37 +162,44 @@ impl Thread {
                                         frame_pos: current_stack.frame_pos,
                                         pos: current_stack.pos,
                                         stack_caller: current_stack.caller.map(|c| c.id),
+                                        arch: self.arch,
                                     },
                                     native_call.params,
                                 );
                                 match response {
                                     VmNativeAnswer::Ok(return_value) => {
                                         match return_value {
-                                            VmNativeCallParameters::Static(static_value) => {
-                                                current_stack.registers.Y = static_value;
-                                            }
-                                            VmNativeCallParameters::Dynamic(dynamic_value) => {
+                                            EllieData::String(string) => {
                                                 self.isolate.heap_memory.set(
                                                     &native_call.return_heap_position,
-                                                    dynamic_value,
+                                                    RawType::generate_string(string),
                                                 );
                                                 current_stack.registers.Y =
                                                     StaticRawType::from_heap_reference(
                                                         native_call.return_heap_position,
-                                                    )
+                                                    );
+                                            }
+                                            EllieData::Array(vec) => {
+                                                todo!("Array return not yet implemented")
+                                            }
+                                            EllieData::Class(vec) => {
+                                                todo!("Class return not yet implemented")
+                                            }
+                                            value => {
+                                                current_stack.registers.Y =
+                                                    ellie_data_to_static_raw_type(value);
                                             }
                                         }
+
                                         current_stack.pos += 1;
                                         StepResult::Step
                                     }
                                     VmNativeAnswer::RuntimeError(e) => {
-                                        return StepResult::ThreadExit(ThreadExit::Panic(
-                                            ThreadPanic {
-                                                reason: ThreadPanicReason::RuntimeError(e),
-                                                stack_trace: self.stack.clone(),
-                                                code_location: format!("{}:{}", file!(), line!()),
-                                            },
-                                        ));
+                                        StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                                            reason: ThreadPanicReason::RuntimeError(e),
+                                            stack_trace: self.stack.clone(),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        }))
                                     }
                                 }
                             } else {
@@ -235,37 +222,36 @@ impl Thread {
                                                             stack_caller: current_stack
                                                                 .caller
                                                                 .map(|c| c.id),
+                                                            arch: self.arch,
                                                         },
                                                         native_call.params,
                                                     );
                                                     match response {
                                                         VmNativeAnswer::Ok(return_value) => {
                                                             match return_value {
-                                                                VmNativeCallParameters::Static(
-                                                                    static_value,
-                                                                ) => {
-                                                                    current_stack.registers.Y =
-                                                                        static_value;
-                                                                }
-                                                                VmNativeCallParameters::Dynamic(
-                                                                    dynamic_value,
-                                                                ) => {
+                                                                EllieData::String(string) => {
                                                                     self.isolate.heap_memory.set(
                                                                         &native_call
                                                                             .return_heap_position,
-                                                                        dynamic_value,
+                                                                            RawType::generate_string(string),
                                                                     );
                                                                     current_stack.registers.Y =
                                                                 StaticRawType::from_heap_reference(
                                                                     native_call.return_heap_position,
-                                                                )
-                                                                }
-                                                            }
+                                                                );
+                                                                },
+                                                                EllieData::Array(vec) => todo!("Array return not yet implemented"),
+                                                                EllieData::Class(vec) => todo!("Class return not yet implemented"),
+                                                                value => {
+                                                                    current_stack.registers.Y = ellie_data_to_static_raw_type(value);
+                                                                },
+                                                            };
+
                                                             current_stack.pos += 1;
                                                             StepResult::Step
                                                         }
                                                         VmNativeAnswer::RuntimeError(e) => {
-                                                            return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                                                            StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
                                                         reason: ThreadPanicReason::RuntimeError(e),
                                                         stack_trace: self.stack.clone(),
                                                         code_location: format!(
@@ -273,60 +259,52 @@ impl Thread {
                                                             file!(),
                                                             line!()
                                                         ),
-                                                    }));
+                                                    }))
                                                         }
                                                     }
                                                 }
                                             },
-                                            None => {
-                                                return StepResult::ThreadExit(ThreadExit::Panic(
-                                                    ThreadPanic {
-                                                        reason: ThreadPanicReason::CallToUnknown((
-                                                            found_trace.function_name.clone(),
-                                                            native_call.hash,
-                                                        )),
-                                                        stack_trace: self.stack.clone(),
-                                                        code_location: format!(
-                                                            "{}:{}",
-                                                            file!(),
-                                                            line!()
-                                                        ),
-                                                    },
-                                                ));
-                                            }
+                                            None => StepResult::ThreadExit(ThreadExit::Panic(
+                                                ThreadPanic {
+                                                    reason: ThreadPanicReason::CallToUnknown((
+                                                        found_trace.function_name.clone(),
+                                                        native_call.hash,
+                                                    )),
+                                                    stack_trace: self.stack.clone(),
+                                                    code_location: format!(
+                                                        "{}:{}",
+                                                        file!(),
+                                                        line!()
+                                                    ),
+                                                },
+                                            )),
                                         }
                                     }
                                     None => {
-                                        return StepResult::ThreadExit(ThreadExit::Panic(
-                                            ThreadPanic {
-                                                reason: ThreadPanicReason::MissingModule(
-                                                    native_call.hash,
-                                                ),
-                                                stack_trace: self.stack.clone(),
-                                                code_location: format!("{}:{}", file!(), line!()),
-                                            },
-                                        ));
+                                        StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                                            reason: ThreadPanicReason::MissingModule(
+                                                native_call.hash,
+                                            ),
+                                            stack_trace: self.stack.clone(),
+                                            code_location: format!("{}:{}", file!(), line!()),
+                                        }))
                                     }
                                 }
                             }
                         }
-                        None => {
-                            return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
-                                reason: ThreadPanicReason::MissingTrace(native_call.hash),
-                                stack_trace: self.stack.clone(),
-                                code_location: format!("{}:{}", file!(), line!()),
-                            }));
-                        }
+                        None => StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                            reason: ThreadPanicReason::MissingTrace(native_call.hash),
+                            stack_trace: self.stack.clone(),
+                            code_location: format!("{}:{}", file!(), line!()),
+                        })),
                     }
                 }
             },
-            Err(panic) => {
-                return StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
-                    reason: panic.reason,
-                    stack_trace: self.stack.clone(),
-                    code_location: panic.code_location,
-                }));
-            }
+            Err(panic) => StepResult::ThreadExit(ThreadExit::Panic(ThreadPanic {
+                reason: panic.reason,
+                stack_trace: self.stack.clone(),
+                code_location: panic.code_location,
+            })),
         }
     }
 
@@ -356,6 +334,30 @@ impl Thread {
                 &current_instruction.addressing_value,
                 self.arch,
             );
+
+            static STACK_OVERFLOW: AtomicBool = AtomicBool::new(false);
+            static HEAP_OUT_OF_MEMORY: AtomicBool = AtomicBool::new(false);
+
+            self.isolate
+                .heap_memory
+                .set_on_heap_out_of_memory(Box::new(|| {
+                    HEAP_OUT_OF_MEMORY.store(true, Ordering::Relaxed);
+                }));
+
+            /* self.isolate
+            .stack_memory
+            .set_on_stack_overflow(Box::new(|| {
+                STACK_OVERFLOW.store(true, Ordering::Relaxed);
+            })); */
+
+            if STACK_OVERFLOW.load(Ordering::SeqCst) {
+                return ThreadExit::Panic(ThreadPanic {
+                    reason: ThreadPanicReason::StackOverflow,
+                    stack_trace: self.stack.clone(),
+                    code_location: format!("{}:{}", file!(), line!()),
+                });
+            }
+
             match execute_result {
                 Ok(result) => match result {
                     crate::instructions::ExecuterResult::Continue => {
@@ -418,26 +420,36 @@ impl Thread {
                                             frame_pos: current_stack.frame_pos,
                                             pos: current_stack.pos,
                                             stack_caller: current_stack.caller.map(|c| c.id),
+                                            arch: self.arch,
                                         },
                                         native_call.params,
                                     );
+
                                     match response {
                                         VmNativeAnswer::Ok(return_value) => {
                                             match return_value {
-                                                VmNativeCallParameters::Static(static_value) => {
-                                                    current_stack.registers.Y = static_value;
-                                                }
-                                                VmNativeCallParameters::Dynamic(dynamic_value) => {
+                                                EllieData::String(string) => {
                                                     self.isolate.heap_memory.set(
                                                         &native_call.return_heap_position,
-                                                        dynamic_value,
+                                                        RawType::generate_string(string),
                                                     );
                                                     current_stack.registers.Y =
                                                         StaticRawType::from_heap_reference(
                                                             native_call.return_heap_position,
-                                                        )
+                                                        );
+                                                }
+                                                EllieData::Array(vec) => {
+                                                    todo!("Array return not yet implemented")
+                                                }
+                                                EllieData::Class(vec) => {
+                                                    todo!("Class return not yet implemented")
+                                                }
+                                                value => {
+                                                    current_stack.registers.Y =
+                                                        ellie_data_to_static_raw_type(value);
                                                 }
                                             }
+
                                             current_stack.pos += 1;
                                         }
                                         VmNativeAnswer::RuntimeError(e) => {
@@ -469,32 +481,35 @@ impl Thread {
                                                                 stack_caller: current_stack
                                                                     .caller
                                                                     .map(|c| c.id),
+                                                                arch: self.arch,
                                                             },
                                                             native_call.params,
                                                         );
                                                         match response {
                                                             VmNativeAnswer::Ok(return_value) => {
                                                                 match return_value {
-                                                                VmNativeCallParameters::Static(
-                                                                    static_value,
-                                                                ) => {
-                                                                    current_stack.registers.Y =
-                                                                        static_value;
-                                                                }
-                                                                VmNativeCallParameters::Dynamic(
-                                                                    dynamic_value,
-                                                                ) => {
-                                                                    self.isolate.heap_memory.set(
-                                                                        &native_call
-                                                                            .return_heap_position,
-                                                                        dynamic_value,
-                                                                    );
-                                                                    current_stack.registers.Y =
+                                                                    EllieData::String(string) => {
+                                                                        self.isolate.heap_memory.set(
+                                                                            &native_call
+                                                                                .return_heap_position,
+                                                                            RawType::generate_string(string),
+                                                                        );
+                                                                        current_stack.registers.Y =
                                                                     StaticRawType::from_heap_reference(
                                                                         native_call.return_heap_position,
                                                                     )
+                                                                    }
+                                                                    EllieData::Array(vec) => {
+                                                                        todo!("Array return not yet implemented")
+                                                                    }
+                                                                    EllieData::Class(vec) => {
+                                                                        todo!("Class return not yet implemented")
+                                                                    }
+                                                                    value => {
+                                                                        current_stack.registers.Y =
+                                                                    ellie_data_to_static_raw_type(value)
+                                                                    }
                                                                 }
-                                                            }
                                                                 current_stack.pos += 1;
                                                             }
                                                             VmNativeAnswer::RuntimeError(e) => {

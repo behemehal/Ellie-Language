@@ -15,6 +15,7 @@ pub struct SetterCall {
     pub value_pos: defs::Cursor,
     pub hash: usize,
     pub complete: bool,
+    pub virtual_element: bool,
 }
 
 impl Converter<SetterCall, ellie_core::definite::items::setter_call::SetterCall> for SetterCall {

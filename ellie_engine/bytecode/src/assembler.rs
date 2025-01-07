@@ -1,7 +1,7 @@
 use crate::{
     instruction_table,
     instructions::Instruction,
-    transpiler::Transpiler,
+    transpiler::items::Transpiler,
     utils::{limit_platform_size, usize_to_le_bytes},
 };
 use alloc::{
@@ -10,6 +10,7 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
+    definite::items::Collecting,
     defs::{DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture},
     utils::ExportPage,
 };
@@ -113,10 +114,10 @@ impl AssembleResult {
             .iter()
             .filter(|x| x.rtype == DebugHeaderType::NativeFunction)
             .map(|x| NativeCallTrace {
-                module_name: if x.module_name.contains(">") {
+                module_name: if x.module_name.contains('>') {
                     x.module_name.to_string()
                 } else {
-                    x.module_name.clone().split(">").collect::<Vec<_>>()[0]
+                    x.module_name.clone().split('>').collect::<Vec<_>>()[0]
                         .split('_')
                         .last()
                         .unwrap()
@@ -204,13 +205,13 @@ impl AssembleResult {
         for (idx, header) in self.debug_headers.iter().enumerate() {
             if header.rtype == DebugHeaderType::NativeFunction {
                 native_calls.push(NativeCallTrace {
-                    module_name: if !header.module_name.contains(">") {
+                    module_name: if !header.module_name.contains('>') {
                         header.module_name.to_string()
                     } else {
                         header
                             .module_name
                             .clone()
-                            .split(">")
+                            .split('>')
                             .next()
                             .unwrap()
                             .split('_')
@@ -452,6 +453,16 @@ impl Assembler {
         page_hash: Option<Vec<usize>>,
         borrow: bool,
     ) -> Option<LocalHeader> {
+        //If the local is already found, we will just return it, or else we register it as local
+        //After that function parsed by bytecode generator this borrowed local will be updated
+        if self.locals.iter().any(|local| local.hash == Some(hash)) {
+            return self
+                .locals
+                .iter()
+                .find(|local| local.hash == Some(hash))
+                .cloned();
+        }
+
         let mut locals: Vec<&LocalHeader> = self
             .locals
             .iter()
@@ -474,7 +485,7 @@ impl Assembler {
                 match self.module.pages.clone().into_iter().find_map(|x| {
                     if page_hash.clone().unwrap().contains(&x.hash) {
                         x.items.clone().into_iter().find_map(|e| match e {
-                            ellie_core::definite::items::Collecting::Function(function) => {
+                            Collecting::Function(function) => {
                                 if function.hash == hash {
                                     Some(LocalHeader {
                                         name: function.name.clone(),
@@ -488,7 +499,7 @@ impl Assembler {
                                     None
                                 }
                             }
-                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                            Collecting::Variable(variable) => {
                                 if variable.hash == hash {
                                     Some(LocalHeader {
                                         name: variable.name.clone(),
@@ -502,7 +513,7 @@ impl Assembler {
                                     None
                                 }
                             }
-                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                            Collecting::NativeFunction(nfunction) => {
                                 if nfunction.hash == hash {
                                     Some(LocalHeader {
                                         name: nfunction.name.clone(),
@@ -594,8 +605,8 @@ impl Assembler {
                 }
                 match self.module.pages.clone().into_iter().find_map(|x| {
                     if page_hash.clone().unwrap().contains(&x.hash) {
-                        x.items.clone().into_iter().find_map(|e| match e {
-                            ellie_core::definite::items::Collecting::Function(function) => {
+                        x.items.into_iter().find_map(|e| match e {
+                            Collecting::Function(function) => {
                                 if &function.name == name {
                                     Some(LocalHeader {
                                         name: function.name.clone(),
@@ -609,7 +620,7 @@ impl Assembler {
                                     None
                                 }
                             }
-                            ellie_core::definite::items::Collecting::Variable(variable) => {
+                            Collecting::Variable(variable) => {
                                 if &variable.name == name {
                                     Some(LocalHeader {
                                         name: variable.name.clone(),
@@ -623,13 +634,27 @@ impl Assembler {
                                     None
                                 }
                             }
-                            ellie_core::definite::items::Collecting::NativeFunction(nfunction) => {
+                            Collecting::NativeFunction(nfunction) => {
                                 if &nfunction.name == name {
                                     Some(LocalHeader {
                                         name: nfunction.name.clone(),
                                         cursor: 0,
                                         reference: Instruction::absolute_static(0),
                                         hash: Some(nfunction.hash),
+                                        page_hash: x.hash,
+                                        borrowed: Some(Vec::new()),
+                                    })
+                                } else {
+                                    None
+                                }
+                            }
+                            Collecting::Class(class) => {
+                                if class.name == *name {
+                                    Some(LocalHeader {
+                                        name: class.name.clone(),
+                                        cursor: 0,
+                                        reference: Instruction::absolute_static(0),
+                                        hash: Some(class.hash),
                                         page_hash: x.hash,
                                         borrowed: Some(Vec::new()),
                                     })
@@ -677,10 +702,10 @@ impl Assembler {
 
         for item in &processed_page.items {
             match item {
-                ellie_core::definite::items::Collecting::Variable(variable) => {
+                Collecting::Variable(variable) => {
                     variable.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Function(function) => {
+                Collecting::Function(function) => {
                     let start = self.instructions.len();
                     let transpile_res =
                         function.transpile(self, processed_page.hash, &processed_page);
@@ -693,51 +718,49 @@ impl Assembler {
                     }
                     transpile_res
                 }
-                ellie_core::definite::items::Collecting::ForLoop(for_loop) => {
+                Collecting::ForLoop(for_loop) => {
                     for_loop.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Condition(condition) => {
+                Collecting::Condition(condition) => {
                     condition.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Class(class) => {
+                Collecting::Class(class) => {
                     class.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Ret(ret) => {
-                    ret.transpile(self, processed_page.hash, &processed_page)
-                }
-                ellie_core::definite::items::Collecting::Constructor(constructor) => {
+                Collecting::Ret(ret) => ret.transpile(self, processed_page.hash, &processed_page),
+                Collecting::Constructor(constructor) => {
                     constructor.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Import(_) => true,
-                ellie_core::definite::items::Collecting::FileKey(_) => true,
-                ellie_core::definite::items::Collecting::Getter(_) => todo!(),
-                ellie_core::definite::items::Collecting::Setter(_) => todo!(),
-                ellie_core::definite::items::Collecting::Generic(_) => true,
-                ellie_core::definite::items::Collecting::GetterCall(getter_call) => {
+                Collecting::Import(_) => true,
+                Collecting::FileKey(_) => true,
+                Collecting::Getter(_) => todo!(),
+                Collecting::Setter(_) => todo!(),
+                Collecting::Generic(_) => true,
+                Collecting::GetterCall(getter_call) => {
                     getter_call.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::SetterCall(setter_call) => {
+                Collecting::SetterCall(setter_call) => {
                     setter_call.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Enum(_) => todo!(),
-                ellie_core::definite::items::Collecting::NativeFunction(native_function) => {
+                Collecting::Enum(_) => todo!(),
+                Collecting::NativeFunction(native_function) => {
                     native_function.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::None => todo!(),
-                ellie_core::definite::items::Collecting::Brk(_) => todo!(),
-                ellie_core::definite::items::Collecting::Go(_) => todo!(),
-                ellie_core::definite::items::Collecting::FunctionParameter(function_parameter) => {
+                Collecting::None => todo!(),
+                Collecting::Brk(brk) => brk.transpile(self, processed_page.hash, &processed_page),
+                Collecting::Go(_) => todo!(),
+                Collecting::FunctionParameter(function_parameter) => {
                     function_parameter.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::ConstructorParameter(_) => true,
-                ellie_core::definite::items::Collecting::SelfItem(self_item) => {
+                Collecting::ConstructorParameter(_) => true,
+                Collecting::SelfItem(self_item) => {
                     self_item.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::Extend(_) => true,
-                ellie_core::definite::items::Collecting::Loop(loop_type) => {
+                Collecting::Extend(_) => true,
+                Collecting::Loop(loop_type) => {
                     loop_type.transpile(self, processed_page.hash, &processed_page)
                 }
-                ellie_core::definite::items::Collecting::ClassInstance(class_instance) => {
+                Collecting::ClassInstance(class_instance) => {
                     class_instance.transpile(self, processed_page.hash, &processed_page)
                 }
             };
