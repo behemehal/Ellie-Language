@@ -2,7 +2,7 @@ use crate::OutputTypesSelector;
 use bincode::Options;
 use ellie_engine::{
     compiler::parse_pages,
-    ellie_bytecode::assembler::{Assembler, PlatformAttributes},
+    ellie_bytecode_gen2::assembler::{Assembler, PlatformAttributes},
     ellie_core::{
         defs::{ModuleMap, PlatformArchitecture},
         module_path::parse_module_import,

@@ -1,19 +1,27 @@
 [package]
-name = "ellie_bytecode"
+name = "ellie_bytecode_gen2"
 description = "Bytecode assembler/encoder/decoder for ellie language"
-version = "0.5.4"
+version = "0.1.0"
 edition = "2021"
-authors = ["Ahmetcan Aksu <ahmetcanaksu@behemehal.org>", "Behemehal <info@behemehal.org>"]
+authors = [
+    "Ahmetcan Aksu <ahmetcanaksu@behemehal.org>",
+    "Behemehal <info@behemehal.org>",
+]
 license = "GPL-2.0"
 repository = "https://github.com/behemehal/Ellie-Language"
 homepage = "https://www.ellie-lang.org"
 
 [dependencies]
-ellie_core = { path = "../core", version = "0.7.3" }
+byteorder = "1.5.0"
+ellie_core = { path = "../core", version = "0.7.3", default-features = false, features = [
+    "bytecode",
+] }
 ellie_parser = { path = "../parser", version = "0.8.3" }
 enum-as-inner = "0.6.1"
 lazy_static = "1.4.0"
+num-traits = "0.2.19"
+num_enum = "0.7.3"
 
 [features]
 default = ["std"]
-std = []
+std = ["ellie_core/std"]

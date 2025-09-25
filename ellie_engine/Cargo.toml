@@ -20,13 +20,14 @@ ellie_core = { path = "core", version = "0.7.3", default-features = false }
 ellie_tokenizer = { path = "tokenizer", version = "0.7.3", default-features = false, optional = true }
 ellie_parser = { path = "parser", version = "0.8.3", default-features = false, optional = true }
 ellie_bytecode = { path = "bytecode", version = "0.5.4", optional = true }
+ellie_bytecode_gen2 = { path = "bytecode_gen2", version = "0.1.0", optional = true }
 ellie_vm = { path = "vm", version = "0.6.5", optional = true }
 ellie_fmt = { path = "fmt", version = "0.5.3", optional = true }
 ellie_renderer_utils = { path = "renderer_utils", version = "0.3.0", optional = true,  default-features = false }
 
 [features]
 default = ["vm", "compiler", "fmt", "std"]
-compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_core/compiler_utils"]
+compiler = ["ellie_tokenizer", "ellie_parser", "ellie_bytecode", "ellie_bytecode_gen2", "ellie_core/compiler_utils"]
 vm = ["ellie_vm"]
 std = ["ellie_vm/std", "ellie_core/std"]
 renderer_utils = ["ellie_renderer_utils"]
@@ -49,5 +50,5 @@ name = "compile"
 harness = false
 
 [workspace]
-members = [".", "./core", "./tokenizer", "./parser", "./bytecode", "./vm", "./fmt", "./renderer_utils"]
+members = [".", "core", "tokenizer", "parser", "bytecode", "vm", "fmt", "renderer_utils", "vm_gen2", "bytecode_gen2"]
 default-members = ["."]

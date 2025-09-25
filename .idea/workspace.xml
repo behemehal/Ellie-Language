@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/ellie_engine/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/elliec/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/elliefmt/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/ellievm/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/tools/integration_test/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e11f4d9e-2142-4dee-827d-c97128632164" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/ellie_engine/parser/src/processors/types/reference.rs" beforeDir="false" afterPath="$PROJECT_DIR$/ellie_engine/parser/src/processors/types/reference.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ellie_engine/renderer_utils/src/options.rs" beforeDir="false" afterPath="$PROJECT_DIR$/ellie_engine/renderer_utils/src/options.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/elliec/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/elliec/.vscode/launch.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:dev" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="xomrnvfq" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2nfvIwg9oDHzvzoh1TG9wK5vb80" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Cargo.Run elliec (1).executor&quot;: &quot;Debug&quot;,
+    &quot;Cargo.Run elliec on main.ei.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ahmet/Desktop/Ellie-Language&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
+    &quot;org.rust.first.attach.projects&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust.cargo.check&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="for chain in self.data.chain.clone() {" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Cargo.Run elliec on main.ei">
+    <configuration name="Run elliec on main.ei" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package elliec --bin elliec -- compile -e ../tools/debug_files/main.ei" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$/elliec" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run elliec" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="buildProfileId" value="dev" />
+      <option name="command" value="run --package elliec --bin elliec" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$/elliec" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="FULL" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Cargo.Run elliec" />
+      <item itemvalue="Cargo.Run elliec on main.ei" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Run elliec on main.ei" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e11f4d9e-2142-4dee-827d-c97128632164" name="Changes" comment="" />
+      <created>1729376869382</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1729376869382</updated>
+      <workItem from="1729376870057" duration="2090000" />
+      <workItem from="1733004241572" duration="1408000" />
+      <workItem from="1733068682206" duration="1696000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <condition expression="is_debuggable == true" language="Rust" />
+          <url>file://$PROJECT_DIR$/ellie_engine/parser/src/processors/types/reference.rs</url>
+          <line>775</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

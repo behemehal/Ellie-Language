@@ -31,3 +31,6 @@ pub mod native;
 pub mod utils;
 #[cfg(feature = "compiler_utils")]
 pub mod warning;
+
+#[cfg(feature = "bytecode")]
+pub mod bytecode;
