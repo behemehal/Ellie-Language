@@ -21,12 +21,16 @@ pub enum OutputTypesSelector {
     DependencyAnalysis,
     /// Compiled module as json
     Json,
-    /// ByteCode binary format
+    /// ByteCode binary format (gen1)
     ByteCode,
-    /// ByteCode assembly text
+    /// ByteCode assembly text (gen1)
     ByteCodeAsm,
     /// ByteCode debug file
     ByteCodeDebug,
+    /// ByteCode binary format (gen2)
+    ByteCode2,
+    /// ByteCode assembly text (gen2)
+    ByteCodeAsm2,
     /// No output
     Nop,
 }
@@ -39,6 +43,8 @@ pub enum OutputTypes {
     ByteCode,
     ByteCodeAsm,
     ByteCodeDebug,
+    ByteCode2,
+    ByteCodeAsm2,
     Nop,
 }
 
@@ -253,6 +259,8 @@ fn main() {
                     "json" => OutputTypesSelector::Json,
                     "byteCode" => OutputTypesSelector::ByteCode,
                     "byteCodeAsm" => OutputTypesSelector::ByteCodeAsm,
+                    "byteCode2" => OutputTypesSelector::ByteCode2,
+                    "byteCodeAsm2" => OutputTypesSelector::ByteCodeAsm2,
                     "depA" => OutputTypesSelector::DependencyAnalysis,
                     "nop" => OutputTypesSelector::Nop,
                     _ => {

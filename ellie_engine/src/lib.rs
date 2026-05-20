@@ -44,6 +44,10 @@ pub extern crate ellie_tokenizer;
 #[cfg(feature = "vm")]
 pub extern crate ellie_vm;
 
+/// EllieVm Gen2 is the generation 2 virtual machine for Ellie.
+#[cfg(feature = "vm_gen2")]
+pub extern crate ellie_vm_gen2;
+
 #[doc(hidden)]
 pub mod engine_constants;
 

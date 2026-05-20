@@ -238,7 +238,7 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("--output-type")
                         .takes_value(true)
                         .default_value("byteCode")
-                        .possible_values(["bin", "json", "byteCode", "byteCodeAsm", "depA", "nop"]),
+                        .possible_values(["bin", "json", "byteCode", "byteCodeAsm", "byteCode2", "byteCodeAsm2", "depA", "nop"]),
                 )
                 .arg(
                     Arg::new("target")
@@ -289,6 +289,99 @@ pub fn generate_elliec_options() -> Command<'static> {
                         .long("-json-log"),
                 )
                 .arg(Arg::new("detailed").short('d').long("--detailed-version")),
+        )
+}
+
+pub fn generate_ellie_options() -> Command<'static> {
+    Command::new("ellie")
+        .about("Ellie language toolchain")
+        .arg_required_else_help(true)
+        .subcommand(
+            Command::new("new")
+                .about("Scaffold a new Ellie project")
+                .arg(
+                    Arg::new("name")
+                        .help("Project name")
+                        .takes_value(true)
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("path")
+                        .help("Parent directory to create the project in (default: ./<name>)")
+                        .short('p')
+                        .long("--path")
+                        .takes_value(true)
+                        .value_hint(ValueHint::DirPath),
+                ),
+        )
+        .subcommand(
+            Command::new("run")
+                .about("Compile and run a file or the project in the current directory")
+                .arg(
+                    Arg::new("file")
+                        .help("Target .ei file (omit to use ellie.json in the target path)")
+                        .takes_value(true)
+                        .value_hint(ValueHint::FilePath),
+                )
+                .arg(
+                    Arg::new("path")
+                        .help("Project root directory (default: current directory)")
+                        .short('p')
+                        .long("--path")
+                        .takes_value(true)
+                        .value_hint(ValueHint::DirPath),
+                ),
+        )
+        .subcommand(
+            Command::new("build")
+                .about("Compile a file or the project in the current directory")
+                .arg(
+                    Arg::new("file")
+                        .help("Target .ei file (omit to use ellie.json in the target path)")
+                        .takes_value(true)
+                        .value_hint(ValueHint::FilePath),
+                )
+                .arg(
+                    Arg::new("path")
+                        .help("Project root directory (default: current directory)")
+                        .short('p')
+                        .long("--path")
+                        .takes_value(true)
+                        .value_hint(ValueHint::DirPath),
+                ),
+        )
+        .subcommand(
+            Command::new("bridge")
+                .about("Native bridge helpers")
+                .arg_required_else_help(true)
+                .subcommand(
+                    Command::new("new")
+                        .about("Scaffold a new native Rust bridge crate")
+                        .arg(
+                            Arg::new("name")
+                                .help("Bridge crate name")
+                                .takes_value(true)
+                                .required(true),
+                        )
+                        .arg(
+                            Arg::new("path")
+                                .help("Project root (bridge goes into <path>/bridges/<name>, default: .)")
+                                .short('p')
+                                .long("--path")
+                                .takes_value(true)
+                                .value_hint(ValueHint::DirPath),
+                        ),
+                ),
+        )
+        .subcommand(
+            Command::new("version")
+                .about("Print version information")
+                .arg(
+                    Arg::new("detailed")
+                        .help("Show detailed version info")
+                        .short('d')
+                        .long("--detailed-version"),
+                ),
         )
 }
 

@@ -1,0 +1,157 @@
+import "./core.ei";
+
+pub fn load_library_handle(path: string) : int;
+pub fn call_library_function(handle: int, name: string, args: [(string, dyn)]) : dyn;
+
+// ── Result constants ────────────────────────────────────────────────────────
+// MessageBox return values
+// IDOK=1  IDCANCEL=2  IDABORT=3  IDRETRY=4  IDIGNORE=5  IDYES=6  IDNO=7
+
+// ── MiniUI ──────────────────────────────────────────────────────────────────
+// A small Win32-backed UI toolkit written in Ellie.
+// Wraps kernel32, user32 and shell32 into a friendly class-based API.
+
+class MiniUI {
+    co() {
+        self.user32   = load_library_handle("user32.dll");
+        self.kernel32 = load_library_handle("kernel32.dll");
+        self.shell32  = load_library_handle("shell32.dll");
+    }
+    pri v user32   : int;
+    pri v kernel32 : int;
+    pri v shell32  : int;
+
+    // ── Console helpers ──────────────────────────────────────────────────────
+
+    pub fn set_title(title: string) {
+        call_library_function(self.kernel32, "SetConsoleTitleA",
+            [("pointer", title)]);
+    }
+
+    pub fn sleep(ms: int) {
+        call_library_function(self.kernel32, "Sleep",
+            [("uint32", ms)]);
+    }
+
+    // ── Tone / sound ─────────────────────────────────────────────────────────
+    // MB_ICONASTERISK=0x40  MB_ICONEXCLAMATION=0x30  MB_ICONHAND=0x10  MB_OK=0
+
+    pub fn beep_info() {
+        call_library_function(self.user32, "MessageBeep", [("uint32", 64)]);
+    }
+
+    pub fn beep_warn() {
+        call_library_function(self.user32, "MessageBeep", [("uint32", 48)]);
+    }
+
+    pub fn beep_error() {
+        call_library_function(self.user32, "MessageBeep", [("uint32", 16)]);
+    }
+
+    // ── Dialogs ───────────────────────────────────────────────────────────────
+
+    // Info popup (MB_OK | MB_ICONINFORMATION = 0x40)
+    pub fn info(msg: string, title: string) {
+        call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 64)]);
+    }
+
+    // Warning popup (MB_OK | MB_ICONWARNING = 0x30)
+    pub fn warn(msg: string, title: string) {
+        call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 48)]);
+    }
+
+    // Error popup (MB_OK | MB_ICONERROR = 0x10)
+    pub fn error(msg: string, title: string) {
+        call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 16)]);
+    }
+
+    // Yes/No question (MB_YESNO | MB_ICONQUESTION = 0x24)
+    // Returns 6 (IDYES) or 7 (IDNO)
+    pub fn ask(msg: string, title: string) : int {
+        ret call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 36)]) as int;
+    }
+
+    // OK/Cancel question (MB_OKCANCEL | MB_ICONQUESTION = 0x21)
+    // Returns 1 (IDOK) or 2 (IDCANCEL)
+    pub fn confirm(msg: string, title: string) : int {
+        ret call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 33)]) as int;
+    }
+
+    // Abort/Retry/Ignore (MB_ABORTRETRYIGNORE | MB_ICONWARNING = 0x32)
+    // Returns 3=Abort 4=Retry 5=Ignore
+    pub fn abort_retry(msg: string, title: string) : int {
+        ret call_library_function(self.user32, "MessageBoxA",
+            [("uint64", 0), ("pointer", msg), ("pointer", title), ("uint32", 50)]) as int;
+    }
+
+    // ── Shell helpers ─────────────────────────────────────────────────────────
+
+    // Open a URL or file path with the default handler (ShellExecuteA)
+    pub fn open(path: string) {
+        call_library_function(self.shell32, "ShellExecuteA",
+            [("uint64", 0), ("pointer", "open"), ("pointer", path),
+             ("uint64", 0), ("uint64", 0), ("uint32", 1)]);
+    }
+}
+
+// ── Demo ─────────────────────────────────────────────────────────────────────
+
+fn run_demo(ui: MiniUI) {
+    ui.set_title("Ellie Mini UI  —  demo");
+    println("Console title set.");
+
+    ui.info(
+        "Welcome to the Ellie Mini UI library!\n\nThis demo shows dialogs, sounds and shell integration backed entirely by Win32 FFI calls from Ellie code.",
+        "Ellie Mini UI"
+    );
+
+    v choice = ui.ask("Would you like to run the sound demo?", "Ellie Mini UI");
+    if choice == 6 {
+        println("Playing sounds...");
+        ui.beep_info();
+        ui.sleep(600);
+        ui.beep_warn();
+        ui.sleep(600);
+        ui.beep_error();
+        ui.sleep(600);
+        ui.info("All three system sounds played.", "Sound Demo");
+    }
+
+    v retry_choice = ui.abort_retry(
+        "Simulating a recoverable error.\n\nClick Retry to try again, Abort to stop, Ignore to continue.",
+        "Error Simulation"
+    );
+    if retry_choice == 3 {
+        println("User chose Abort.");
+        ui.error("Operation aborted by user.", "Ellie Mini UI");
+    }
+    if retry_choice == 4 {
+        println("User chose Retry.");
+        ui.warn("Retrying... (simulated)", "Ellie Mini UI");
+    }
+    if retry_choice == 5 {
+        println("User chose Ignore.");
+    }
+
+    v open_choice = ui.confirm(
+        "Open the Ellie Language GitHub page in your browser?",
+        "Ellie Mini UI"
+    );
+    if open_choice == 1 {
+        ui.open("https://github.com/behemehal/Ellie-Language");
+        println("Browser opened.");
+    }
+
+    ui.info("Demo complete. Goodbye!", "Ellie Mini UI");
+    println("Done.");
+}
+
+fn main() {
+    v ui = new MiniUI();
+    run_demo(ui);
+}

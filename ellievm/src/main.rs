@@ -2,6 +2,7 @@ mod commands;
 pub mod debugger;
 mod debugger_messages;
 mod run;
+mod run_gen2;
 mod stream;
 mod utils;
 
@@ -719,58 +720,106 @@ fn main() {
                 None => None,
             };
 
-            let path = Path::new(matches.value_of("target").unwrap());
-            let program = if path.exists() {
-                if path.is_file() {
-                    match File::open(path) {
-                        Ok(mut e) => {
-                            let mut reader = RFile::new(&mut e);
-                            let mut program_reader = ProgramReader::new(&mut reader);
-                            let mut program = Program::new();
-                            match program.build_from_reader(&mut program_reader) {
-                                Ok(_) => program,
-                                Err(e) => {
-                                    println!(
-                                        "{}Error:{} Failed to read program {}[{:?}]{}",
-                                        cli_color.color(Colors::Red),
-                                        cli_color.color(Colors::Reset),
-                                        cli_color.color(Colors::Cyan),
-                                        e,
-                                        cli_color.color(Colors::Reset)
-                                    );
-                                    std::process::exit(1);
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            println!(
-                                "{}Error:{} Failed to read file {}[{}]{}",
-                                cli_color.color(Colors::Red),
-                                cli_color.color(Colors::Reset),
-                                cli_color.color(Colors::Cyan),
-                                e,
-                                cli_color.color(Colors::Reset)
-                            );
-                            std::process::exit(1);
-                        }
-                    }
-                } else {
+            let target_path_str = matches.value_of("target").unwrap();
+            let path = Path::new(target_path_str);
+
+            // Auto-detect gen2 binary by extension (.eic2) or explicit path ending
+            let is_gen2 = target_path_str.ends_with(".eic2");
+
+            if is_gen2 {
+                // --- Gen2 path ---
+                if !path.exists() || !path.is_file() {
                     println!(
-                        "{}Error:{} Given path is not a file",
+                        "{}Error:{} Target path does not exist or is not a file",
                         cli_color.color(Colors::Red),
                         cli_color.color(Colors::Reset)
                     );
                     std::process::exit(1);
                 }
+                let bytes = match std::fs::read(path) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        println!(
+                            "{}Error:{} Failed to read file {}[{}]{}",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset),
+                            cli_color.color(Colors::Cyan),
+                            e,
+                            cli_color.color(Colors::Reset)
+                        );
+                        std::process::exit(1);
+                    }
+                };
+                use ellie_engine::ellie_vm_gen2::program::Program as Gen2Program;
+                let gen2_program = match Gen2Program::load_from_bytes(&bytes) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        println!(
+                            "{}Error:{} Failed to load gen2 program {}[{}]{}",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset),
+                            cli_color.color(Colors::Cyan),
+                            e,
+                            cli_color.color(Colors::Reset)
+                        );
+                        std::process::exit(1);
+                    }
+                };
+                run_gen2::run_gen2(gen2_program);
             } else {
-                println!(
-                    "{}Error:{} Target path does not exist",
-                    cli_color.color(Colors::Red),
-                    cli_color.color(Colors::Reset)
-                );
-                std::process::exit(1);
-            };
-            run::run(program, vm_settings, debug_file);
+                // --- Gen1 path ---
+                let program = if path.exists() {
+                    if path.is_file() {
+                        match File::open(path) {
+                            Ok(mut e) => {
+                                let mut reader = RFile::new(&mut e);
+                                let mut program_reader = ProgramReader::new(&mut reader);
+                                let mut program = Program::new();
+                                match program.build_from_reader(&mut program_reader) {
+                                    Ok(_) => program,
+                                    Err(e) => {
+                                        println!(
+                                            "{}Error:{} Failed to read program {}[{:?}]{}",
+                                            cli_color.color(Colors::Red),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Cyan),
+                                            e,
+                                            cli_color.color(Colors::Reset)
+                                        );
+                                        std::process::exit(1);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                println!(
+                                    "{}Error:{} Failed to read file {}[{}]{}",
+                                    cli_color.color(Colors::Red),
+                                    cli_color.color(Colors::Reset),
+                                    cli_color.color(Colors::Cyan),
+                                    e,
+                                    cli_color.color(Colors::Reset)
+                                );
+                                std::process::exit(1);
+                            }
+                        }
+                    } else {
+                        println!(
+                            "{}Error:{} Given path is not a file",
+                            cli_color.color(Colors::Red),
+                            cli_color.color(Colors::Reset)
+                        );
+                        std::process::exit(1);
+                    }
+                } else {
+                    println!(
+                        "{}Error:{} Target path does not exist",
+                        cli_color.color(Colors::Red),
+                        cli_color.color(Colors::Reset)
+                    );
+                    std::process::exit(1);
+                };
+                run::run(program, vm_settings, debug_file);
+            }
         }
         Some(("debug", matches)) => {
             if !matches.is_present("allowPanics") {

@@ -19,7 +19,7 @@ ellie_core = { path = "../core", version = "0.7.3", default-features = false, fe
 ellie_parser = { path = "../parser", version = "0.8.3" }
 enum-as-inner = "0.6.1"
 lazy_static = "1.4.0"
-num-traits = "0.2.19"
+num-traits = "0.2"
 num_enum = "0.7.3"
 
 [features]

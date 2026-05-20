@@ -1,0 +1,35 @@
+import "../core.ei";
+
+fn power(base: int, exp: int) : int {
+    if (exp == 0) {
+        ret 1;
+    }
+    ret base * power(base, exp - 1);
+}
+
+fn power_iter(base: int, exp: int) : int {
+    v result = 1;
+    v i = 0;
+    loop (i < exp) {
+        result = result * base;
+        i = i + 1;
+    }
+    ret result;
+}
+
+fn main() {
+    println("=== Power ===");
+
+    println("2^0  = " + power(2, 0));
+    println("2^1  = " + power(2, 1));
+    println("2^8  = " + power(2, 8));
+    println("2^10 = " + power(2, 10));
+    println("3^5  = " + power(3, 5));
+    println("10^3 = " + power(10, 3));
+
+    println("--- iterative ---");
+    println("2^8  = " + power_iter(2, 8));
+    println("2^10 = " + power_iter(2, 10));
+    println("3^5  = " + power_iter(3, 5));
+    println("10^3 = " + power_iter(10, 3));
+}

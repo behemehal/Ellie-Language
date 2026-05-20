@@ -1,0 +1,27 @@
+import "./core.ei";
+
+pub fn sleep_ms(ms: int);
+pub fn message_box(text: string, caption: string, flags: int) : int;
+
+fn main() {
+    println("=== gen2 FFI / Windows Test ===");
+
+    println("Sleeping 100ms...");
+    v t0 = timestamp();
+    sleep_ms(10);
+    v t1 = timestamp();
+    v elapsed = t1 - t0;
+    println("Slept: " + elapsed + "ms (expected ~100)");
+
+    println("Sleeping 250ms...");
+    v t2 = timestamp();
+    sleep_ms(250);
+    v t3 = timestamp();
+    v elapsed2 = t3 - t2;
+    println("Slept: " + elapsed2 + "ms (expected ~250)");
+
+    v r = message_box("gen2 FFI test. Click OK.", "Ellie gen2 FFI", 0);
+    println("MessageBox returned: " + r + " (1=IDOK)");
+
+    println("=== done ===");
+}

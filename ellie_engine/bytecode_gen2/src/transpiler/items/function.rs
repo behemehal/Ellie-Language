@@ -1,52 +1,101 @@
-use std::println;
-
 use crate::{
-    assembler::LocalHeader,
+    assembler::MainFunction,
     create_instruction,
     instructions::Instruction,
     opcode::OpCode,
     operand::{AddressingModes, Operand, Registers},
-    types::Types,
-    utils::{limit_platform_size, usize_to_le_bytes},
+    utils::limit_platform_size,
 };
-use ellie_core::{
-    definite::items::function,
-    defs::{Cursor, DebugHeader, DebugHeaderType},
-};
+use ellie_core::defs::{DebugHeader, DebugHeaderType};
 
-impl super::Transpiler for function::Function {
+impl super::Transpiler for ellie_core::definite::items::function::Function {
     fn transpile(
         &self,
         assembler: &mut crate::assembler::Assembler,
         _hash: usize,
         processed_page: &ellie_parser::parser::ProcessedPage,
     ) -> bool {
-        for dependency in &processed_page.dependencies {
-            assembler.assemble_dependency(&dependency.hash);
-        }
+        // Emit function marker so the VM can build a hash→PC lookup table
+        let fn_hash_raw: ellie_core::bytecode::RawType = self.hash.into();
+        assembler.instructions.push(create_instruction!(
+            OpCode::Fn,
+            Operand {
+                mode: AddressingModes::Immediate,
+                register: None,
+                immediate: Some(fn_hash_raw),
+            }
+        ));
+        let fn_start = assembler.instructions.len() - 1;
 
-      /*   assembler.add_local(LocalHeader {
-            name: self.name.clone(),
-            cursor: assembler.location(),
-            page_hash: processed_page.hash,
-            hash: Some(self.hash),
-            reference: None,
-            borrowed: None,
-        }); */
+        // Save caller's stack depth, start fresh for this function scope
+        let saved_stack_depth = assembler.stack_depth;
+        assembler.stack_depth = 0;
 
-        println!("function transpile: {}", self.name);
-
-        let instruction1 = create_instruction!(
-            //Save previous frame pointer
+        // Prologue: save old FP, set new FP = SP
+        assembler.instructions.push(create_instruction!(
             OpCode::Push,
             Operand {
                 mode: AddressingModes::Register,
                 register: Some(Registers::FP),
                 immediate: None
             }
-        );
-        let instruction2 = create_instruction!(
-            //Set new frame pointer as current stack pointer
+        ));
+        assembler.instructions.push(create_instruction!(
+            OpCode::Mov,
+            Operand {
+                mode: AddressingModes::Register,
+                register: Some(Registers::FP),
+                immediate: None
+            },
+            Operand {
+                mode: AddressingModes::Register,
+                register: Some(Registers::SP),
+                immediate: None
+            }
+        ));
+
+        // Register parameters as locals with negative FP offsets.
+        // Caller pushes params left-to-right; after `Push FP; Mov FP, SP`:
+        //   param[0] is at stack[FP - num_params - 1]
+        //   param[i] is at stack[FP - (num_params - i) - 1]
+        // Parameter hashes come from the inner page's FunctionParameter items.
+        let inner_params: alloc::vec::Vec<_> = assembler
+            .module
+            .pages
+            .iter()
+            .find(|p| p.hash == self.inner_page_id)
+            .map(|p| {
+                p.items
+                    .iter()
+                    .filter_map(|item| {
+                        if let ellie_core::definite::items::Collecting::FunctionParameter(fp) = item {
+                            Some(fp.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let num_params = inner_params.len() as isize;
+        for (i, fp) in inner_params.iter().enumerate() {
+            let cursor = -(num_params - i as isize) - 1;
+            assembler.add_local(crate::assembler::LocalHeader {
+                name: fp.name.clone(),
+                cursor,
+                reference: None,
+                hash: Some(fp.hash),
+                page_hash: processed_page.hash,
+                borrowed: None,
+            });
+        }
+
+        // Assemble the function body (inner page)
+        assembler.assemble_dependency(&self.inner_page_id);
+
+        // Epilogue: discard locals, restore FP, return
+        assembler.instructions.push(create_instruction!(
             OpCode::Mov,
             Operand {
                 mode: AddressingModes::Register,
@@ -58,42 +107,39 @@ impl super::Transpiler for function::Function {
                 register: Some(Registers::FP),
                 immediate: None
             }
-        );
-
-        let local_page = assembler.processed
-
-        let local_variable_count 
-        //allocate variables space in stack
-        let instruction3 = create_instruction!(
-            //Allocate space for local variables
-            OpCode::Sub,
+        ));
+        assembler.instructions.push(create_instruction!(
+            OpCode::Pop,
             Operand {
                 mode: AddressingModes::Register,
-                register: Some(Registers::SP),
+                register: Some(Registers::FP),
                 immediate: None
-            },
-            Operand {
-                mode: AddressingModes::Immediate,
-                register: None,
-                immediate: Some(self.parameters.len().into())
             }
-        );
+        ));
+        assembler.instructions.push(create_instruction!(OpCode::Ret));
 
+        let fn_end = assembler.instructions.len() - 1;
 
-        /* let instruction3 = create_instruction!(
-            OpCode::Jmp,
-            Operand {
-                mode: AddressingModes::Immediate,
-                register: None,
-                immediate: Some(10.into())
-            }
-        ); */
+        assembler.debug_headers.push(DebugHeader {
+            rtype: DebugHeaderType::Function,
+            hash: limit_platform_size(self.hash, assembler.platform_attributes.architecture),
+            start_end: (fn_start, fn_end),
+            module_name: processed_page.path.clone(),
+            module_hash: processed_page.hash,
+            name: self.name.clone(),
+            pos: self.pos,
+        });
 
-        assembler.instructions.push(instruction1);
-        assembler.instructions.push(instruction2);
-        assembler.instructions.push(instruction3);
+        if self.name == "main" {
+            assembler.main_function = Some(MainFunction {
+                hash: self.hash,
+                start: fn_start,
+                end: fn_end,
+            });
+        }
 
-        assembler.assemble_dependency(&self.inner_page_id);
+        // Restore caller's stack depth
+        assembler.stack_depth = saved_stack_depth;
 
         true
     }

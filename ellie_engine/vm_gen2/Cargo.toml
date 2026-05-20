@@ -1,12 +1,10 @@
 [package]
-name = "vm_gen2"
+name = "ellie_vm_gen2"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bitvec = { version = "1.0.1", default-features = false }
+ellie_core = { path = "../core", version = "0.7.3", default-features = false, features = ["std"] }
+ellie_bytecode_gen2 = { path = "../bytecode_gen2", version = "0.1.0" }
 byteorder = { version = "1.5.0", default-features = false }
-num-traits = { version = "0.2.19", default-features = false }
 num_enum = { version = "0.7.3", default-features = false }
-ufmt = "0.2.0"
-heapless = "0.8.0"

@@ -1,6 +1,9 @@
-pub mod variable;
-pub mod function;
 pub mod class;
+pub mod condition;
+pub mod function;
+pub mod native_function;
+pub mod ret;
+pub mod variable;
 
 use ellie_parser::parser::ProcessedPage;
 

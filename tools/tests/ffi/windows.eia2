@@ -1,0 +1,1361 @@
+.arch 64
+.main 1201: 1278 @ 1567467500
+
+.debugHeader
+Function = 0~5 : 3052060098
+Variable = 6 : 1084402497
+Function = 8~13 : 657874065
+Function = 14~19 : 2207535470
+Function = 20~25 : 3681256926
+Function = 26~31 : 1999576755
+Function = 32~40 : 3904613034
+Function = 41~94 : 1830843171
+Function = 95~100 : 2370595723
+Function = 101~106 : 2625826163
+Function = 107~112 : 671969457
+Function = 113~118 : 1589590676
+Function = 119~127 : 744894887
+Function = 128~140 : 4174145796
+Function = 141~149 : 365052164
+NativeFunction = 0~0 : 2398037664
+NativeFunction = 0~0 : 565514877
+NativeFunction = 0~0 : 1768442261
+NativeFunction = 0~0 : 1881748331
+NativeFunction = 0~0 : 2221333984
+NativeFunction = 0~0 : 2737462087
+NativeFunction = 0~0 : 2226252738
+Variable = 150 : 1991889222
+Variable = 152 : 3070617613
+Function = 154~162 : 290531859
+Function = 163~177 : 3768019589
+Function = 178~220 : 1356322750
+Function = 221~226 : 3052060098
+Variable = 227 : 1084402497
+Function = 229~234 : 657874065
+Function = 235~240 : 2207535470
+Function = 241~246 : 3681256926
+Function = 247~252 : 1999576755
+Function = 253~261 : 3904613034
+Function = 262~315 : 1830843171
+Function = 316~321 : 2370595723
+Function = 322~327 : 2625826163
+Function = 328~333 : 671969457
+Function = 334~339 : 1589590676
+Function = 340~348 : 744894887
+Function = 349~361 : 4174145796
+Function = 362~370 : 365052164
+NativeFunction = 0~0 : 2398037664
+NativeFunction = 0~0 : 565514877
+NativeFunction = 0~0 : 1768442261
+NativeFunction = 0~0 : 1881748331
+NativeFunction = 0~0 : 2221333984
+NativeFunction = 0~0 : 2737462087
+NativeFunction = 0~0 : 2226252738
+Variable = 371 : 1991889222
+Variable = 373 : 3070617613
+Function = 375~383 : 290531859
+Function = 384~398 : 3768019589
+Function = 399~441 : 1356322750
+NativeFunction = 0~0 : 591326503
+NativeFunction = 0~0 : 4220213921
+Function = 442~493 : 1035377032
+Function = 494~511 : 22954654
+Variable = 543~565 : 157473768
+Variable = 587 : 2799685955
+Variable = 601 : 1821155353
+Variable = 603~609 : 2741830218
+Variable = 678 : 3127028814
+Variable = 692 : 681001858
+Variable = 694~700 : 3721618562
+Function = 512~750 : 88255094
+Variable = 794~814 : 2508365848
+Variable = 815~815 : 592642897
+Variable = 861~861 : 1512039283
+Variable = 917~917 : 3521521372
+Variable = 967~967 : 3469189223
+Function = 751~1027 : 2833450764
+Variable = 1064~1084 : 896363920
+Variable = 1085~1085 : 2896038179
+Variable = 1114~1114 : 632763170
+Function = 1028~1200 : 3946499109
+Function = 1201~1278 : 1567467500
+.instructions
+0: Fn #(Int)3052060098
+1: Push FP
+2: Mov FP SP
+3: Mov SP FP
+4: Pop FP
+5: Ret
+6: Mov #(Int)0
+7: Push A
+8: Fn #(Int)657874065
+9: Push FP
+10: Mov FP SP
+11: Mov SP FP
+12: Pop FP
+13: Ret
+14: Fn #(Int)2207535470
+15: Push FP
+16: Mov FP SP
+17: Mov SP FP
+18: Pop FP
+19: Ret
+20: Fn #(Int)3681256926
+21: Push FP
+22: Mov FP SP
+23: Mov SP FP
+24: Pop FP
+25: Ret
+26: Fn #(Int)1999576755
+27: Push FP
+28: Mov FP SP
+29: Mov SP FP
+30: Pop FP
+31: Ret
+32: Fn #(Int)3904613034
+33: Push FP
+34: Mov FP SP
+35: Mov B A
+36: Mov A $[FP+-3]
+37: Sfld A #(Int)0
+38: Mov SP FP
+39: Pop FP
+40: Ret
+41: Fn #(Int)1830843171
+42: Push FP
+43: Mov FP SP
+44: Str A
+45: Spus A #(Char)0x405
+46: Spus A #(Char)0x405
+47: Spus A #(Char)0x405
+48: Spus A #(Char)0x405
+49: Spus A #(Char)0x405
+50: Spus A #(Char)0x405
+51: Spus A #(Char)0x405
+52: Spus A #(Char)0x405
+53: Spus A #(Char)0x405
+54: Spus A #(Char)0x405
+55: Spus A #(Char)0x405
+56: Spus A #(Char)0x405
+57: Spus A #(Char)0x405
+58: Spus A #(Char)0x405
+59: Spus A #(Char)0x405
+60: Spus A #(Char)0x405
+61: Spus A #(Char)0x405
+62: Spus A #(Char)0x405
+63: Spus A #(Char)0x405
+64: Push A
+65: Call #(Int)2398037664 #(Int)1
+66: Sub SP #(Int)1
+67: Str A
+68: Spus A #(Char)0x405
+69: Spus A #(Char)0x405
+70: Spus A #(Char)0x405
+71: Spus A #(Char)0x405
+72: Spus A #(Char)0x405
+73: Spus A #(Char)0x405
+74: Spus A #(Char)0x405
+75: Spus A #(Char)0x405
+76: Spus A #(Char)0x405
+77: Spus A #(Char)0x405
+78: Spus A #(Char)0x405
+79: Spus A #(Char)0x405
+80: Push A
+81: Mov A $[FP+-2]
+82: Gfld A #(Int)0
+83: Pop B
+84: Add A B
+85: Push A
+86: Call #(Int)2398037664 #(Int)1
+87: Sub SP #(Int)1
+88: Mov #(Int)0
+89: Mov SP FP
+90: Pop FP
+91: Ret
+92: Mov SP FP
+93: Pop FP
+94: Ret
+95: Fn #(Int)2370595723
+96: Push FP
+97: Mov FP SP
+98: Mov SP FP
+99: Pop FP
+100: Ret
+101: Fn #(Int)2625826163
+102: Push FP
+103: Mov FP SP
+104: Mov SP FP
+105: Pop FP
+106: Ret
+107: Fn #(Int)671969457
+108: Push FP
+109: Mov FP SP
+110: Mov SP FP
+111: Pop FP
+112: Ret
+113: Fn #(Int)1589590676
+114: Push FP
+115: Mov FP SP
+116: Mov SP FP
+117: Pop FP
+118: Ret
+119: Fn #(Int)744894887
+120: Push FP
+121: Mov FP SP
+122: Mov B A
+123: Mov A $[FP+-3]
+124: Sfld A #(Int)0
+125: Mov SP FP
+126: Pop FP
+127: Ret
+128: Fn #(Int)4174145796
+129: Push FP
+130: Mov FP SP
+131: Mov A $[FP+-2]
+132: Push A
+133: Call #(Int)565514877 #(Int)1
+134: Sub SP #(Int)1
+135: Mov SP FP
+136: Pop FP
+137: Ret
+138: Mov SP FP
+139: Pop FP
+140: Ret
+141: Fn #(Int)365052164
+142: Push FP
+143: Mov FP SP
+144: Mov B A
+145: Mov A $[FP+-3]
+146: Sfld A #(Int)0
+147: Mov SP FP
+148: Pop FP
+149: Ret
+150: Mov #(Bool)0x104
+151: Push A
+152: Mov #(Bool)0x104
+153: Push A
+154: Fn #(Int)290531859
+155: Push FP
+156: Mov FP SP
+157: Mov B A
+158: Mov A $[FP+-3]
+159: Sfld A #(Int)0
+160: Mov SP FP
+161: Pop FP
+162: Ret
+163: Fn #(Int)3768019589
+164: Push FP
+165: Mov FP SP
+166: Mov A $[FP+-2]
+167: Gfld A #(Int)0
+168: Push A
+169: Mov A $[FP+0]
+170: Pop B
+171: Cmp B A
+172: Mov SP FP
+173: Pop FP
+174: Ret
+175: Mov SP FP
+176: Pop FP
+177: Ret
+178: Fn #(Int)1356322750
+179: Push FP
+180: Mov FP SP
+181: Mov A $[FP+-2]
+182: Gfld A #(Int)0
+183: Push A
+184: Mov A $[FP+0]
+185: Pop B
+186: Cmp B A
+187: Jne #(Int)213
+188: Str A
+189: Spus A #(Char)0x405
+190: Spus A #(Char)0x405
+191: Spus A #(Char)0x405
+192: Spus A #(Char)0x405
+193: Spus A #(Char)0x405
+194: Spus A #(Char)0x405
+195: Spus A #(Char)0x405
+196: Spus A #(Char)0x405
+197: Spus A #(Char)0x405
+198: Spus A #(Char)0x405
+199: Spus A #(Char)0x405
+200: Spus A #(Char)0x405
+201: Spus A #(Char)0x405
+202: Spus A #(Char)0x405
+203: Spus A #(Char)0x405
+204: Spus A #(Char)0x405
+205: Spus A #(Char)0x405
+206: Spus A #(Char)0x405
+207: Spus A #(Char)0x405
+208: Spus A #(Char)0x405
+209: Push A
+210: CallN #(Int)2221333984 #(Int)1
+211: Sub SP #(Int)1
+212: Jmp #(Int)213
+213: Mov A $[FP+-2]
+214: Gfld A #(Int)0
+215: Mov SP FP
+216: Pop FP
+217: Ret
+218: Mov SP FP
+219: Pop FP
+220: Ret
+221: Fn #(Int)3052060098
+222: Push FP
+223: Mov FP SP
+224: Mov SP FP
+225: Pop FP
+226: Ret
+227: Mov #(Int)0
+228: Push A
+229: Fn #(Int)657874065
+230: Push FP
+231: Mov FP SP
+232: Mov SP FP
+233: Pop FP
+234: Ret
+235: Fn #(Int)2207535470
+236: Push FP
+237: Mov FP SP
+238: Mov SP FP
+239: Pop FP
+240: Ret
+241: Fn #(Int)3681256926
+242: Push FP
+243: Mov FP SP
+244: Mov SP FP
+245: Pop FP
+246: Ret
+247: Fn #(Int)1999576755
+248: Push FP
+249: Mov FP SP
+250: Mov SP FP
+251: Pop FP
+252: Ret
+253: Fn #(Int)3904613034
+254: Push FP
+255: Mov FP SP
+256: Mov B A
+257: Mov A $[FP+-3]
+258: Sfld A #(Int)0
+259: Mov SP FP
+260: Pop FP
+261: Ret
+262: Fn #(Int)1830843171
+263: Push FP
+264: Mov FP SP
+265: Str A
+266: Spus A #(Char)0x405
+267: Spus A #(Char)0x405
+268: Spus A #(Char)0x405
+269: Spus A #(Char)0x405
+270: Spus A #(Char)0x405
+271: Spus A #(Char)0x405
+272: Spus A #(Char)0x405
+273: Spus A #(Char)0x405
+274: Spus A #(Char)0x405
+275: Spus A #(Char)0x405
+276: Spus A #(Char)0x405
+277: Spus A #(Char)0x405
+278: Spus A #(Char)0x405
+279: Spus A #(Char)0x405
+280: Spus A #(Char)0x405
+281: Spus A #(Char)0x405
+282: Spus A #(Char)0x405
+283: Spus A #(Char)0x405
+284: Spus A #(Char)0x405
+285: Push A
+286: CallN #(Int)2398037664 #(Int)1
+287: Sub SP #(Int)1
+288: Str A
+289: Spus A #(Char)0x405
+290: Spus A #(Char)0x405
+291: Spus A #(Char)0x405
+292: Spus A #(Char)0x405
+293: Spus A #(Char)0x405
+294: Spus A #(Char)0x405
+295: Spus A #(Char)0x405
+296: Spus A #(Char)0x405
+297: Spus A #(Char)0x405
+298: Spus A #(Char)0x405
+299: Spus A #(Char)0x405
+300: Spus A #(Char)0x405
+301: Push A
+302: Mov A $[FP+-2]
+303: Gfld A #(Int)0
+304: Pop B
+305: Add A B
+306: Push A
+307: CallN #(Int)2398037664 #(Int)1
+308: Sub SP #(Int)1
+309: Mov #(Int)0
+310: Mov SP FP
+311: Pop FP
+312: Ret
+313: Mov SP FP
+314: Pop FP
+315: Ret
+316: Fn #(Int)2370595723
+317: Push FP
+318: Mov FP SP
+319: Mov SP FP
+320: Pop FP
+321: Ret
+322: Fn #(Int)2625826163
+323: Push FP
+324: Mov FP SP
+325: Mov SP FP
+326: Pop FP
+327: Ret
+328: Fn #(Int)671969457
+329: Push FP
+330: Mov FP SP
+331: Mov SP FP
+332: Pop FP
+333: Ret
+334: Fn #(Int)1589590676
+335: Push FP
+336: Mov FP SP
+337: Mov SP FP
+338: Pop FP
+339: Ret
+340: Fn #(Int)744894887
+341: Push FP
+342: Mov FP SP
+343: Mov B A
+344: Mov A $[FP+-3]
+345: Sfld A #(Int)0
+346: Mov SP FP
+347: Pop FP
+348: Ret
+349: Fn #(Int)4174145796
+350: Push FP
+351: Mov FP SP
+352: Mov A $[FP+-2]
+353: Push A
+354: CallN #(Int)565514877 #(Int)1
+355: Sub SP #(Int)1
+356: Mov SP FP
+357: Pop FP
+358: Ret
+359: Mov SP FP
+360: Pop FP
+361: Ret
+362: Fn #(Int)365052164
+363: Push FP
+364: Mov FP SP
+365: Mov B A
+366: Mov A $[FP+-3]
+367: Sfld A #(Int)0
+368: Mov SP FP
+369: Pop FP
+370: Ret
+371: Mov #(Bool)0x104
+372: Push A
+373: Mov #(Bool)0x104
+374: Push A
+375: Fn #(Int)290531859
+376: Push FP
+377: Mov FP SP
+378: Mov B A
+379: Mov A $[FP+-3]
+380: Sfld A #(Int)0
+381: Mov SP FP
+382: Pop FP
+383: Ret
+384: Fn #(Int)3768019589
+385: Push FP
+386: Mov FP SP
+387: Mov A $[FP+-2]
+388: Gfld A #(Int)0
+389: Push A
+390: Mov A $[FP+3]
+391: Pop B
+392: Cmp B A
+393: Mov SP FP
+394: Pop FP
+395: Ret
+396: Mov SP FP
+397: Pop FP
+398: Ret
+399: Fn #(Int)1356322750
+400: Push FP
+401: Mov FP SP
+402: Mov A $[FP+-2]
+403: Gfld A #(Int)0
+404: Push A
+405: Mov A $[FP+3]
+406: Pop B
+407: Cmp B A
+408: Jne #(Int)434
+409: Str A
+410: Spus A #(Char)0x405
+411: Spus A #(Char)0x405
+412: Spus A #(Char)0x405
+413: Spus A #(Char)0x405
+414: Spus A #(Char)0x405
+415: Spus A #(Char)0x405
+416: Spus A #(Char)0x405
+417: Spus A #(Char)0x405
+418: Spus A #(Char)0x405
+419: Spus A #(Char)0x405
+420: Spus A #(Char)0x405
+421: Spus A #(Char)0x405
+422: Spus A #(Char)0x405
+423: Spus A #(Char)0x405
+424: Spus A #(Char)0x405
+425: Spus A #(Char)0x405
+426: Spus A #(Char)0x405
+427: Spus A #(Char)0x405
+428: Spus A #(Char)0x405
+429: Spus A #(Char)0x405
+430: Push A
+431: CallN #(Int)2221333984 #(Int)1
+432: Sub SP #(Int)1
+433: Jmp #(Int)434
+434: Mov A $[FP+-2]
+435: Gfld A #(Int)0
+436: Mov SP FP
+437: Pop FP
+438: Ret
+439: Mov SP FP
+440: Pop FP
+441: Ret
+442: Fn #(Int)1035377032
+443: Push FP
+444: Mov FP SP
+445: Mov B A
+446: Mov A $[FP+-4]
+447: Sfld A #(Int)0
+448: Mov B A
+449: Mov A $[FP+-4]
+450: Sfld A #(Int)1
+451: Push A
+452: CallN #(Int)591326503 #(Int)1
+453: Sub SP #(Int)1
+454: Mov B A
+455: Mov A $[FP+-4]
+456: Sfld A #(Int)1
+457: Str A
+458: Spus A #(Char)0x405
+459: Spus A #(Char)0x405
+460: Spus A #(Char)0x405
+461: Spus A #(Char)0x405
+462: Spus A #(Char)0x405
+463: Spus A #(Char)0x405
+464: Spus A #(Char)0x405
+465: Spus A #(Char)0x405
+466: Push A
+467: Pop B
+468: Add A B
+469: Push A
+470: Str A
+471: Spus A #(Char)0x405
+472: Spus A #(Char)0x405
+473: Spus A #(Char)0x405
+474: Spus A #(Char)0x405
+475: Spus A #(Char)0x405
+476: Spus A #(Char)0x405
+477: Spus A #(Char)0x405
+478: Spus A #(Char)0x405
+479: Spus A #(Char)0x405
+480: Spus A #(Char)0x405
+481: Pop B
+482: Add A B
+483: Push A
+484: Mov A $[FP+-4]
+485: Gfld A #(Int)1
+486: Pop B
+487: Add A B
+488: Push A
+489: CallN #(Int)2398037664 #(Int)1
+490: Sub SP #(Int)1
+491: Mov SP FP
+492: Pop FP
+493: Ret
+494: Fn #(Int)22954654
+495: Push FP
+496: Mov FP SP
+497: Mov A $[FP+-4]
+498: Gfld A #(Int)1
+499: Push A
+500: Mov A $[FP+-3]
+501: Push A
+502: Mov A $[FP+-2]
+503: Push A
+504: CallN #(Int)4220213921 #(Int)3
+505: Sub SP #(Int)3
+506: Mov SP FP
+507: Pop FP
+508: Ret
+509: Mov SP FP
+510: Pop FP
+511: Ret
+512: Fn #(Int)88255094
+513: Push FP
+514: Mov FP SP
+515: Str A
+516: Push A
+517: CallN #(Int)2398037664 #(Int)1
+518: Sub SP #(Int)1
+519: Str A
+520: Spus A #(Char)0x405
+521: Spus A #(Char)0x405
+522: Spus A #(Char)0x405
+523: Spus A #(Char)0x405
+524: Spus A #(Char)0x405
+525: Spus A #(Char)0x405
+526: Spus A #(Char)0x405
+527: Spus A #(Char)0x405
+528: Spus A #(Char)0x405
+529: Spus A #(Char)0x405
+530: Spus A #(Char)0x405
+531: Spus A #(Char)0x405
+532: Spus A #(Char)0x405
+533: Spus A #(Char)0x405
+534: Spus A #(Char)0x405
+535: Spus A #(Char)0x405
+536: Spus A #(Char)0x405
+537: Spus A #(Char)0x405
+538: Spus A #(Char)0x405
+539: Spus A #(Char)0x405
+540: Push A
+541: CallN #(Int)2398037664 #(Int)1
+542: Sub SP #(Int)1
+543: Co #(Int)2
+544: Mov X A
+545: Push A
+546: Str A
+547: Spus A #(Char)0x405
+548: Spus A #(Char)0x405
+549: Spus A #(Char)0x405
+550: Spus A #(Char)0x405
+551: Spus A #(Char)0x405
+552: Spus A #(Char)0x405
+553: Spus A #(Char)0x405
+554: Spus A #(Char)0x405
+555: Spus A #(Char)0x405
+556: Spus A #(Char)0x405
+557: Spus A #(Char)0x405
+558: Spus A #(Char)0x405
+559: Push A
+560: Mov #(Int)0
+561: Push A
+562: Call #(Int)1035377032 #(Int)3
+563: Sub SP #(Int)3
+564: Mov A X
+565: Push A
+566: Str A
+567: Spus A #(Char)0x405
+568: Spus A #(Char)0x405
+569: Spus A #(Char)0x405
+570: Spus A #(Char)0x405
+571: Spus A #(Char)0x405
+572: Spus A #(Char)0x405
+573: Spus A #(Char)0x405
+574: Spus A #(Char)0x405
+575: Spus A #(Char)0x405
+576: Spus A #(Char)0x405
+577: Spus A #(Char)0x405
+578: Spus A #(Char)0x405
+579: Spus A #(Char)0x405
+580: Spus A #(Char)0x405
+581: Spus A #(Char)0x405
+582: Spus A #(Char)0x405
+583: Spus A #(Char)0x405
+584: Push A
+585: CallN #(Int)2398037664 #(Int)1
+586: Sub SP #(Int)1
+587: CallN #(Int)2737462087 #(Int)0
+588: Push A
+589: Mov A $[FP+0]
+590: Push A
+591: Str A
+592: Spus A #(Char)0x405
+593: Spus A #(Char)0x405
+594: Spus A #(Char)0x405
+595: Spus A #(Char)0x405
+596: Spus A #(Char)0x405
+597: Push A
+598: Push A
+599: Call #(Int)22954654 #(Int)3
+600: Sub SP #(Int)3
+601: CallN #(Int)2737462087 #(Int)0
+602: Push A
+603: Mov A $[FP+2]
+604: Push A
+605: Mov A $[FP+1]
+606: Pop B
+607: Sub B A
+608: Mov A B
+609: Push A
+610: Str A
+611: Spus A #(Char)0x405
+612: Spus A #(Char)0x405
+613: Spus A #(Char)0x405
+614: Spus A #(Char)0x405
+615: Spus A #(Char)0x405
+616: Spus A #(Char)0x405
+617: Spus A #(Char)0x405
+618: Spus A #(Char)0x405
+619: Spus A #(Char)0x405
+620: Spus A #(Char)0x405
+621: Spus A #(Char)0x405
+622: Spus A #(Char)0x405
+623: Spus A #(Char)0x405
+624: Spus A #(Char)0x405
+625: Spus A #(Char)0x405
+626: Spus A #(Char)0x405
+627: Push A
+628: Mov A $[FP+3]
+629: Pop B
+630: Add A B
+631: Push A
+632: Str A
+633: Spus A #(Char)0x405
+634: Spus A #(Char)0x405
+635: Spus A #(Char)0x405
+636: Spus A #(Char)0x405
+637: Spus A #(Char)0x405
+638: Spus A #(Char)0x405
+639: Spus A #(Char)0x405
+640: Spus A #(Char)0x405
+641: Spus A #(Char)0x405
+642: Spus A #(Char)0x405
+643: Spus A #(Char)0x405
+644: Spus A #(Char)0x405
+645: Spus A #(Char)0x405
+646: Spus A #(Char)0x405
+647: Spus A #(Char)0x405
+648: Spus A #(Char)0x405
+649: Spus A #(Char)0x405
+650: Spus A #(Char)0x405
+651: Spus A #(Char)0x405
+652: Pop B
+653: Add A B
+654: Push A
+655: CallN #(Int)2398037664 #(Int)1
+656: Sub SP #(Int)1
+657: Str A
+658: Spus A #(Char)0x405
+659: Spus A #(Char)0x405
+660: Spus A #(Char)0x405
+661: Spus A #(Char)0x405
+662: Spus A #(Char)0x405
+663: Spus A #(Char)0x405
+664: Spus A #(Char)0x405
+665: Spus A #(Char)0x405
+666: Spus A #(Char)0x405
+667: Spus A #(Char)0x405
+668: Spus A #(Char)0x405
+669: Spus A #(Char)0x405
+670: Spus A #(Char)0x405
+671: Spus A #(Char)0x405
+672: Spus A #(Char)0x405
+673: Spus A #(Char)0x405
+674: Spus A #(Char)0x405
+675: Push A
+676: CallN #(Int)2398037664 #(Int)1
+677: Sub SP #(Int)1
+678: CallN #(Int)2737462087 #(Int)0
+679: Push A
+680: Mov A $[FP+0]
+681: Push A
+682: Str A
+683: Spus A #(Char)0x405
+684: Spus A #(Char)0x405
+685: Spus A #(Char)0x405
+686: Spus A #(Char)0x405
+687: Spus A #(Char)0x405
+688: Push A
+689: Push A
+690: Call #(Int)22954654 #(Int)3
+691: Sub SP #(Int)3
+692: CallN #(Int)2737462087 #(Int)0
+693: Push A
+694: Mov A $[FP+5]
+695: Push A
+696: Mov A $[FP+4]
+697: Pop B
+698: Sub B A
+699: Mov A B
+700: Push A
+701: Str A
+702: Spus A #(Char)0x405
+703: Spus A #(Char)0x405
+704: Spus A #(Char)0x405
+705: Spus A #(Char)0x405
+706: Spus A #(Char)0x405
+707: Spus A #(Char)0x405
+708: Spus A #(Char)0x405
+709: Spus A #(Char)0x405
+710: Spus A #(Char)0x405
+711: Spus A #(Char)0x405
+712: Spus A #(Char)0x405
+713: Spus A #(Char)0x405
+714: Spus A #(Char)0x405
+715: Spus A #(Char)0x405
+716: Spus A #(Char)0x405
+717: Spus A #(Char)0x405
+718: Push A
+719: Mov A $[FP+6]
+720: Pop B
+721: Add A B
+722: Push A
+723: Str A
+724: Spus A #(Char)0x405
+725: Spus A #(Char)0x405
+726: Spus A #(Char)0x405
+727: Spus A #(Char)0x405
+728: Spus A #(Char)0x405
+729: Spus A #(Char)0x405
+730: Spus A #(Char)0x405
+731: Spus A #(Char)0x405
+732: Spus A #(Char)0x405
+733: Spus A #(Char)0x405
+734: Spus A #(Char)0x405
+735: Spus A #(Char)0x405
+736: Spus A #(Char)0x405
+737: Spus A #(Char)0x405
+738: Spus A #(Char)0x405
+739: Spus A #(Char)0x405
+740: Spus A #(Char)0x405
+741: Spus A #(Char)0x405
+742: Spus A #(Char)0x405
+743: Pop B
+744: Add A B
+745: Push A
+746: CallN #(Int)2398037664 #(Int)1
+747: Sub SP #(Int)1
+748: Mov SP FP
+749: Pop FP
+750: Ret
+751: Fn #(Int)2833450764
+752: Push FP
+753: Mov FP SP
+754: Str A
+755: Push A
+756: CallN #(Int)2398037664 #(Int)1
+757: Sub SP #(Int)1
+758: Str A
+759: Spus A #(Char)0x405
+760: Spus A #(Char)0x405
+761: Spus A #(Char)0x405
+762: Spus A #(Char)0x405
+763: Spus A #(Char)0x405
+764: Spus A #(Char)0x405
+765: Spus A #(Char)0x405
+766: Spus A #(Char)0x405
+767: Spus A #(Char)0x405
+768: Spus A #(Char)0x405
+769: Spus A #(Char)0x405
+770: Spus A #(Char)0x405
+771: Spus A #(Char)0x405
+772: Spus A #(Char)0x405
+773: Spus A #(Char)0x405
+774: Spus A #(Char)0x405
+775: Spus A #(Char)0x405
+776: Spus A #(Char)0x405
+777: Spus A #(Char)0x405
+778: Spus A #(Char)0x405
+779: Spus A #(Char)0x405
+780: Spus A #(Char)0x405
+781: Spus A #(Char)0x405
+782: Spus A #(Char)0x405
+783: Spus A #(Char)0x405
+784: Spus A #(Char)0x405
+785: Spus A #(Char)0x405
+786: Spus A #(Char)0x405
+787: Spus A #(Char)0x405
+788: Spus A #(Char)0x405
+789: Spus A #(Char)0x405
+790: Spus A #(Char)0x405
+791: Push A
+792: CallN #(Int)2398037664 #(Int)1
+793: Sub SP #(Int)1
+794: Co #(Int)2
+795: Mov X A
+796: Push A
+797: Str A
+798: Spus A #(Char)0x405
+799: Spus A #(Char)0x405
+800: Spus A #(Char)0x405
+801: Spus A #(Char)0x405
+802: Spus A #(Char)0x405
+803: Spus A #(Char)0x405
+804: Spus A #(Char)0x405
+805: Spus A #(Char)0x405
+806: Spus A #(Char)0x405
+807: Spus A #(Char)0x405
+808: Push A
+809: Mov #(Int)0
+810: Push A
+811: Call #(Int)1035377032 #(Int)3
+812: Sub SP #(Int)3
+813: Mov A X
+814: Push A
+815: Push A
+816: Str A
+817: Spus A #(Char)0x405
+818: Spus A #(Char)0x405
+819: Spus A #(Char)0x405
+820: Spus A #(Char)0x405
+821: Spus A #(Char)0x405
+822: Spus A #(Char)0x405
+823: Spus A #(Char)0x405
+824: Spus A #(Char)0x405
+825: Spus A #(Char)0x405
+826: Spus A #(Char)0x405
+827: Spus A #(Char)0x405
+828: Spus A #(Char)0x405
+829: Spus A #(Char)0x405
+830: Spus A #(Char)0x405
+831: Push A
+832: Mov A $[FP+1]
+833: Pop B
+834: Add A B
+835: Push A
+836: Str A
+837: Spus A #(Char)0x405
+838: Spus A #(Char)0x405
+839: Spus A #(Char)0x405
+840: Spus A #(Char)0x405
+841: Spus A #(Char)0x405
+842: Spus A #(Char)0x405
+843: Spus A #(Char)0x405
+844: Spus A #(Char)0x405
+845: Spus A #(Char)0x405
+846: Spus A #(Char)0x405
+847: Spus A #(Char)0x405
+848: Spus A #(Char)0x405
+849: Spus A #(Char)0x405
+850: Spus A #(Char)0x405
+851: Spus A #(Char)0x405
+852: Spus A #(Char)0x405
+853: Spus A #(Char)0x405
+854: Spus A #(Char)0x405
+855: Spus A #(Char)0x405
+856: Pop B
+857: Add A B
+858: Push A
+859: CallN #(Int)2398037664 #(Int)1
+860: Sub SP #(Int)1
+861: Push A
+862: Str A
+863: Spus A #(Char)0x405
+864: Spus A #(Char)0x405
+865: Spus A #(Char)0x405
+866: Spus A #(Char)0x405
+867: Spus A #(Char)0x405
+868: Spus A #(Char)0x405
+869: Spus A #(Char)0x405
+870: Spus A #(Char)0x405
+871: Spus A #(Char)0x405
+872: Spus A #(Char)0x405
+873: Spus A #(Char)0x405
+874: Spus A #(Char)0x405
+875: Spus A #(Char)0x405
+876: Spus A #(Char)0x405
+877: Spus A #(Char)0x405
+878: Spus A #(Char)0x405
+879: Spus A #(Char)0x405
+880: Spus A #(Char)0x405
+881: Spus A #(Char)0x405
+882: Spus A #(Char)0x405
+883: Push A
+884: Mov A $[FP+2]
+885: Pop B
+886: Add A B
+887: Push A
+888: Str A
+889: Spus A #(Char)0x405
+890: Spus A #(Char)0x405
+891: Spus A #(Char)0x405
+892: Spus A #(Char)0x405
+893: Spus A #(Char)0x405
+894: Spus A #(Char)0x405
+895: Spus A #(Char)0x405
+896: Spus A #(Char)0x405
+897: Spus A #(Char)0x405
+898: Spus A #(Char)0x405
+899: Spus A #(Char)0x405
+900: Spus A #(Char)0x405
+901: Spus A #(Char)0x405
+902: Spus A #(Char)0x405
+903: Spus A #(Char)0x405
+904: Spus A #(Char)0x405
+905: Spus A #(Char)0x405
+906: Spus A #(Char)0x405
+907: Spus A #(Char)0x405
+908: Spus A #(Char)0x405
+909: Spus A #(Char)0x405
+910: Spus A #(Char)0x405
+911: Spus A #(Char)0x405
+912: Pop B
+913: Add A B
+914: Push A
+915: CallN #(Int)2398037664 #(Int)1
+916: Sub SP #(Int)1
+917: Push A
+918: Str A
+919: Spus A #(Char)0x405
+920: Spus A #(Char)0x405
+921: Spus A #(Char)0x405
+922: Spus A #(Char)0x405
+923: Spus A #(Char)0x405
+924: Spus A #(Char)0x405
+925: Spus A #(Char)0x405
+926: Spus A #(Char)0x405
+927: Spus A #(Char)0x405
+928: Spus A #(Char)0x405
+929: Spus A #(Char)0x405
+930: Spus A #(Char)0x405
+931: Spus A #(Char)0x405
+932: Spus A #(Char)0x405
+933: Spus A #(Char)0x405
+934: Spus A #(Char)0x405
+935: Spus A #(Char)0x405
+936: Push A
+937: Mov A $[FP+3]
+938: Pop B
+939: Add A B
+940: Push A
+941: Str A
+942: Spus A #(Char)0x405
+943: Spus A #(Char)0x405
+944: Spus A #(Char)0x405
+945: Spus A #(Char)0x405
+946: Spus A #(Char)0x405
+947: Spus A #(Char)0x405
+948: Spus A #(Char)0x405
+949: Spus A #(Char)0x405
+950: Spus A #(Char)0x405
+951: Spus A #(Char)0x405
+952: Spus A #(Char)0x405
+953: Spus A #(Char)0x405
+954: Spus A #(Char)0x405
+955: Spus A #(Char)0x405
+956: Spus A #(Char)0x405
+957: Spus A #(Char)0x405
+958: Spus A #(Char)0x405
+959: Spus A #(Char)0x405
+960: Spus A #(Char)0x405
+961: Spus A #(Char)0x405
+962: Pop B
+963: Add A B
+964: Push A
+965: CallN #(Int)2398037664 #(Int)1
+966: Sub SP #(Int)1
+967: Push A
+968: Str A
+969: Spus A #(Char)0x405
+970: Spus A #(Char)0x405
+971: Spus A #(Char)0x405
+972: Spus A #(Char)0x405
+973: Spus A #(Char)0x405
+974: Spus A #(Char)0x405
+975: Spus A #(Char)0x405
+976: Spus A #(Char)0x405
+977: Spus A #(Char)0x405
+978: Spus A #(Char)0x405
+979: Spus A #(Char)0x405
+980: Spus A #(Char)0x405
+981: Spus A #(Char)0x405
+982: Spus A #(Char)0x405
+983: Spus A #(Char)0x405
+984: Spus A #(Char)0x405
+985: Spus A #(Char)0x405
+986: Spus A #(Char)0x405
+987: Spus A #(Char)0x405
+988: Spus A #(Char)0x405
+989: Spus A #(Char)0x405
+990: Spus A #(Char)0x405
+991: Spus A #(Char)0x405
+992: Push A
+993: Mov A $[FP+4]
+994: Pop B
+995: Add A B
+996: Push A
+997: Str A
+998: Spus A #(Char)0x405
+999: Spus A #(Char)0x405
+1000: Spus A #(Char)0x405
+1001: Spus A #(Char)0x405
+1002: Spus A #(Char)0x405
+1003: Spus A #(Char)0x405
+1004: Spus A #(Char)0x405
+1005: Spus A #(Char)0x405
+1006: Spus A #(Char)0x405
+1007: Spus A #(Char)0x405
+1008: Spus A #(Char)0x405
+1009: Spus A #(Char)0x405
+1010: Spus A #(Char)0x405
+1011: Spus A #(Char)0x405
+1012: Spus A #(Char)0x405
+1013: Spus A #(Char)0x405
+1014: Spus A #(Char)0x405
+1015: Spus A #(Char)0x405
+1016: Spus A #(Char)0x405
+1017: Spus A #(Char)0x405
+1018: Spus A #(Char)0x405
+1019: Spus A #(Char)0x405
+1020: Pop B
+1021: Add A B
+1022: Push A
+1023: CallN #(Int)2398037664 #(Int)1
+1024: Sub SP #(Int)1
+1025: Mov SP FP
+1026: Pop FP
+1027: Ret
+1028: Fn #(Int)3946499109
+1029: Push FP
+1030: Mov FP SP
+1031: Str A
+1032: Push A
+1033: CallN #(Int)2398037664 #(Int)1
+1034: Sub SP #(Int)1
+1035: Str A
+1036: Spus A #(Char)0x405
+1037: Spus A #(Char)0x405
+1038: Spus A #(Char)0x405
+1039: Spus A #(Char)0x405
+1040: Spus A #(Char)0x405
+1041: Spus A #(Char)0x405
+1042: Spus A #(Char)0x405
+1043: Spus A #(Char)0x405
+1044: Spus A #(Char)0x405
+1045: Spus A #(Char)0x405
+1046: Spus A #(Char)0x405
+1047: Spus A #(Char)0x405
+1048: Spus A #(Char)0x405
+1049: Spus A #(Char)0x405
+1050: Spus A #(Char)0x405
+1051: Spus A #(Char)0x405
+1052: Spus A #(Char)0x405
+1053: Spus A #(Char)0x405
+1054: Spus A #(Char)0x405
+1055: Spus A #(Char)0x405
+1056: Spus A #(Char)0x405
+1057: Spus A #(Char)0x405
+1058: Spus A #(Char)0x405
+1059: Spus A #(Char)0x405
+1060: Spus A #(Char)0x405
+1061: Push A
+1062: CallN #(Int)2398037664 #(Int)1
+1063: Sub SP #(Int)1
+1064: Co #(Int)2
+1065: Mov X A
+1066: Push A
+1067: Str A
+1068: Spus A #(Char)0x405
+1069: Spus A #(Char)0x405
+1070: Spus A #(Char)0x405
+1071: Spus A #(Char)0x405
+1072: Spus A #(Char)0x405
+1073: Spus A #(Char)0x405
+1074: Spus A #(Char)0x405
+1075: Spus A #(Char)0x405
+1076: Spus A #(Char)0x405
+1077: Spus A #(Char)0x405
+1078: Push A
+1079: Mov #(Int)0
+1080: Push A
+1081: Call #(Int)1035377032 #(Int)3
+1082: Sub SP #(Int)3
+1083: Mov A X
+1084: Push A
+1085: Push A
+1086: Str A
+1087: Spus A #(Char)0x405
+1088: Spus A #(Char)0x405
+1089: Spus A #(Char)0x405
+1090: Spus A #(Char)0x405
+1091: Spus A #(Char)0x405
+1092: Spus A #(Char)0x405
+1093: Spus A #(Char)0x405
+1094: Spus A #(Char)0x405
+1095: Spus A #(Char)0x405
+1096: Spus A #(Char)0x405
+1097: Spus A #(Char)0x405
+1098: Spus A #(Char)0x405
+1099: Spus A #(Char)0x405
+1100: Spus A #(Char)0x405
+1101: Spus A #(Char)0x405
+1102: Spus A #(Char)0x405
+1103: Spus A #(Char)0x405
+1104: Spus A #(Char)0x405
+1105: Spus A #(Char)0x405
+1106: Spus A #(Char)0x405
+1107: Push A
+1108: Mov A $[FP+1]
+1109: Pop B
+1110: Add A B
+1111: Push A
+1112: CallN #(Int)2398037664 #(Int)1
+1113: Sub SP #(Int)1
+1114: Push A
+1115: Str A
+1116: Spus A #(Char)0x405
+1117: Spus A #(Char)0x405
+1118: Spus A #(Char)0x405
+1119: Spus A #(Char)0x405
+1120: Spus A #(Char)0x405
+1121: Spus A #(Char)0x405
+1122: Spus A #(Char)0x405
+1123: Spus A #(Char)0x405
+1124: Spus A #(Char)0x405
+1125: Spus A #(Char)0x405
+1126: Spus A #(Char)0x405
+1127: Spus A #(Char)0x405
+1128: Spus A #(Char)0x405
+1129: Spus A #(Char)0x405
+1130: Spus A #(Char)0x405
+1131: Spus A #(Char)0x405
+1132: Spus A #(Char)0x405
+1133: Spus A #(Char)0x405
+1134: Spus A #(Char)0x405
+1135: Spus A #(Char)0x405
+1136: Push A
+1137: Mov A $[FP+2]
+1138: Pop B
+1139: Add A B
+1140: Push A
+1141: CallN #(Int)2398037664 #(Int)1
+1142: Sub SP #(Int)1
+1143: Mov A $[FP+0]
+1144: Push A
+1145: Str A
+1146: Spus A #(Char)0x405
+1147: Spus A #(Char)0x405
+1148: Spus A #(Char)0x405
+1149: Spus A #(Char)0x405
+1150: Spus A #(Char)0x405
+1151: Spus A #(Char)0x405
+1152: Spus A #(Char)0x405
+1153: Spus A #(Char)0x405
+1154: Spus A #(Char)0x405
+1155: Spus A #(Char)0x405
+1156: Spus A #(Char)0x405
+1157: Push A
+1158: Push A
+1159: Call #(Int)22954654 #(Int)3
+1160: Sub SP #(Int)3
+1161: Str A
+1162: Spus A #(Char)0x405
+1163: Spus A #(Char)0x405
+1164: Spus A #(Char)0x405
+1165: Spus A #(Char)0x405
+1166: Spus A #(Char)0x405
+1167: Spus A #(Char)0x405
+1168: Spus A #(Char)0x405
+1169: Spus A #(Char)0x405
+1170: Spus A #(Char)0x405
+1171: Spus A #(Char)0x405
+1172: Spus A #(Char)0x405
+1173: Spus A #(Char)0x405
+1174: Spus A #(Char)0x405
+1175: Spus A #(Char)0x405
+1176: Spus A #(Char)0x405
+1177: Spus A #(Char)0x405
+1178: Spus A #(Char)0x405
+1179: Spus A #(Char)0x405
+1180: Spus A #(Char)0x405
+1181: Spus A #(Char)0x405
+1182: Spus A #(Char)0x405
+1183: Spus A #(Char)0x405
+1184: Spus A #(Char)0x405
+1185: Spus A #(Char)0x405
+1186: Spus A #(Char)0x405
+1187: Spus A #(Char)0x405
+1188: Spus A #(Char)0x405
+1189: Spus A #(Char)0x405
+1190: Spus A #(Char)0x405
+1191: Spus A #(Char)0x405
+1192: Spus A #(Char)0x405
+1193: Spus A #(Char)0x405
+1194: Spus A #(Char)0x405
+1195: Push A
+1196: CallN #(Int)2398037664 #(Int)1
+1197: Sub SP #(Int)1
+1198: Mov SP FP
+1199: Pop FP
+1200: Ret
+1201: Fn #(Int)1567467500
+1202: Push FP
+1203: Mov FP SP
+1204: Str A
+1205: Spus A #(Char)0x405
+1206: Spus A #(Char)0x405
+1207: Spus A #(Char)0x405
+1208: Spus A #(Char)0x405
+1209: Spus A #(Char)0x405
+1210: Spus A #(Char)0x405
+1211: Spus A #(Char)0x405
+1212: Spus A #(Char)0x405
+1213: Spus A #(Char)0x405
+1214: Spus A #(Char)0x405
+1215: Spus A #(Char)0x405
+1216: Spus A #(Char)0x405
+1217: Spus A #(Char)0x405
+1218: Spus A #(Char)0x405
+1219: Spus A #(Char)0x405
+1220: Spus A #(Char)0x405
+1221: Spus A #(Char)0x405
+1222: Spus A #(Char)0x405
+1223: Spus A #(Char)0x405
+1224: Spus A #(Char)0x405
+1225: Spus A #(Char)0x405
+1226: Spus A #(Char)0x405
+1227: Spus A #(Char)0x405
+1228: Spus A #(Char)0x405
+1229: Spus A #(Char)0x405
+1230: Spus A #(Char)0x405
+1231: Spus A #(Char)0x405
+1232: Spus A #(Char)0x405
+1233: Spus A #(Char)0x405
+1234: Spus A #(Char)0x405
+1235: Spus A #(Char)0x405
+1236: Push A
+1237: CallN #(Int)2398037664 #(Int)1
+1238: Sub SP #(Int)1
+1239: Call #(Int)88255094 #(Int)0
+1240: Call #(Int)2833450764 #(Int)0
+1241: Call #(Int)3946499109 #(Int)0
+1242: Str A
+1243: Push A
+1244: CallN #(Int)2398037664 #(Int)1
+1245: Sub SP #(Int)1
+1246: Str A
+1247: Spus A #(Char)0x405
+1248: Spus A #(Char)0x405
+1249: Spus A #(Char)0x405
+1250: Spus A #(Char)0x405
+1251: Spus A #(Char)0x405
+1252: Spus A #(Char)0x405
+1253: Spus A #(Char)0x405
+1254: Spus A #(Char)0x405
+1255: Spus A #(Char)0x405
+1256: Spus A #(Char)0x405
+1257: Spus A #(Char)0x405
+1258: Spus A #(Char)0x405
+1259: Spus A #(Char)0x405
+1260: Spus A #(Char)0x405
+1261: Spus A #(Char)0x405
+1262: Spus A #(Char)0x405
+1263: Spus A #(Char)0x405
+1264: Spus A #(Char)0x405
+1265: Spus A #(Char)0x405
+1266: Spus A #(Char)0x405
+1267: Spus A #(Char)0x405
+1268: Spus A #(Char)0x405
+1269: Spus A #(Char)0x405
+1270: Spus A #(Char)0x405
+1271: Spus A #(Char)0x405
+1272: Spus A #(Char)0x405
+1273: Push A
+1274: CallN #(Int)2398037664 #(Int)1
+1275: Sub SP #(Int)1
+1276: Mov SP FP
+1277: Pop FP
+1278: Ret

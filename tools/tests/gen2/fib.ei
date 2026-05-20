@@ -1,0 +1,13 @@
+import "./core.ei";
+
+fn fib(n: int) : int {
+    if n <= 1 {
+        ret n;
+    }
+    ret fib(n - 1) + fib(n - 2);
+}
+
+fn main() {
+    v result = fib(10);
+    println("fib(10) = " + result);
+}

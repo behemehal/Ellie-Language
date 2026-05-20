@@ -1,0 +1,106 @@
+import "./core.ei";
+
+pub fn load_library_handle(path: string) : int;
+pub fn call_library_function(handle: int, name: string, args: [(string, dyn)]) : dyn;
+
+class Library {
+    co(path) {
+        self.handle = load_library_handle(path);
+        println("Loaded: " + path + "  handle: " + self.handle);
+    }
+    pri v path : string;
+    pri v handle : int;
+
+    pub fn call(name: string, args: [(string, dyn)]) : dyn {
+        ret call_library_function(self.handle, name, args);
+    }
+}
+
+fn test_kernel32() {
+    println("");
+    println("--- kernel32.dll ---");
+    v kernel32 = new Library("kernel32.dll");
+
+    println("Sleeping 100ms...");
+    v t0 = timestamp();
+    kernel32.call("Sleep", [("uint32", 100)]);
+    v t1 = timestamp();
+    v slept = t1 - t0;
+    println("Measured sleep: " + slept + "ms  (expected ~100)");
+
+    println("Sleeping 250ms...");
+    v t2 = timestamp();
+    kernel32.call("Sleep", [("uint32", 250)]);
+    v t3 = timestamp();
+    v slept2 = t3 - t2;
+    println("Measured sleep: " + slept2 + "ms  (expected ~250)");
+}
+
+fn test_user32_messageboxes() {
+    println("");
+    println("--- user32.dll / MessageBoxA ---");
+    v user32 = new Library("user32.dll");
+
+    // MB_OK = 0  → IDOK=1
+    v r1 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Click OK to continue."), ("pointer", "Test 1 - MB_OK"), ("uint32", 0)]
+    ) as int;
+    println("MB_OK result: " + r1 + "  (expected 1=IDOK)");
+
+    // MB_OKCANCEL = 1  → IDOK=1, IDCANCEL=2
+    v r2 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Click Cancel."), ("pointer", "Test 2 - MB_OKCANCEL"), ("uint32", 1)]
+    ) as int;
+    println("MB_OKCANCEL result: " + r2 + "  (expected 2=IDCANCEL)");
+
+    // MB_YESNO = 4  → IDYES=6, IDNO=7
+    v r3 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Click Yes."), ("pointer", "Test 3 - MB_YESNO"), ("uint32", 4)]
+    ) as int;
+    println("MB_YESNO result: " + r3 + "  (expected 6=IDYES)");
+
+    // MB_RETRYCANCEL = 5  → IDRETRY=4, IDCANCEL=2
+    v r4 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Click Retry."), ("pointer", "Test 4 - MB_RETRYCANCEL"), ("uint32", 5)]
+    ) as int;
+    println("MB_RETRYCANCEL result: " + r4 + "  (expected 4=IDRETRY)");
+}
+
+fn test_user32_misc() {
+    println("");
+    println("--- user32.dll / misc ---");
+    v user32 = new Library("user32.dll");
+
+    // MB_ICONINFORMATION = 0x40, MB_OK = 0  → flags combined: 0x40
+    v r5 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Info icon test."), ("pointer", "Test 5 - MB_ICONINFO"), ("uint32", 64)]
+    ) as int;
+    println("MB_ICONINFO result: " + r5);
+
+    // MB_ICONWARNING = 0x30 → 48
+    v r6 = user32.call(
+        "MessageBoxA",
+        [("uint64", 0), ("pointer", "Warning icon test."), ("pointer", "Test 6 - MB_ICONWARN"), ("uint32", 48)]
+    ) as int;
+    println("MB_ICONWARN result: " + r6);
+
+    // MessageBeep with MB_ICONWARNING sound = 0x30
+    user32.call("MessageBeep", [("uint32", 48)]);
+    println("MessageBeep: played warning sound");
+}
+
+fn main() {
+    println("=== FFI / Windows API Tests ===");
+
+    test_kernel32();
+    test_user32_messageboxes();
+    test_user32_misc();
+
+    println("");
+    println("=== all FFI tests done ===");
+}

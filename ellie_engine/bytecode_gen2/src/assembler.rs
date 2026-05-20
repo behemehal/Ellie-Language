@@ -1,6 +1,12 @@
 use crate::{
+    create_instruction,
     instructions::Instruction,
-    transpiler::items::Transpiler,
+    opcode::OpCode,
+    operand::{AddressingModes, Operand, Registers},
+    transpiler::{
+        items::Transpiler,
+        types::{TypeTranspiler, TypeTranspilerOptions},
+    },
     utils::{limit_platform_size, usize_to_le_bytes},
 };
 use alloc::{
@@ -9,12 +15,26 @@ use alloc::{
     vec::Vec,
 };
 use ellie_core::{
-    definite::items::Collecting,
+    definite::{items::Collecting, types::Types},
     defs::{DebugHeader, DebugHeaderType, ModuleMap, NativeCallTrace, PlatformArchitecture},
     utils::ExportPage,
 };
 use ellie_parser::parser::Module;
 use std::{io::Write, panic, println};
+
+#[derive(Clone, Debug)]
+pub struct ClassFieldEntry {
+    pub name: String,
+    pub hash: usize,
+    pub index: usize,
+}
+
+#[derive(Clone, Debug)]
+pub struct ClassFieldMap {
+    pub class_hash: usize,
+    pub n_fields: usize,
+    pub fields: Vec<ClassFieldEntry>,
+}
 
 pub struct Assembler {
     pub(crate) module: Module,
@@ -23,12 +43,15 @@ pub struct Assembler {
     pub(crate) instructions: Vec<Instruction>,
     pub(crate) locals: Vec<LocalHeader>,
     pub(crate) debug_headers: Vec<DebugHeader>,
+    pub(crate) stack_depth: usize,
+    pub(crate) main_function: Option<MainFunction>,
+    pub(crate) class_field_maps: Vec<ClassFieldMap>,
 }
 
 #[derive(Clone, Debug)]
 pub struct LocalHeader {
     pub name: String,
-    pub cursor: usize,
+    pub cursor: isize,
     pub reference: Option<Instruction>,
     pub hash: Option<usize>,
     pub page_hash: usize,
@@ -305,9 +328,7 @@ impl AssembleResult {
         }
 
         for instruction in &self.instructions {
-            //writer
-            //    .write(&instruction.op_code(self.module_info.platform_attributes.architecture))
-            //    .unwrap();
+            writer.write_all(&instruction.to_bytes()).unwrap();
         }
     }
 
@@ -425,7 +446,28 @@ impl Assembler {
             instructions: Vec::new(),
             locals: Vec::new(),
             debug_headers: Vec::new(),
+            stack_depth: 0,
+            main_function: None,
+            class_field_maps: Vec::new(),
         }
+    }
+
+    /// Look up the field index for a given field hash across all known classes.
+    pub fn get_field_idx_by_hash(&self, field_hash: usize) -> Option<usize> {
+        for map in &self.class_field_maps {
+            for entry in &map.fields {
+                if entry.hash == field_hash {
+                    return Some(entry.index);
+                }
+            }
+        }
+        None
+    }
+
+    /// Find the ClassFieldMap for the class whose hash matches the `self` local's hash.
+    pub fn get_class_map_for_self(&self) -> Option<&ClassFieldMap> {
+        let self_hash = self.find_local_by_name("self")?.hash?;
+        self.class_field_maps.iter().find(|m| m.class_hash == self_hash)
     }
 
     pub fn location(&self) -> usize {
@@ -548,27 +590,28 @@ impl Assembler {
     }
 
     pub fn add_local(&mut self, local: LocalHeader) {
-        todo!()
-        /* let location = self.location();
-        match self.locals.iter_mut().find(|x| x.hash == local.hash) {
-            Some(local) => {
-                //If the function already preserved with find we will just update the reference
-                local.reference = Instruction::absolute_static(location);
-                local.cursor = location;
-                if let Some(e) = &local.borrowed {
-                    for cursor in e {
-                        self.instructions[*cursor]
-                            .get_addressing_mode_mut()
-                            .addressing_mode =
-                            crate::addressing_modes::AddressingModes::Absolute(location);
-                    }
+        if let Some(hash) = local.hash {
+            match self.locals.iter_mut().find(|x| x.hash == Some(hash)) {
+                Some(existing) => {
+                    existing.cursor = local.cursor;
+                }
+                None => {
+                    self.locals.push(local);
                 }
             }
-            None => {
-                self.locals.push(local);
-            }
-        } */
+        } else {
+            self.locals.push(local);
+        }
     }
+
+    pub fn find_local_by_hash(&self, hash: usize) -> Option<&LocalHeader> {
+        self.locals.iter().find(|l| l.hash == Some(hash))
+    }
+
+    pub fn find_local_by_name(&self, name: &str) -> Option<&LocalHeader> {
+        self.locals.iter().rev().find(|l| l.name == name)
+    }
+
 
     /*     pub fn find_local(
            &mut self,
@@ -688,27 +731,136 @@ impl Assembler {
             self.assemble_dependency(&dependency.hash);
         }
 
-        let mut main_function = None;
-
-        for item in &processed_page.items {
+        for item in &processed_page.items.clone() {
             match item {
                 Collecting::Variable(variable) => {
-                    variable.transpile(self, processed_page.hash, &processed_page)
+                    variable.transpile(self, processed_page.hash, &processed_page);
                 }
                 Collecting::Class(class) => {
-                    class.transpile(self, processed_page.hash, &processed_page)
+                    class.transpile(self, processed_page.hash, &processed_page);
                 }
                 Collecting::Function(function) => {
-                    function.transpile(self, processed_page.hash, &processed_page)
+                    function.transpile(self, processed_page.hash, &processed_page);
                 }
-                _ => todo!("Not yet implemented: {:?}", item),
+                Collecting::NativeFunction(nfn) => {
+                    nfn.transpile(self, processed_page.hash, &processed_page);
+                }
+                Collecting::GetterCall(getter_call) => {
+                    let mut deps = alloc::vec![processed_page.hash];
+                    deps.extend(processed_page.dependencies.iter().map(|d| d.hash));
+                    {
+                        let mut opts = TypeTranspilerOptions::new();
+                        opts.set_assembler(self)
+                            .set_dependencies(deps)
+                            .set_target_page(processed_page.hash);
+                        getter_call.data.transpile(&mut opts);
+                    }
+                }
+                Collecting::Ret(ret) => {
+                    ret.transpile(self, processed_page.hash, &processed_page);
+                }
+                Collecting::Condition(condition) => {
+                    condition.transpile(self, processed_page.hash, &processed_page);
+                }
+                Collecting::FunctionParameter(_) => {
+                    // Already registered as a local by the enclosing function transpiler.
+                }
+                Collecting::ConstructorParameter(_) | Collecting::SelfItem(_) => {
+                    // Handled by class.rs during class/constructor compilation.
+                }
+                Collecting::SetterCall(setter_call) => {
+                    use crate::transpiler::types::{TypeTranspiler, TypeTranspilerOptions};
+                    use ellie_core::definite::types::{class_instance::AttributeType, Types};
+                    use crate::opcode::OpCode;
+                    use crate::operand::{AddressingModes, Operand, Registers};
+                    use ellie_core::bytecode::RawType;
+
+                    let mut deps = alloc::vec![processed_page.hash];
+                    deps.extend(processed_page.dependencies.iter().map(|d| d.hash));
+
+                    // Evaluate RHS value → A
+                    {
+                        let mut opts = TypeTranspilerOptions::new();
+                        opts.set_assembler(self)
+                            .set_dependencies(deps.clone())
+                            .set_target_page(processed_page.hash);
+                        setter_call.value.transpile(&mut opts);
+                    }
+
+                    match &setter_call.target {
+                        Types::Reference(ref_type) => {
+                            if let Some(prop) = ref_type.index_chain.iter()
+                                .find(|a| a.rtype == AttributeType::Property)
+                            {
+                                // self.field = A → Mov B, A; load self to A; Sfld A, #field_idx
+                                let field_idx = self.get_field_idx_by_hash(prop.hash);
+                                let self_local = self.find_local_by_name("self").cloned();
+                                if let (Some(field_idx), Some(self_local)) = (field_idx, self_local) {
+                                    // Save value to B
+                                    self.instructions.push(create_instruction!(
+                                        OpCode::Mov,
+                                        Operand { mode: AddressingModes::Register, register: Some(Registers::B), immediate: None },
+                                        Operand { mode: AddressingModes::Register, register: Some(Registers::A), immediate: None }
+                                    ));
+                                    // Load self (heap ref) to A
+                                    let offset: isize = self_local.cursor;
+                                    let mut data = [0_u8; 8];
+                                    data.copy_from_slice(&offset.to_le_bytes());
+                                    let raw = RawType { type_id: ellie_core::bytecode::TypeId::Int, size: 8, data };
+                                    self.instructions.push(create_instruction!(
+                                        OpCode::Mov,
+                                        Operand { mode: AddressingModes::Register, register: Some(Registers::A), immediate: None },
+                                        Operand { mode: AddressingModes::IndirectOffset, register: Some(Registers::FP), immediate: Some(raw) }
+                                    ));
+                                    // Set field: heap[A].fields[field_idx] = B
+                                    let idx_raw: RawType = field_idx.into();
+                                    self.instructions.push(create_instruction!(
+                                        OpCode::Sfld,
+                                        Operand { mode: AddressingModes::Register, register: Some(Registers::A), immediate: None },
+                                        Operand { mode: AddressingModes::Immediate, register: None, immediate: Some(idx_raw) }
+                                    ));
+                                } else {
+                                    println!("Warning: could not resolve self.field assignment (field_idx={:?})", field_idx);
+                                }
+                            } else {
+                                println!("Skipping unimplemented setter target: {:?}", ref_type);
+                            }
+                        }
+                        Types::VariableType(var) => {
+                            // Regular variable assignment: var = A
+                            let local = self.find_local_by_hash(var.reference).cloned();
+                            if let Some(local) = local {
+                                let offset: isize = local.cursor;
+                                let mut data = [0_u8; 8];
+                                data.copy_from_slice(&offset.to_le_bytes());
+                                let raw = RawType { type_id: ellie_core::bytecode::TypeId::Int, size: 8, data };
+                                self.instructions.push(create_instruction!(
+                                    OpCode::Mov,
+                                    Operand { mode: AddressingModes::IndirectOffset, register: Some(Registers::FP), immediate: Some(raw) },
+                                    Operand { mode: AddressingModes::Register, register: Some(Registers::A), immediate: None }
+                                ));
+                            } else {
+                                println!("Warning: local not found for variable assignment hash {}", var.reference);
+                            }
+                        }
+                        _ => {
+                            println!("Skipping unimplemented setter target type");
+                        }
+                    }
+                }
+                Collecting::Import(_) | Collecting::FileKey(_) | Collecting::Generic(_) => {}
+                _ => {
+                    println!("Skipping unimplemented item: {:?}", item);
+                }
             };
         }
-        main_function
+
+        self.main_function.take()
     }
 
     pub fn assemble(&mut self, module_maps: Vec<ModuleMap>) -> AssembleResult {
-        let main_function = self.assemble_dependency(&self.module.initial_page.clone());
+        let initial_page = self.module.initial_page;
+        let main_function = self.assemble_dependency(&initial_page);
         let mut native_exports = Vec::new();
 
         for native_header in &self.debug_headers {

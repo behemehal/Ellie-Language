@@ -22,11 +22,12 @@ pub enum Registers {
 #[derive(Debug, Clone, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum AddressingModes {
-    Implicit,  // Implicit, example: RET
-    Immediate, // Immediate, example: JMP #1
-    Register,  // Register, example: JMP A
-    Indirect,  // Indirect, example: MOV [A], B
-    Direct,    // Absolute memory address, example: MOV $0x1234, A
+    Implicit,       // Implicit, example: RET
+    Immediate,      // Immediate, example: JMP #1
+    Register,       // Register, example: JMP A
+    Indirect,       // Indirect, example: MOV [A], B
+    IndirectOffset, // Base + offset, example: MOV A, [FP+2]
+    Direct,         // Absolute memory address, example: MOV $0x1234, A
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -36,7 +37,7 @@ pub struct Operand {
     pub immediate: Option<RawType>, // Immediate value
 }
 
-pub(crate) const OPERAND_SIZE: usize = 2 + TYPE_SIZE; // 2 bytes for mode and register, plus size of RawType
+pub const OPERAND_SIZE: usize = 2 + TYPE_SIZE; // 2 bytes for mode and register, plus size of RawType
 
 impl Operand {
     pub fn to_bytes(&self) -> [u8; OPERAND_SIZE] {
@@ -50,9 +51,9 @@ impl Operand {
         }
 
         if let Some(immediate) = &self.immediate {
-            buf[2..TYPE_SIZE].copy_from_slice(&immediate.to_bytes());
+            buf[2..OPERAND_SIZE].copy_from_slice(&immediate.to_bytes());
         } else {
-            buf[2..TYPE_SIZE].copy_from_slice(&[0_u8; TYPE_SIZE]);
+            buf[2..OPERAND_SIZE].fill(0);
         }
         buf
     }
@@ -81,6 +82,12 @@ impl Operand {
             AddressingModes::Indirect => {
                 let reg = self.register.expect("Register is None");
                 format!("$[{:?}]", reg)
+            }
+            AddressingModes::IndirectOffset => {
+                let reg = self.register.expect("Register is None");
+                let imm = self.immediate.expect("Immediate is None");
+                let offset: isize = imm.into();
+                format!("$[{:?}+{}]", reg, offset)
             }
             AddressingModes::Direct => {
                 let value = self.immediate.expect("Immediate value is None");

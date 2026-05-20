@@ -1,0 +1,31 @@
+import "../core.ei";
+
+fn factorial(n: int) : int {
+    if (n <= 1) {
+        ret 1;
+    }
+    ret n * factorial(n - 1);
+}
+
+fn factorial_iter(n: int) : int {
+    v result = 1;
+    v i = 2;
+    loop (i <= n) {
+        result = result * i;
+        i = i + 1;
+    }
+    ret result;
+}
+
+fn main() {
+    println("=== Factorial ===");
+
+    println("5!  = " + factorial(5));
+    println("10! = " + factorial(10));
+    println("12! = " + factorial(12));
+
+    println("--- iterative ---");
+    println("5!  = " + factorial_iter(5));
+    println("10! = " + factorial_iter(10));
+    println("12! = " + factorial_iter(12));
+}

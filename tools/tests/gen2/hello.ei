@@ -1,0 +1,7 @@
+import "./core.ei";
+
+fn main() {
+    v x = 5;
+    v y = x + 3;
+    println("result: " + y);
+}

@@ -25,6 +25,14 @@
 			"name": "tools"
 		},
 		{
+			"path": "ellie",
+			"name": "ellie (Unified Toolchain)"
+		},
+		{
+			"path": "EllieNativeBridge",
+			"name": "EllieNativeBridge"
+		},
+		{
 			"path": "./",
 			"name": "Project Root",
 		}

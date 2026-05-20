@@ -1,0 +1,13 @@
+import "./core.ei";
+
+fn factorial(n: int) : int {
+    if n <= 1 {
+        ret 1;
+    }
+    ret n * factorial(n - 1);
+}
+
+fn main() {
+    v result = factorial(10);
+    println("factorial(10) = " + result);
+}

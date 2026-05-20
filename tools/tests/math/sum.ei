@@ -1,0 +1,36 @@
+import "../core.ei";
+
+fn sum_iter(n: int) : int {
+    v total = 0;
+    v i = 1;
+    loop (i <= n) {
+        total = total + i;
+        i = i + 1;
+    }
+    ret total;
+}
+
+fn sum_recursive(n: int) : int {
+    if (n <= 0) {
+        ret 0;
+    }
+    ret n + sum_recursive(n - 1);
+}
+
+fn sum_formula(n: int) : int {
+    ret n * (n + 1) / 2;
+}
+
+fn main() {
+    println("=== Sum 1..N ===");
+
+    println("sum(10)   iter      = " + sum_iter(10));
+    println("sum(10)   recursive = " + sum_recursive(10));
+    println("sum(10)   formula   = " + sum_formula(10));
+
+    println("sum(100)  iter      = " + sum_iter(100));
+    println("sum(100)  formula   = " + sum_formula(100));
+
+    println("sum(1000) iter      = " + sum_iter(1000));
+    println("sum(1000) formula   = " + sum_formula(1000));
+}

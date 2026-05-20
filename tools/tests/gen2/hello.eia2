@@ -1,0 +1,69 @@
+.arch 64
+.main 12: 40 @ 3516910149
+
+.debugHeader
+Variable = 0 : 3061400775
+NativeFunction = 0~0 : 1800312525
+NativeFunction = 0~0 : 1134949699
+NativeFunction = 0~0 : 4019502466
+NativeFunction = 0~0 : 3653293542
+NativeFunction = 0~0 : 520932024
+NativeFunction = 0~0 : 2006241728
+NativeFunction = 0~0 : 1127493135
+Variable = 2 : 1216584357
+Variable = 4 : 1110454948
+Variable = 6 : 3061400775
+NativeFunction = 0~0 : 1800312525
+NativeFunction = 0~0 : 1134949699
+NativeFunction = 0~0 : 4019502466
+NativeFunction = 0~0 : 3653293542
+NativeFunction = 0~0 : 520932024
+NativeFunction = 0~0 : 2006241728
+NativeFunction = 0~0 : 1127493135
+Variable = 8 : 1216584357
+Variable = 10 : 1110454948
+Variable = 14 : 3837651360
+Variable = 16~21 : 4184175007
+Function = 12~40 : 3516910149
+.instructions
+0: Mov #(Int)0
+1: Push A
+2: Mov #(Bool)0x104
+3: Push A
+4: Mov #(Bool)0x104
+5: Push A
+6: Mov #(Int)0
+7: Push A
+8: Mov #(Bool)0x104
+9: Push A
+10: Mov #(Bool)0x104
+11: Push A
+12: Push FP
+13: Mov FP SP
+14: Mov #(Int)5
+15: Push A
+16: Mov A $[FP+0]
+17: Push A
+18: Mov #(Int)3
+19: Pop B
+20: Add A B
+21: Push A
+22: Str A
+23: Spus A #(Char)0x405
+24: Spus A #(Char)0x405
+25: Spus A #(Char)0x405
+26: Spus A #(Char)0x405
+27: Spus A #(Char)0x405
+28: Spus A #(Char)0x405
+29: Spus A #(Char)0x405
+30: Spus A #(Char)0x405
+31: Push A
+32: Mov A $[FP+1]
+33: Pop B
+34: Add A B
+35: Push A
+36: CallN #(Int)1800312525
+37: Sub SP #(Int)1
+38: Mov SP FP
+39: Pop FP
+40: Ret

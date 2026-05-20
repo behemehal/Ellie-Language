@@ -1,0 +1,36 @@
+import "../core.ei";
+
+fn fib(n: int) : int {
+    if (n <= 1) {
+        ret n;
+    }
+    ret fib(n - 1) + fib(n - 2);
+}
+
+fn main() {
+    println("=== Fibonacci ===");
+
+    v t0 = timestamp();
+    v r10 = fib(10);
+    v t1 = timestamp();
+    v e10 = t1 - t0;
+    println("fib(10) = " + r10 + "  elapsed: " + e10 + "ms");
+
+    v t2 = timestamp();
+    v r20 = fib(20);
+    v t3 = timestamp();
+    v e20 = t3 - t2;
+    println("fib(20) = " + r20 + "  elapsed: " + e20 + "ms");
+
+    v t4 = timestamp();
+    v r25 = fib(25);
+    v t5 = timestamp();
+    v e25 = t5 - t4;
+    println("fib(25) = " + r25 + "  elapsed: " + e25 + "ms");
+
+    v t6 = timestamp();
+    v r30 = fib(30);
+    v t7 = timestamp();
+    v e30 = t7 - t6;
+    println("fib(30) = " + r30 + "  elapsed: " + e30 + "ms");
+}

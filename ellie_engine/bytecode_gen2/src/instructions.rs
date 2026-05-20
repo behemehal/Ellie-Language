@@ -17,7 +17,7 @@ pub struct Instruction {
     pub operand_2: Option<Operand>,
 }
 
-pub(crate) const INSTRUCTION_SIZE: usize = 2 + (OPERAND_SIZE * 3);
+pub const INSTRUCTION_SIZE: usize = 2 + (OPERAND_SIZE * 3);
 
 impl Instruction {
     pub fn to_bytes(&self) -> [u8; INSTRUCTION_SIZE] {
@@ -29,23 +29,22 @@ impl Instruction {
         buf[1] = self.operand_size() as u8;
 
         if let Some(operand) = &self.operand_0 {
-            buf[2..OPERAND_SIZE].copy_from_slice(&operand.to_bytes()[..]);
+            buf[2..2 + OPERAND_SIZE].copy_from_slice(&operand.to_bytes());
         } else {
-            buf[2..OPERAND_SIZE].copy_from_slice(&0u8.to_le_bytes()[..]);
+            buf[2..2 + OPERAND_SIZE].fill(0);
         }
 
         if let Some(operand) = &self.operand_1 {
-            buf[2 + OPERAND_SIZE..2 + (OPERAND_SIZE * 2)].copy_from_slice(&operand.to_bytes()[..]);
+            buf[2 + OPERAND_SIZE..2 + (OPERAND_SIZE * 2)].copy_from_slice(&operand.to_bytes());
         } else {
-            buf[2 + OPERAND_SIZE..2 + (OPERAND_SIZE * 2)].copy_from_slice(&0u8.to_le_bytes()[..]);
+            buf[2 + OPERAND_SIZE..2 + (OPERAND_SIZE * 2)].fill(0);
         }
 
         if let Some(operand) = &self.operand_2 {
             buf[2 + (OPERAND_SIZE * 2)..2 + (OPERAND_SIZE * 3)]
-                .copy_from_slice(&operand.to_bytes()[..]);
+                .copy_from_slice(&operand.to_bytes());
         } else {
-            buf[2 + (OPERAND_SIZE * 2)..2 + (OPERAND_SIZE * 3)]
-                .copy_from_slice(&0u8.to_le_bytes()[..]);
+            buf[2 + (OPERAND_SIZE * 2)..2 + (OPERAND_SIZE * 3)].fill(0);
         }
 
         buf

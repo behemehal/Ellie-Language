@@ -12,6 +12,7 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 path-absolutize = { version = "3.0.10" }
 ellie_engine = { path = "../ellie_engine", default-features = false, features = [
     "vm",
+    "vm_gen2",
     "cli-utils",
     "std",
 ] }

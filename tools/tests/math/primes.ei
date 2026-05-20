@@ -1,0 +1,46 @@
+import "../core.ei";
+
+fn is_prime(n: int) : bool {
+    if (n < 2) {
+        ret false;
+    }
+    if (n == 2) {
+        ret true;
+    }
+    v i = 2;
+    loop (i * i <= n) {
+        if (n % i == 0) {
+            ret false;
+        }
+        i = i + 1;
+    }
+    ret true;
+}
+
+fn count_primes(limit: int) : int {
+    v count = 0;
+    v n = 2;
+    loop (n <= limit) {
+        if (is_prime(n)) {
+            count = count + 1;
+        }
+        n = n + 1;
+    }
+    ret count;
+}
+
+fn main() {
+    println("=== Primes ===");
+
+    println("is_prime(2)   = " + is_prime(2));
+    println("is_prime(7)   = " + is_prime(7));
+    println("is_prime(9)   = " + is_prime(9));
+    println("is_prime(97)  = " + is_prime(97));
+    println("is_prime(100) = " + is_prime(100));
+
+    v t0 = timestamp();
+    v c100 = count_primes(100);
+    v t1 = timestamp();
+    v e = t1 - t0;
+    println("primes up to 100: " + c100 + "  elapsed: " + e + "ms");
+}

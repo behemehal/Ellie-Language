@@ -2,7 +2,10 @@ use crate::OutputTypesSelector;
 use bincode::Options;
 use ellie_engine::{
     compiler::parse_pages,
-    ellie_bytecode_gen2::assembler::{Assembler, PlatformAttributes},
+    ellie_bytecode::assembler::{Assembler, PlatformAttributes},
+    ellie_bytecode_gen2::assembler::{
+        Assembler as Assembler2, PlatformAttributes as PlatformAttributes2,
+    },
     ellie_core::{
         defs::{ModuleMap, PlatformArchitecture},
         module_path::parse_module_import,
@@ -65,6 +68,8 @@ pub fn get_output_path(
                     OutputTypesSelector::ByteCode => ".eic",
                     OutputTypesSelector::ByteCodeAsm => ".eia",
                     OutputTypesSelector::ByteCodeDebug => ".eig",
+                    OutputTypesSelector::ByteCode2 => ".eic2",
+                    OutputTypesSelector::ByteCodeAsm2 => ".eia2",
                     _ => ".json",
                 }),
         )
@@ -740,6 +745,120 @@ pub fn compile(
                                 } else {
                                     println!(
                                         "{}[!]{}: ByteCodeAsm output written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                }
+                            }
+                            OutputTypesSelector::ByteCode2 => {
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode2 (gen2) compiling to {} bit architecture",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        match cli_settings.compiler_settings.byte_code_architecture {
+                                            PlatformArchitecture::B16 => "16",
+                                            PlatformArchitecture::B32 => "32",
+                                            PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = Assembler2::new(
+                                    compile_output.module.clone(),
+                                    PlatformAttributes2 {
+                                        architecture: cli_settings
+                                            .compiler_settings
+                                            .byte_code_architecture,
+                                        memory_size: 512000,
+                                    },
+                                );
+                                let assembler_result = assembler.assemble(module_maps.clone());
+                                let mut output_file =
+                                    File::create(output_path).unwrap_or_else(|err| {
+                                        println!(
+                                            "\nFailed to create file {}{}{}. [{}{:?}{}]",
+                                            cli_color.color(Colors::Cyan),
+                                            output_path.absolutize().unwrap().to_str().unwrap(),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Red),
+                                            err,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                        std::process::exit(1);
+                                    });
+                                let mut dbg_file =
+                                    File::create(dbg_output_path).unwrap_or_else(|err| {
+                                        println!(
+                                            "\nFailed to create file {}{}{}. [{}{:?}{}]",
+                                            cli_color.color(Colors::Cyan),
+                                            dbg_output_path.absolutize().unwrap().to_str().unwrap(),
+                                            cli_color.color(Colors::Reset),
+                                            cli_color.color(Colors::Red),
+                                            err,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                        std::process::exit(1);
+                                    });
+                                assembler_result.render_binary(&mut output_file, &mut dbg_file);
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[!]{}: ByteCode2 output written to {}{}{}",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                    println!(
+                                        "{}[!]{}: ByteCode2 debug file written to {}{}{}\n",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        cli_color.color(Colors::Yellow),
+                                        dbg_output_path.absolutize().unwrap().to_str().unwrap(),
+                                        cli_color.color(Colors::Reset),
+                                    );
+                                }
+                            }
+                            OutputTypesSelector::ByteCodeAsm2 => {
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[?]{}: ByteCode2 Asm (gen2) compiling to {} bit architecture",
+                                        cli_color.color(Colors::Green),
+                                        cli_color.color(Colors::Reset),
+                                        match cli_settings.compiler_settings.byte_code_architecture {
+                                            PlatformArchitecture::B16 => "16",
+                                            PlatformArchitecture::B32 => "32",
+                                            PlatformArchitecture::B64 => "64",
+                                        }
+                                    );
+                                }
+                                let mut assembler = Assembler2::new(
+                                    compile_output.module.clone(),
+                                    PlatformAttributes2 {
+                                        architecture: cli_settings
+                                            .compiler_settings
+                                            .byte_code_architecture,
+                                        memory_size: 512000,
+                                    },
+                                );
+                                let assembler_result = assembler.assemble(module_maps.clone());
+                                let mut output_file =
+                                    File::create(output_path).unwrap_or_else(|err| {
+                                        println!(
+                                            "\nFailed to create file: [{}{:?}{}]",
+                                            cli_color.color(Colors::Red),
+                                            err,
+                                            cli_color.color(Colors::Reset),
+                                        );
+                                        std::process::exit(1);
+                                    });
+                                assembler_result.alternate_render(&mut output_file);
+                                if !cli_settings.json_log {
+                                    println!(
+                                        "{}[!]{}: ByteCode2 Asm output written to {}{}{}\n",
                                         cli_color.color(Colors::Green),
                                         cli_color.color(Colors::Reset),
                                         cli_color.color(Colors::Yellow),

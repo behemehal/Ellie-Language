@@ -1,5 +1,3 @@
-use std::vec::Vec;
-
 use alloc::{
     boxed::Box,
     format,
@@ -10,18 +8,15 @@ use crate::{config::STACK_MEMORY_SIZE, raw_type::StaticRawType};
 
 pub type StackOverflowCallback = Box<dyn FnMut()>;
 
-//Static memory allocation
 pub struct StackMemory {
-    pub data: Vec<StaticRawType>,
-    pub len: usize,
+    pub data: [StaticRawType; STACK_MEMORY_SIZE],
     pub on_stack_overflow: Option<StackOverflowCallback>,
 }
 
 impl Clone for StackMemory {
     fn clone(&self) -> Self {
         StackMemory {
-            data: self.data.clone(),
-            len: self.len,
+            data: self.data,
             on_stack_overflow: None,
         }
     }
@@ -36,8 +31,7 @@ impl Default for StackMemory {
 impl StackMemory {
     pub fn new() -> StackMemory {
         StackMemory {
-            data: Vec::new(),
-            len: 0,
+            data: [StaticRawType::from_void(); STACK_MEMORY_SIZE],
             on_stack_overflow: None,
         }
     }
@@ -47,7 +41,7 @@ impl StackMemory {
     }
 
     pub fn get(&self, key: &usize) -> Option<StaticRawType> {
-        if self.data.len() <= *key {
+        if *key >= STACK_MEMORY_SIZE {
             None
         } else {
             Some(self.data[*key])
@@ -55,22 +49,19 @@ impl StackMemory {
     }
 
     pub fn set(&mut self, key: &usize, value: StaticRawType) {
-        //if (self.data.len() - 1) < *key {
-        //    if let Some(callback) = &mut self.on_stack_overflow {
-        //        callback();
-        //        return;
-        //    }
-        //}
-
-        if self.data.len() <= *key {
-            self.data.resize(*key + 1, StaticRawType::from_void());
+        if *key >= STACK_MEMORY_SIZE {
+            if let Some(callback) = &mut self.on_stack_overflow {
+                callback();
+            }
+            return;
         }
-
         self.data[*key] = value;
     }
 
     pub fn dea(&mut self, key: &usize) {
-        self.data[*key] = StaticRawType::from_void();
+        if *key < STACK_MEMORY_SIZE {
+            self.data[*key] = StaticRawType::from_void();
+        }
     }
 
     pub fn dump(&self) -> String {

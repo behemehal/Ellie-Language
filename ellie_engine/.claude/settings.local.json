@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ahmet\\\\Desktop\\\\Ellie-Language\" -Recurse -Depth 2)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(cargo build *)",
+      "PowerShell(Get-Content \"c:\\\\Users\\\\ahmet\\\\Desktop\\\\Ellie-Language\\\\tools\\\\tests\\\\ffi\\\\windows.eia2\" | Select-Object -Index \\(439..496\\) | Where-Object { $_ -match \"^\\\\d+:\" } | Select-Object -Skip 3)"
+    ]
+  }
+}

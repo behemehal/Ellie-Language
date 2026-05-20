@@ -36,6 +36,8 @@ pub struct Thread {
     // Stack of the thread
     pub stack: StackArray,
     pub isolate: Isolate,
+    // High-water mark for stack memory allocation
+    pub stack_top: usize,
 }
 
 impl Thread {
@@ -45,10 +47,13 @@ impl Thread {
             arch,
             stack: StackArray::new(),
             isolate,
+            stack_top: 0,
         }
     }
 
     pub fn build_thread(&mut self, main: MainProgram) {
+        let initial_top = main.start + main.length;
+        self.stack_top = initial_top;
         self.stack.push(Stack {
             id: main.hash,
             registers: Registers {
@@ -61,7 +66,7 @@ impl Thread {
             stack_len: main.length,
             caller: None,
             pos: main.start,
-            frame_pos: main.start + main.length,
+            frame_pos: initial_top,
         });
     }
 
@@ -105,7 +110,10 @@ impl Thread {
                 }
                 crate::instructions::ExecuterResult::DropStack => {
                     let current_y = current_stack.registers.Y;
-                    match current_stack.caller {
+                    let stack_len = current_stack.stack_len;
+                    let caller = current_stack.caller;
+                    self.stack_top -= stack_len;
+                    match caller {
                         Some(_) => {
                             self.stack.pop();
                             self.stack.last_mut().unwrap().registers.Y = current_y;
@@ -125,7 +133,8 @@ impl Thread {
                         frame_pos: current_stack.frame_pos,
                     });
                     let current_x = current_stack.registers.X;
-                    let frame_pos = current_stack.get_pos() + e.stack_len;
+                    let frame_pos = self.stack_top - e.pos;
+                    self.stack_top += e.stack_len;
                     current_stack.pos += 1;
                     self.stack.push(Stack {
                         pos: e.pos,
@@ -344,11 +353,11 @@ impl Thread {
                     HEAP_OUT_OF_MEMORY.store(true, Ordering::Relaxed);
                 }));
 
-            /* self.isolate
-            .stack_memory
-            .set_on_stack_overflow(Box::new(|| {
-                STACK_OVERFLOW.store(true, Ordering::Relaxed);
-            })); */
+            self.isolate
+                .stack_memory
+                .set_on_stack_overflow(Box::new(|| {
+                    STACK_OVERFLOW.store(true, Ordering::Relaxed);
+                }));
 
             if STACK_OVERFLOW.load(Ordering::SeqCst) {
                 return ThreadExit::Panic(ThreadPanic {
@@ -365,7 +374,10 @@ impl Thread {
                     }
                     crate::instructions::ExecuterResult::DropStack => {
                         let current_y = current_stack.registers.Y;
-                        match current_stack.caller {
+                        let stack_len = current_stack.stack_len;
+                        let caller = current_stack.caller;
+                        self.stack_top -= stack_len;
+                        match caller {
                             Some(_) => {
                                 self.stack.pop();
                                 self.stack.last_mut().unwrap().registers.Y = current_y;
@@ -384,7 +396,8 @@ impl Thread {
                             frame_pos: current_stack.frame_pos,
                         });
                         let current_x = current_stack.registers.X;
-                        let frame_pos = current_stack.get_pos() + e.stack_len;
+                        let frame_pos = self.stack_top - e.pos;
+                        self.stack_top += e.stack_len;
                         current_stack.pos += 1;
                         self.stack.push(Stack {
                             pos: e.pos,

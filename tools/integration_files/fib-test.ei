@@ -1,0 +1,31 @@
+import "./core.ei";
+
+fn fib(n: int) : int {
+    if (n <= 1) {
+        ret n;
+    }
+    ret fib(n - 1) + fib(n - 2);
+}
+
+fn main() {
+    v start = timestamp();
+    v result = fib(10);
+    v end = timestamp();
+    v elapsed = end - start;
+    println("fib(10) = " + result);
+    println("elapsed: " + elapsed + "ms");
+
+    v start2 = timestamp();
+    v result2 = fib(20);
+    v end2 = timestamp();
+    v elapsed2 = end2 - start2;
+    println("fib(20) = " + result2);
+    println("elapsed: " + elapsed2 + "ms");
+
+    v start3 = timestamp();
+    v result3 = fib(25);
+    v end3 = timestamp();
+    v elapsed3 = end3 - start3;
+    println("fib(25) = " + result3);
+    println("elapsed: " + elapsed3 + "ms");
+}
