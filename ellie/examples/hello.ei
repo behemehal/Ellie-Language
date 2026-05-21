@@ -1,0 +1,6 @@
+import "std";
+
+fn main() {
+    println("Hello, World!");
+    println("timestamp: " + timestamp());
+}

@@ -18,6 +18,42 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Locate the bundled stdlib directory shipped next to the running ellie binary.
+/// Looks for `std/` adjacent to the executable; returns None if missing.
+fn bundled_stdlib_dir() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let dir = exe.parent()?;
+    let candidate = dir.join("std");
+    if candidate.is_dir() {
+        Some(candidate)
+    } else {
+        None
+    }
+}
+
+/// Read a resolved file into a ResolvedImport. Returns a not-found result on read error.
+fn resolved_from_path(path: &Path) -> ResolvedImport {
+    use ellie_engine::ellie_renderer_utils::utils::read_file;
+    match read_file(path.to_string_lossy().to_string()) {
+        Ok(data) => {
+            let mut h = DefaultHasher::new();
+            data.hash(&mut h);
+            ResolvedImport {
+                found: true,
+                matched: ImportType::Code(data),
+                hash: (h.finish() as u32) as usize,
+                path: path.to_string_lossy().into_owned(),
+                ..Default::default()
+            }
+        }
+        Err(_) => ResolvedImport {
+            found: false,
+            resolve_error: format!("Cannot read file: {}", path.display()),
+            ..Default::default()
+        },
+    }
+}
+
 /// Compile a gen2 `.ei` file.
 /// Returns paths to the written `.eic2` and `.eig` files on success.
 pub fn compile_gen2(
@@ -80,6 +116,65 @@ pub fn compile_gen2(
                     ..Default::default()
                 };
             }
+
+            let stdlib_dir = bundled_stdlib_dir();
+
+            // ── Stdlib root imports: `import "std"` or `import "std/<file>"` ───
+            if let Some(ref stdlib) = stdlib_dir {
+                let stdlib_rel: Option<String> = if requested_path == "std" {
+                    Some("lib.ei".to_string())
+                } else if let Some(rest) = requested_path.strip_prefix("std/") {
+                    Some(rest.to_string())
+                } else {
+                    None
+                };
+
+                if let Some(rel) = stdlib_rel {
+                    let full = stdlib.join(&rel);
+                    if full.exists() {
+                        return resolved_from_path(&full);
+                    } else {
+                        return ResolvedImport {
+                            found: false,
+                            resolve_error: format!(
+                                "stdlib file not found: {}",
+                                full.display()
+                            ),
+                            ..Default::default()
+                        };
+                    }
+                }
+            }
+
+            // ── Relative import inside the stdlib ──────────────────────────────
+            // When a stdlib file imports another stdlib file with `./X.ei`,
+            // current_path is the absolute filesystem path of the importer
+            // (set by `resolved_from_path`). Resolve relative to its parent.
+            if let Some(ref stdlib) = stdlib_dir {
+                let cp = Path::new(&current_path);
+                if cp.starts_with(stdlib) {
+                    let parent = cp.parent().unwrap_or(stdlib);
+                    let joined = parent.join(&requested_path);
+                    let resolved = joined
+                        .absolutize()
+                        .map(|p| p.into_owned())
+                        .unwrap_or(joined);
+                    if resolved.exists() {
+                        return resolved_from_path(&resolved);
+                    } else {
+                        return ResolvedImport {
+                            found: false,
+                            resolve_error: format!(
+                                "stdlib relative import not found: {}",
+                                resolved.display()
+                            ),
+                            ..Default::default()
+                        };
+                    }
+                }
+            }
+
+            // ── Project-relative resolution (existing behavior) ────────────────
             let starter = format!("<ellie_module_{}>", self.project_name);
             match parse_module_import(&current_path, &requested_path) {
                 Ok(path) => {

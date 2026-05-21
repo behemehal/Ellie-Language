@@ -1,0 +1,5 @@
+import "std";
+
+fn main() {
+    println("Hello from bundled std!");
+}

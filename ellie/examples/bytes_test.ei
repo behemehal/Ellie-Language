@@ -1,0 +1,56 @@
+import "std";
+
+fn main() {
+    println("=== bytes tests ===");
+
+    v b = bytes_alloc(8);
+    println("alloc 8: len=" + b.len() + " pos=" + b.pos());
+
+    b.set(0, 65); // 'A'
+    b.set(1, 66); // 'B'
+    b.set(2, 67); // 'C'
+    println("after set 65/66/67: get(0)=" + b.get(0) + " get(1)=" + b.get(1) + " get(2)=" + b.get(2));
+    println("(zero-filled) get(7)=" + b.get(7));
+
+    v hello = bytes_from_string("Hello, World!");
+    println("");
+    println("from_string('Hello, World!') len: " + hello.len());
+    println("  to_string: " + hello.to_string());
+    println("  get(0)=" + hello.get(0) + " (expect 72='H')");
+    println("  get(7)=" + hello.get(7) + " (expect 87='W')");
+
+    v hi = hello.slice(0, 5);
+    println("  slice(0,5).to_string: " + hi.to_string() + " (expect 'Hello')");
+
+    v hello_b = bytes_from_string("Hello");
+    v space = bytes_from_string(" ");
+    v world = bytes_from_string("World!");
+    hello_b.append(space);
+    hello_b.append(world);
+    println("");
+    println("append 'Hello'+' '+'World!': " + hello_b.to_string());
+    println("  new len: " + hello_b.len());
+
+    // ── Zero-copy fill via fs_read_into ────────────────────────────────────
+    println("");
+    println("=== fs_read_into zero-copy fill ===");
+    v path = "ellie_bytes_scratch.txt";
+    fs_write_file(path, "0123456789ABCDEF");
+
+    v buf = bytes_alloc(16);
+    println("buf before read: '" + buf.to_string() + "' (16 zero bytes)");
+
+    v n = fs_read_into(path, buf, 0, 16);
+    println("fs_read_into returned: " + n);
+    println("buf after read: '" + buf.to_string() + "'");
+
+    // Read second half into a fresh buffer at offset 4 to show offset works
+    v buf2 = bytes_alloc(16);
+    v m = fs_read_into(path, buf2, 4, 8);
+    println("read 8 bytes into buf2[4..12]: " + m);
+    println("buf2: '" + buf2.to_string() + "'");
+    println("  (expect 4 leading nulls, then '01234567', then 4 trailing nulls)");
+
+    fs_remove_file(path);
+    println("=== bytes done ===");
+}

@@ -6,7 +6,8 @@
       "Bash(Sort-Object FullName)",
       "Bash(Format-Table -AutoSize)",
       "Bash(cargo build *)",
-      "PowerShell(Get-Content \"c:\\\\Users\\\\ahmet\\\\Desktop\\\\Ellie-Language\\\\tools\\\\tests\\\\ffi\\\\windows.eia2\" | Select-Object -Index \\(439..496\\) | Where-Object { $_ -match \"^\\\\d+:\" } | Select-Object -Skip 3)"
+      "PowerShell(Get-Content \"c:\\\\Users\\\\ahmet\\\\Desktop\\\\Ellie-Language\\\\tools\\\\tests\\\\ffi\\\\windows.eia2\" | Select-Object -Index \\(439..496\\) | Where-Object { $_ -match \"^\\\\d+:\" } | Select-Object -Skip 3)",
+      "Bash(./target/release/ellie run *)"
     ]
   }
 }

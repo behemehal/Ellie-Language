@@ -1,0 +1,33 @@
+import "std";
+
+fn main() {
+    println("=== encoding / crypto tests ===");
+
+    // Known reference: sha256("hello") = 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+    println("sha256('hello'): " + crypto_sha256_hex("hello"));
+    println("  expected:       2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
+
+    // Known reference: sha512("hello") = 9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043
+    println("");
+    println("sha512('hello'): " + crypto_sha512_hex("hello"));
+    println("  expected:       9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043");
+
+    println("");
+    v b64 = base64_encode("Hello, World!");
+    println("base64('Hello, World!'): " + b64);
+    println("  expected:               SGVsbG8sIFdvcmxkIQ==");
+    println("base64 round-trip: " + base64_decode(b64));
+
+    println("");
+    v hex = hex_encode("ABC");
+    println("hex('ABC'): " + hex);
+    println("  expected: 414243");
+    println("hex round-trip: " + hex_decode(hex));
+
+    println("");
+    println("random_int(1, 100): " + random_int(1, 100));
+    println("random_int(1, 100): " + random_int(1, 100));
+    println("random_int(1, 100): " + random_int(1, 100));
+
+    println("=== crypto done ===");
+}

@@ -1,0 +1,31 @@
+import "std";
+
+fn main() {
+    println("=== TCP client test ===");
+
+    // httpforever.com — purpose-built for plain-HTTP demos, no HTTPS redirect.
+    v stream = tcp_connect("httpforever.com", 80, 5000);
+    tcp_set_read_timeout(stream, 5000);
+    tcp_set_write_timeout(stream, 5000);
+
+    println("connected to: " + tcp_peer_addr(stream));
+    println("local addr: "  + tcp_local_addr(stream));
+
+    v req = bytes_from_string("GET / HTTP/1.1\r\nHost: httpforever.com\r\nUser-Agent: ellie/0.1\r\nConnection: close\r\n\r\n");
+    v sent = tcp_write(stream, req, 0, req.len());
+    println("sent " + sent + " request bytes");
+
+    // Single read into a 4KB buffer — most responses fit; if not we just
+    // see what arrived. Returns bytes read.
+    v buf = bytes_alloc(4096);
+    v n = tcp_read(stream, buf, 0, 4096);
+    println("read " + n + " bytes");
+
+    v received = buf.slice(0, n);
+    println("");
+    println("--- response ---");
+    println(received.to_string());
+
+    tcp_close(stream);
+    println("=== TCP done ===");
+}

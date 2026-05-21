@@ -5,7 +5,82 @@ use ellie_engine::ellie_vm_gen2::{
     program::Program,
     thread::{Thread, VmExit},
 };
+use ellie_native_bridge::rust::{
+    EllieBytesHandle, EllieCtx, EllieHandle, ELLIE_RUST_ABI_VERSION,
+};
+use std::any::Any;
 use std::path::Path;
+
+fn debug_enabled() -> bool {
+    std::env::var_os("ELLIE_DEBUG").is_some()
+}
+
+// Platform-specific Library for raw-handle stashing across FFI calls.
+// Both windows and unix variants expose into_raw/from_raw with a pointer-sized handle.
+#[cfg(windows)]
+use libloading::os::windows::Library as PlatformLib;
+#[cfg(unix)]
+use libloading::os::unix::Library as PlatformLib;
+
+// ── EllieCtx impl backed by the gen2 heap ─────────────────────────────────────
+
+struct HeapCtx<'h> {
+    heap: &'h mut Heap,
+}
+
+impl<'h> EllieCtx for HeapCtx<'h> {
+    fn bytes_new(&mut self, data: Vec<u8>) -> EllieBytesHandle {
+        EllieBytesHandle(self.heap.alloc_bytes(data) as u64)
+    }
+    fn bytes_len(&self, h: EllieBytesHandle) -> usize {
+        self.heap.bytes_len(h.0 as usize).unwrap_or(0)
+    }
+    fn bytes_pos(&self, h: EllieBytesHandle) -> usize {
+        self.heap.bytes_pos(h.0 as usize).unwrap_or(0)
+    }
+    fn bytes_set_pos(&mut self, h: EllieBytesHandle, pos: usize) {
+        self.heap.bytes_set_pos(h.0 as usize, pos);
+    }
+    fn bytes_get(&self, h: EllieBytesHandle, i: usize) -> Option<u8> {
+        self.heap.bytes_get(h.0 as usize, i)
+    }
+    fn bytes_set(&mut self, h: EllieBytesHandle, i: usize, v: u8) -> bool {
+        self.heap.bytes_set(h.0 as usize, i, v)
+    }
+    fn bytes_view(&self, h: EllieBytesHandle) -> Option<&[u8]> {
+        self.heap.bytes_view(h.0 as usize)
+    }
+    fn bytes_clone(&self, h: EllieBytesHandle) -> Option<Vec<u8>> {
+        self.heap.bytes_clone(h.0 as usize)
+    }
+    fn bytes_mut_slice(
+        &mut self,
+        h: EllieBytesHandle,
+        offset: usize,
+        len: usize,
+    ) -> Option<&mut [u8]> {
+        self.heap.bytes_mut_slice(h.0 as usize, offset, len)
+    }
+    fn bytes_append(&mut self, h: EllieBytesHandle, src: &[u8]) -> bool {
+        self.heap.bytes_append(h.0 as usize, src)
+    }
+
+    fn handle_new(&mut self, value: Box<dyn Any + Send + Sync>) -> EllieHandle {
+        EllieHandle(self.heap.alloc_handle(value) as u64)
+    }
+
+    fn handle_view(&self, h: EllieHandle) -> Option<&(dyn Any + Send + Sync)> {
+        self.heap.handle_view(h.0 as usize)
+    }
+
+    fn handle_view_mut(&mut self, h: EllieHandle) -> Option<&mut (dyn Any + Send + Sync)> {
+        self.heap.handle_view_mut(h.0 as usize)
+    }
+
+    fn handle_drop(&mut self, h: EllieHandle) -> bool {
+        self.heap.handle_drop(h.0 as usize)
+    }
+}
 
 // ── Native bridge loader ──────────────────────────────────────────────────────
 //
@@ -16,7 +91,7 @@ use std::path::Path;
 // EllieFunction into a Gen2Module function so the gen2 VM can call it.
 
 fn load_bridge(path: &Path, program: &Program) -> Option<Gen2Module> {
-    use ellie_native_bridge::rust::{EllieData, EllieModule, FunctionAnswer};
+    use ellie_native_bridge::rust::{EllieModule, FunctionAnswer};
 
     let lib = unsafe {
         match libloading::Library::new(path) {
@@ -51,8 +126,19 @@ fn load_bridge(path: &Path, program: &Program) -> Option<Gen2Module> {
         m
     };
 
+    if ellie_mod.abi_version != ELLIE_RUST_ABI_VERSION {
+        eprintln!(
+            "[ellie] Bridge '{}' (module '{}') reports abi_version {}, expected {} — rejecting",
+            path.display(),
+            ellie_mod.name,
+            ellie_mod.abi_version,
+            ELLIE_RUST_ABI_VERSION
+        );
+        return None;
+    }
+
     let mod_name = ellie_mod.name.to_string();
-    let mut gen2_mod = Gen2Module::new(&mod_name);
+    let mut gen2_mod: Gen2Module = Gen2Module::new(&mod_name);
 
     for bridge_fn in ellie_mod.functions {
         let fn_name = bridge_fn.name.to_string();
@@ -65,10 +151,12 @@ fn load_bridge(path: &Path, program: &Program) -> Option<Gen2Module> {
         {
             Some(t) => t.function_hash,
             None => {
-                eprintln!(
-                    "[ellie] Bridge fn '{}' has no matching native trace — skipping",
-                    fn_name
-                );
+                if debug_enabled() {
+                    eprintln!(
+                        "[ellie] Bridge fn '{}' has no matching native trace — skipping",
+                        fn_name
+                    );
+                }
                 continue;
             }
         };
@@ -86,8 +174,9 @@ fn load_bridge(path: &Path, program: &Program) -> Option<Gen2Module> {
                 })
                 .collect();
 
-            match (callback)(params) {
-                FunctionAnswer::Ok(data) => ellie_data_to_gen2(data, heap),
+            let mut ctx = HeapCtx { heap };
+            match (callback)(&mut ctx, params) {
+                FunctionAnswer::Ok(data) => ellie_data_to_gen2(data, ctx.heap),
                 FunctionAnswer::RuntimeError(msg) => {
                     eprintln!("[ellie bridge] RuntimeError: {}", msg);
                     Gen2Value::Void
@@ -96,11 +185,13 @@ fn load_bridge(path: &Path, program: &Program) -> Option<Gen2Module> {
         });
     }
 
-    eprintln!(
-        "[ellie] Loaded bridge '{}' ({})",
-        mod_name,
-        path.display()
-    );
+    if debug_enabled() {
+        eprintln!(
+            "[ellie] Loaded bridge '{}' ({})",
+            mod_name,
+            path.display()
+        );
+    }
     Some(gen2_mod)
 }
 
@@ -136,8 +227,17 @@ fn raw_to_ellie_data(
         }
         TypeId::Reference => {
             let idx: usize = raw.into();
-            let s = heap.get_string(idx).unwrap_or("").to_string();
-            EllieData::String(s)
+            if heap.is_bytes(idx) {
+                EllieData::Bytes(EllieBytesHandle(idx as u64))
+            } else if heap.is_handle(idx) {
+                EllieData::Handle(EllieHandle(idx as u64))
+            } else if let Some(s) = heap.get_string(idx) {
+                EllieData::String(s.to_string())
+            } else {
+                // Class instance or unknown — pass as Null for now until
+                // EllieData::Class marshalling lands.
+                EllieData::Null
+            }
         }
         _ => EllieData::Null,
     }
@@ -181,6 +281,22 @@ fn ellie_data_to_gen2(
             Gen2Value::Raw(r)
         }
         EllieData::String(s) => Gen2Value::Str(s),
+        EllieData::Bytes(h) => {
+            let idx = h.0 as usize;
+            let mut r = zero_raw();
+            r.type_id = TypeId::Reference;
+            r.size = 8;
+            r.data.copy_from_slice(&idx.to_le_bytes());
+            Gen2Value::Raw(r)
+        }
+        EllieData::Handle(h) => {
+            let idx = h.0 as usize;
+            let mut r = zero_raw();
+            r.type_id = TypeId::Reference;
+            r.size = 8;
+            r.data.copy_from_slice(&idx.to_le_bytes());
+            Gen2Value::Raw(r)
+        }
         EllieData::Void => Gen2Value::Void,
         _ => Gen2Value::Void,
     }
@@ -264,9 +380,7 @@ pub fn build_core_module(program: &Program) -> Gen2Module {
                         let lib = libloading::Library::new(&path);
                         match lib {
                             Ok(lib) => {
-                                let handle =
-                                    libloading::os::windows::Library::from(lib).into_raw()
-                                        as isize;
+                                let handle = PlatformLib::from(lib).into_raw() as isize;
                                 Gen2Value::Raw(handle.into())
                             }
                             Err(e) => {
@@ -526,10 +640,12 @@ fn collect_string_array(
 }
 
 unsafe fn dispatch_ffi(handle_val: isize, fn_name: &str, fn_args: &[FnArg]) -> Gen2Value {
-    use libloading::os::windows::Library as WinLib;
     use std::ffi::CString;
 
-    let lib = WinLib::from_raw(handle_val);
+    #[cfg(windows)]
+    let lib = PlatformLib::from_raw(handle_val);
+    #[cfg(unix)]
+    let lib = PlatformLib::from_raw(handle_val as *mut std::ffi::c_void);
     let c_name = match CString::new(fn_name) {
         Ok(s) => s,
         Err(_) => { std::mem::forget(lib); return Gen2Value::Void; }

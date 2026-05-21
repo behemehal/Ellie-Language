@@ -1,0 +1,34 @@
+import "std";
+
+fn main() {
+    println("=== fs tests ===");
+
+    v path = "ellie_fs_scratch.txt";
+
+    println("write_file: " + fs_write_file(path, "Hello from Ellie!"));
+    println("exists: " + fs_exists(path));
+    println("is_file: " + fs_is_file(path));
+    println("is_dir: " + fs_is_dir(path));
+    println("size: " + fs_size(path));
+    println("contents: " + fs_read_file(path));
+
+    println("append: " + fs_append_file(path, " (more)"));
+    println("after append: " + fs_read_file(path));
+
+    v dir = "ellie_fs_scratch_dir";
+    println("create_dir_all nested: " + fs_create_dir_all(dir + "/sub"));
+    println("dir exists: " + fs_exists(dir));
+    println("dir is_dir: " + fs_is_dir(dir));
+
+    v entries = fs_read_dir(".");
+    println("read_dir('.') entry count: " + entries.len());
+
+    println("rename: " + fs_rename(path, "ellie_fs_scratch_renamed.txt"));
+    println("renamed exists: " + fs_exists("ellie_fs_scratch_renamed.txt"));
+
+    println("remove_file: " + fs_remove_file("ellie_fs_scratch_renamed.txt"));
+    println("remove_dir_all: " + fs_remove_dir_all(dir));
+    println("cleanup confirmed: exists=" + fs_exists("ellie_fs_scratch_renamed.txt"));
+
+    println("=== fs done ===");
+}

@@ -1,0 +1,29 @@
+import "std";
+
+fn main() {
+    println("=== time tests ===");
+
+    println("now_ms: " + time_now_ms());
+    println("now_s: " + time_now_s());
+    println("now_iso: " + time_now_iso());
+
+    // 2020-01-01 00:00:00 UTC = 1577836800000 ms
+    v ms = 1577836800000;
+    println("");
+    println("Reference: ms=" + ms + " (expected 2020-01-01 00:00:00 UTC)");
+    println("  year: "   + time_year(ms));
+    println("  month: "  + time_month(ms));
+    println("  day: "    + time_day(ms));
+    println("  hour: "   + time_hour(ms));
+    println("  minute: " + time_minute(ms));
+    println("  second: " + time_second(ms));
+    println("  format(%Y-%m-%d %H:%M:%S): " + time_format(ms, "%Y-%m-%d %H:%M:%S"));
+
+    // round-trip
+    v parsed = time_parse("2020-06-15 12:34:56", "%Y-%m-%d %H:%M:%S");
+    println("");
+    println("parse('2020-06-15 12:34:56', '%Y-%m-%d %H:%M:%S') → " + parsed);
+    println("  re-format: " + time_format(parsed, "%Y-%m-%dT%H:%M:%SZ"));
+
+    println("=== time done ===");
+}

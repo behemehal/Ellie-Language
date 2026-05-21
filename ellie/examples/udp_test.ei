@@ -1,0 +1,50 @@
+import "std";
+
+// UDP loopback self-test. Binds two sockets on localhost, sends a packet
+// between them, reads it back, prints the source. No external setup required.
+
+fn main() {
+    println("=== UDP loopback test ===");
+
+    // Bind to ephemeral ports (port 0 → OS picks).
+    v server = udp_bind("127.0.0.1", 0);
+    v client = udp_bind("127.0.0.1", 0);
+
+    v server_addr = udp_local_addr(server);
+    v client_addr = udp_local_addr(client);
+    println("server bound at " + server_addr);
+    println("client bound at " + client_addr);
+
+    // Discover server's port from its local_addr. Easier path for testing:
+    // parse out the trailing port. We just look it up from the OS-assigned
+    // local addr by trying a known route — for this test we'll send to
+    // localhost and the OS-picked port the server got. Since we don't have
+    // string parsing here, we just bind server on a fixed port we picked.
+    udp_close(server);
+    udp_close(client);
+
+    v port = 47215;
+    v srv = udp_bind("127.0.0.1", port);
+    v cli = udp_bind("127.0.0.1", 0);
+    udp_set_read_timeout(srv, 2000);
+
+    println("");
+    println("server listening on 127.0.0.1:" + port);
+
+    v msg = bytes_from_string("hello from udp!");
+    v sent = udp_send_to(cli, msg, 0, msg.len(), "127.0.0.1", port);
+    println("client sent " + sent + " bytes");
+
+    v rx = bytes_alloc(256);
+    v n = udp_recv_into(srv, rx, 0, 256);
+    println("server recv " + n + " bytes");
+    println("  from: " + udp_last_host(srv) + ":" + udp_last_port(srv));
+
+    // recv_into doesn't truncate the buffer to actual length; slice it.
+    v received = rx.slice(0, n);
+    println("  payload: '" + received.to_string() + "'");
+
+    udp_close(srv);
+    udp_close(cli);
+    println("=== UDP done ===");
+}
